@@ -1,0 +1,226 @@
+{%- comment -%}
+  Accepts:
+
+  - menu {Linklist}
+  - submenu {Linklist}
+  - section {Section}
+{%- endcomment -%}
+
+<header-drawer class="drawer drawer--start header__drawer{% unless section.settings.layout == 'header--nav-drawer' %} mobile-drawer large-up-hide{% endunless %}">
+  <details id="Navigation-drawer-{{- append_id -}}" class="drawer__container">
+    <summary
+      class="drawer__button svg-color-inherit"
+      id="Navigation-drawer-button-{{- append_id -}}"
+      aria-label="{{- 'actions.open_menu' | t -}}"
+      tabindex="0"
+    >
+      {% render 'icon', icon_name: 'theme-menu' %}
+      {% render 'icon', icon_name: 'theme-close' %}
+
+      <noscript>
+        {% render 'icon', icon_name: 'theme-arrow-close' %}
+      </noscript>
+    </summary>
+
+    <div class="drawer__content js-drawer" id="Navigation-menu-drawer-{{- append_id -}}" tabindex="-1">
+      <button
+        class="drawer__button-close header-drawer__button-close svg-color-inherit button-reset small-hide medium-hide no-js-hidden js-btn-close-drawer"
+        aria-label="{{- 'actions.close' | t -}}"
+      >
+        {% render 'icon', icon_name: 'theme-arrow-close' %}
+      </button>
+
+      <div class="drawer__row large-up-hide">
+        {%- render 'search', input_id: 'mobile' -%}
+      </div>
+
+      <div class="drawer__row drawer__row--gutter-lg">
+        <accordion-default class="accordion">
+          <nav class="drawer__nav">
+            <ul class="drawer__menu list-unstyled" role="list">
+              {%- for link in menu.links -%}
+                {%- assign link_item_index = forloop.index -%}
+                {%- assign menu_dropdown_images_size = 0 -%}
+
+                {%- capture menu_dropdown_images -%}
+                  {%- for block in section.blocks -%}
+                    {% unless block.type == 'menu-link-badge' %}
+                      {%- if link_item_index != block.settings.menu_item_position -%}
+                        {%- continue -%}
+                      {%- endif -%}
+
+                      {%- assign menu_dropdown_images_size = menu_dropdown_images_size | plus: 1 -%}
+
+                      <div class="card header__card color-{{ block.settings.color_scheme }} media-position--background">
+                        {% if block.settings.image != blank %}
+                          <div class="media media--overlay card__media">
+                            {%- render 'image', image: block.settings.image, image_url_width: 550 -%}
+                          </div>
+                        {% endif %}
+                        <div class="content justify-{{ block.settings.content_vertical_alignment }}">
+                          {%- if block.settings.card_title != blank -%}
+                            <h6 class="card__title h4">
+                              {{- block.settings.card_title -}}
+                            </h6>
+                          {%- endif -%}
+                          {%- if block.settings.card_link_type == 'button' and block.settings.card_button_text != blank  -%}
+                            {%- render 'button', type: 'link', class: 'button', button_style: 'button--text', value: block.settings.card_button_text, href: block.settings.card_button_url -%}
+                          {%- endif -%}
+                        </div>
+                        {%- if block.settings.card_link_type == 'card' and block.settings.card_button_url != blank -%}
+                          <a href="{{- block.settings.card_button_url -}}" class="link-type--card" role="button">
+                            <span class="visually-hidden">{{- block.settings.card_button_text -}}</span>
+                          </a>
+                        {%- endif -%}
+                      </div>
+                    {%- endunless -%}
+                  {%- endfor -%}
+                {%- endcapture -%}
+
+                <li class="drawer__menu-item">
+                  {%- if link.links.size > 0 or menu_dropdown_images_size > 0 -%}
+                    <details class="accordion__section" id="Details-menu-drawer-menu-item-{{- forloop.index -}}">
+                      <summary class="drawer__nav-link h4 js-btn{% if link.child_active %} is-current{% endif %}">
+                        {{- link.title | escape -}}
+                        {%- assign badge_rendered = false -%}
+                        {%- for block in section.blocks -%}
+                          {%- if block.type == 'menu-link-badge' and link_item_index == block.settings.menu_item_position and badge_rendered == false -%}
+                            <div class="header__nav-link--badge{% if block.settings.badge_style == 'badge--round' %} header__nav-link--badge-rounded{% endif %}">
+                              {{ block.settings.badge_label }}
+                            </div>
+                            {%- assign badge_rendered = true -%}
+                          {%- endif -%}
+                        {%- endfor -%}
+                        {% render 'icon', icon_name: 'theme-chevron' %}
+                      </summary>
+                      <div class="accordion__body" id="link-{{- link.title | handleize -}}">
+                        <div class="drawer__submenu-first">
+                          {%- if link.links.size > 0 -%}
+                            <ul class="drawer__menu list-unstyled" role="list">
+                              {%- for child_link in link.links -%}
+                                <li class="drawer__submenu-first-item">
+                                  {%- if child_link.links.size > 0 and section.settings.drawer_layer -%}
+                                    <button class="drawer__submenu-btn {% if child_link.links.current %} is-current{% endif %}">
+                                      {{- child_link.title | escape -}}
+                                      {% render 'icon', icon_name: 'theme-chevron' %}
+                                    </button>
+                                  {%- else -%}
+                                    <a
+                                      href="{{- child_link.url -}}"
+                                      class="drawer__submenu-link color-body-text"
+                                      {% if child_link.current %}aria-current="page"{% endif %}
+                                      role="button"
+                                    >
+                                      {{- child_link.title | escape -}}
+                                    </a>
+                                  {%- endif -%}
+                                  {%- if child_link.links.size > 0 -%}
+                                    <div class="drawer__submenu-second {% if section.settings.drawer_layer %} drawer__submenu-layer{% endif %}" id="childlink-{{- child_link.title | handle -}}">
+                                      <ul class="drawer__menu list-unstyled" role="list" tabindex="-1">
+                                        {%- for grand_child_link in child_link.links -%}
+                                          <li class="drawer__submenu-second-item">
+                                            <a
+                                              href="{{- grand_child_link.url -}}"
+                                              class="drawer__submenu-link{% if grand_child_link.current %} is-current{% endif %}"
+                                              {% if grand_child_link.current %}aria-current="page"{% endif %}
+                                              title="{{- grand_child_link.title | escape -}}"
+                                              role="button"
+                                            >
+                                              {{- grand_child_link.title | escape -}}
+                                            </a>
+                                          </li>
+                                        {%- endfor -%}
+                                      </ul>
+                                    </div>
+                                  {%- endif -%}
+                                </li>
+                              {%- endfor -%}
+                            </ul>
+                          {%- endif -%}
+
+                          {%- if menu_dropdown_images_size > 0 -%}
+                            <div class="drawer__grid">
+                              {{ menu_dropdown_images }}
+                            </div>
+                          {%- endif -%}
+                        </div>
+                      </div>
+                    </details>
+                  {%- else -%}
+                    <a href="{{- link.url -}}" class="drawer__nav-link h4{% if link.current %} is-current{% endif %}" {% if link.current %}aria-current="page"{% endif %} role="button">
+                      {{- link.title | escape -}}
+                      {%- assign badge_rendered = false -%}
+                      {%- for block in section.blocks -%}
+                        {%- if block.type == 'menu-link-badge' and link_item_index == block.settings.menu_item_position and badge_rendered == false -%}
+                          {% style %}
+                            .drawer__menu-item > .drawer__nav-link {
+                              justify-content: start;
+                            }
+                          {% endstyle %}
+                          <div class="header__nav-link--badge{% if block.settings.badge_style == 'badge--round' %} header__nav-link--badge-rounded{% endif %}">
+                            {{ block.settings.badge_label }}
+                          </div>
+                          {%- assign badge_rendered = true -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                    </a>
+                  {%- endif -%}
+                </li>
+              {%- endfor -%}
+            </ul>
+          </nav>
+        </accordion-default>
+      </div>
+
+      {%- if submenu != blank -%}
+        <div class="drawer__row">
+          <nav class="drawer__subnav">
+            <ul class="list-unstyled">
+              {%- for link in submenu.links -%}
+                <li class="drawer__subnav-item">
+                  <a
+                    href="{{- link.url -}}"
+                    class="drawer__subnav-link h5{% if link.current %} is-current{% endif %}"
+                    {% if link.current %}aria-current="page"{% endif %}
+                    role="button"
+                  >
+                    {{- link.title | escape -}}
+                  </a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </nav>
+        </div>
+      {%- endif -%}
+
+      <div class="drawer__row">
+        <nav class="drawer__utils">
+          <ul class="drawer__utils-items list-unstyled">
+            <li class="drawer__utils-item">
+              <a
+                href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}"
+                class="drawer__utils-link h5"
+                title="{%- if customer -%}{{ 'accessibility.account' | t }}{%- else -%}{{ 'accessibility.sign_in' | t }}{%- endif -%}"
+                role="button"
+              >
+                {{- 'header.navigation_drawer.account_link' | t -}}
+              </a>
+            </li>
+
+            {%- if section.settings.country_drawer_navigation_menu -%}
+              <li class="drawer__utils-item">
+                <menu-drawer class="drawer">
+                  {%- render 'country-drawer',
+                    button_class: ' drawer__utils-link h5',
+                    section: section,
+                    append_id: 'header-drawer'
+                  -%}
+                </menu-drawer>
+              </li>
+            {%- endif -%}
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </details>
+</header-drawer>

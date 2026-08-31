@@ -1,0 +1,221 @@
+{%- liquid
+  assign product_image_width = 64
+  if on == 'card'
+    assign product_image_width = 24
+  endif
+
+  assign product_groups_metaobject = metaobjects[settings.metaobject_for_product_groups]
+  assign product_options_type_values_metaobject = metaobjects[settings.metaobject_for_product_options_type_values]
+
+  assign groups_has_this_product = ''
+  assign product_groups_count = product_groups_metaobject.values.count | times: 1
+
+  paginate product_groups_metaobject.values by product_groups_count
+  for product_group in product_groups_metaobject.values
+    assign product_group_product_count = product_group.group.value.count | times: 1
+    paginate product_group.group.value by product_group_product_count
+      for product_group_product in product_group.group.value
+        if product_group_product.id == product.id
+          assign groups_has_this_product = groups_has_this_product | append: product_group.system.handle | append: ','
+        endif
+      endfor
+    endpaginate
+  endfor
+  endpaginate
+
+  assign groups_has_this_product_arr = groups_has_this_product | split: ','
+-%}
+
+<div class="product__product-groups product-groups">
+  <div data-debug-container-rendered></div>
+  {%- for group_has_this_product in groups_has_this_product_arr -%}
+    {%- assign group_metaobject = metaobjects['product_groups'][group_has_this_product] -%}
+    <fieldset class="product-options product__product-group product__variant-options">
+      {% if on != 'card' %}
+        {%- liquid
+          assign type_on_card = group_metaobject.type_on_card | handleize
+          assign type_on_page = group_metaobject.type_on_page | handleize
+
+          assign custom_label = ''
+          assign custom_label_on_page = false
+          if group_metaobject.custom_label_on_page.value == true
+            assign custom_label_on_page = true
+          endif
+
+          if custom_label_on_page
+            assign product_title = product.title | downcase
+            assign current_type_for_label_check = type_on_page
+            if on == 'card'
+              assign current_type_for_label_check = type_on_card
+            endif
+
+            if current_type_for_label_check == 'swatch'
+              assign color_pattern_count = metaobjects['shopify--color-pattern'].values.count | times: 1
+              paginate metaobjects['shopify--color-pattern'].values by color_pattern_count
+                assign longest_match_label = ''
+                for product_option_type_value in metaobjects['shopify--color-pattern'].values
+                  assign product_option_type_value_text = product_option_type_value.label | strip | downcase
+                  if product_title contains product_option_type_value_text
+                    if product_option_type_value_text.size > longest_match_label.size
+                      assign longest_match_label = product_option_type_value_text
+                    endif
+                  endif
+                endfor
+                assign custom_label = longest_match_label
+              endpaginate
+            else
+              assign product_options_type_values_count = product_options_type_values_metaobject.values.count | times: 1
+              paginate product_options_type_values_metaobject.values by product_options_type_values_count
+                assign longest_match_label = ''
+                for product_option_type_value in product_options_type_values_metaobject.values
+                  assign product_option_type_value_text = product_option_type_value.text | default: product_option_type_value.name | strip | downcase
+                  if product_title contains product_option_type_value_text
+                    if product_option_type_value_text.size > longest_match_label.size
+                      assign longest_match_label = product_option_type_value_text
+                    endif
+                  endif
+                endfor
+                assign custom_label = longest_match_label
+              endpaginate
+            endif
+          endif
+
+          if custom_label == ''
+            assign custom_label_on_page = false
+          endif
+        -%}
+        <legend class="form__label">
+          {{ group_metaobject.group_by_option }}
+          <span data-current-product>
+            {%- if custom_label_on_page -%}
+              {{ custom_label }}
+            {%- else -%}
+              {{ product.title }}
+            {%- endif -%}
+          </span>
+        </legend>
+      {% endif %}
+
+      {%- liquid
+        assign current_group_type = ''
+        if on == 'card'
+          assign current_group_type = group_metaobject.type_on_card | handleize
+        elsif on == 'product'
+          assign current_group_type = group_metaobject.type_on_page | handleize
+        endif
+        assign group_products_count = group_metaobject.group.value.count | times: 1
+      -%}
+
+      {%- if on == 'card' -%}
+        <div data-debug-on-variable="{{ on }}"></div>
+        <div data-debug-group-handle="{{ group_has_this_product }}"></div>
+        <div data-debug-type-on-card="{{ group_metaobject.type_on_card }}"></div>
+        <div data-debug-group-value-count="{{ group_metaobject.group.value.size }}"></div>
+      {%- endif -%}
+
+      <div class="product-options__value-list">
+        {%- paginate group_metaobject.group.value by group_products_count -%}
+          {%- for group_metaobject_product in group_metaobject.group.value -%}
+            {%- assign group_metaobject_product_current = '' -%}
+            {%- if group_metaobject_product.id == product.id -%}
+              {%- assign group_metaobject_product_current = 'is-active' -%}
+            {%- endif -%}
+
+            {%- liquid
+              assign found_option_value_text = ''
+              assign found_option_value_image = nil
+              assign found_option_value_color = nil
+
+              assign current_product_title = group_metaobject_product.title | downcase
+
+              if current_group_type == 'swatch'
+                assign color_pattern_count = metaobjects['shopify--color-pattern'].values.count | times: 1
+                paginate metaobjects['shopify--color-pattern'].values by color_pattern_count
+                  assign longest_match_text = ''
+                  assign longest_match_image = nil
+                  assign longest_match_color = nil
+                  for product_option_type_value in metaobjects['shopify--color-pattern'].values
+                    assign value_text_candidate = product_option_type_value.label | strip | downcase
+                    if current_product_title contains value_text_candidate
+                      if value_text_candidate.size > longest_match_text.size
+                        assign longest_match_text = value_text_candidate
+                        if product_option_type_value.image
+                          assign longest_match_image = product_option_type_value.image
+                        else
+                          assign longest_match_color = product_option_type_value.color
+                        endif
+                      endif
+                    endif
+                  endfor
+                  assign found_option_value_text = longest_match_text
+                  assign found_option_value_image = longest_match_image
+                  assign found_option_value_color = longest_match_color
+                endpaginate
+              else
+                assign product_options_type_values_count = product_options_type_values_metaobject.values.count | times: 1
+                paginate product_options_type_values_metaobject.values by product_options_type_values_count
+                  assign longest_match_text = ''
+                  assign longest_match_image = nil
+                  for product_option_type_value in product_options_type_values_metaobject.values
+                    assign value_text_candidate = product_option_type_value.text | default: product_option_type_value.name | strip | downcase
+                    if current_product_title contains value_text_candidate
+                      if value_text_candidate.size > longest_match_text.size
+                        assign longest_match_text = value_text_candidate
+                        if product_option_type_value.image
+                          assign longest_match_image = product_option_type_value.image
+                        endif
+                      endif
+                    endif
+                  endfor
+                  assign found_option_value_text = longest_match_text
+                  assign found_option_value_image = longest_match_image
+                endpaginate
+              endif
+            -%}
+
+
+            {% if current_group_type == 'image' %}
+              <div class="product-options__item product-options__item--image swatch--square {{ group_metaobject_product_current }}">
+                <a href="{{ group_metaobject_product.url }}" class="product-options__label" title="{{ group_metaobject_product.title }}">
+                  <div class="media">
+                    {% if found_option_value_image %}
+                      {% render 'image', image: found_option_value_image, width: product_image_width %}
+                    {% else %}
+                      {% render 'image', image: group_metaobject_product.featured_image, width: product_image_width %}
+                    {% endif %}
+                  </div>
+                </a>
+              </div>
+            {% elsif current_group_type == 'swatch' %}
+              <div class="product-options__item product-options__item--swatch swatch--{{ settings.swatch_shape }} {{ group_metaobject_product_current }}">
+                <a href="{{ group_metaobject_product.url }}" class="product-options__label" title="{{ group_metaobject_product.title }}">
+                  <div class="media">
+                    {% if found_option_value_image %}
+                      {{ found_option_value_image | metafield_tag }}
+                    {% elsif found_option_value_color %}
+                      <span class="product-options__swatch-color" style="background-color: {{ found_option_value_color }}"></span>
+                    {% endif %}
+                  </div>
+                </a>
+              </div>
+            {% elsif current_group_type == 'text' %}
+              <div class="product-options__item product-options__item--text {{ group_metaobject_product_current }}">
+                <a href="{{ group_metaobject_product.url }}" class="product-options__label product-option__only-text" title="{{ group_metaobject_product.title }}">
+                  {{ found_option_value_text }}
+                </a>
+              </div>
+            {% else %}
+              <div class="product-options__item product-options__item--swatch swatch--square {{ group_metaobject_product_current }}">
+                <a href="{{ group_metaobject_product.url }}" class="product-options__label" title="{{ group_metaobject_product.title }}">
+                  <div class="media">
+                    {% render 'image', image: group_metaobject_product.featured_image, width: product_image_width %}
+                  </div>
+                </a>
+              </div>
+            {% endif %}
+          {%- endfor -%}
+        {%- endpaginate -%}
+      </div>
+    </fieldset>
+  {%- endfor -%}
+</div>

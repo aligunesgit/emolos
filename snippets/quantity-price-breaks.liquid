@@ -1,0 +1,63 @@
+{% comment %}
+    Renders a B2B quantity price-break (volume pricing) table for a variant.
+    Only renders when a customer is logged in AND the variant has price breaks
+    configured on the customer's catalog.
+
+    Accepts:
+    - variant: {Object} Variant object (required)
+    - layout: {String} 'default' (table-style block) | 'compact' (inline pill list). Default 'default'.
+    - show_heading: {Boolean} Show heading row. Default true.
+
+    Usage:
+    {% render 'quantity-price-breaks', variant: variant %}
+{% endcomment %}
+
+{%- liquid
+  assign vpb_render = false
+
+  if variant != blank
+    assign vpb_breaks = variant.quantity_price_breaks
+    if vpb_breaks.size > 0
+      for tier in vpb_breaks
+        if tier.price < variant.price
+          assign vpb_render = true
+          break
+        endif
+      endfor
+    endif
+  endif
+-%}
+
+{%- if vpb_render -%}
+  {%- liquid
+    assign vpb_layout = layout | default: 'default'
+    assign vpb_min_qty = 1
+    if variant.quantity_rule.min
+      assign vpb_min_qty = variant.quantity_rule.min
+    endif
+    assign vpb_show_heading = true
+    if show_heading == false
+      assign vpb_show_heading = false
+    endif
+  -%}
+
+  <div class="volume-pricing volume-pricing--{{ vpb_layout }}" data-volume-pricing>
+    {%- if vpb_show_heading -%}
+      <p class="volume-pricing__title caption caption--small">
+        {{- 'products.product.volume_pricing.title' | t -}}
+      </p>
+    {%- endif -%}
+    <ul class="volume-pricing__list" role="list">
+      <li class="volume-pricing__row">
+        <span class="volume-pricing__qty">{{ vpb_min_qty }}+</span>
+        <span class="volume-pricing__price">{{- variant.price | money_with_currency -}}</span>
+      </li>
+      {%- for tier in vpb_breaks -%}
+        <li class="volume-pricing__row">
+          <span class="volume-pricing__qty">{{ tier.minimum_quantity }}+</span>
+          <span class="volume-pricing__price">{{- tier.price | money_with_currency -}}</span>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+{%- endif -%}

@@ -1,0 +1,155 @@
+{% comment %}
+  Renders quick order list for bulk add to cart
+  Accepts:
+  - product: {Object} Product object
+  - section_id: {String} Section ID
+  - bulk_mode: {Boolean} Optional. When true, defers cart updates until the Add to Cart button is clicked
+    (same behavior as inside the quick-add modal). Used on PDP.
+{% endcomment %}
+
+{%- liquid
+  assign product_id = product.id
+  assign current_variant = product.selected_or_first_available_variant
+-%}
+
+<quick-order-list
+  id="quick-order-list-{{ section_id }}-{{ product.id }}"
+  class="quick-order-list"
+  data-section="{{ section_id }}"
+  data-product-id="{{ product.id }}"
+  data-url="{{ product.url }}"
+  {% if bulk_mode %}data-bulk-mode="true"{% endif %}
+>
+<form class="quick-order-list-form">
+  <div id="shopping-cart-variant-item-status" aria-hidden="true" class="visually-hidden" role="status">
+    {{ 'products.product.quick_order_list.loading' | t }}
+  </div>
+  <div class="quick-order-list__contents">
+    <div class="quick-order-list__table-wrapper">
+      <table class="quick-order-list__table">
+        <thead>
+          <tr>
+            <th scope="col">{{ 'products.product.quick_order_list.variant' | t }}</th>
+            <th scope="col">{{ 'products.product.quick_order_list.quantity' | t }}</th>
+            <th scope="col">{{ 'products.product.quick_order_list.price' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {%- for variant in product.variants -%}
+            <tr class="quick-order-list__row{% unless variant.available %} variant-sold-out{% endunless %}">
+              <td class="quick-order-list__variant">
+                <div class="variant-item__details">
+                  {% if variant.image %}
+                    <img
+                      src="{{ variant.image | image_url: width: 60 }}"
+                      alt="{{ variant.image.alt | escape }}"
+                      width="60"
+                      height="60"
+                      loading="lazy"
+                    >
+                  {% endif %}
+                  <div>{{ variant.title }}</div>
+                </div>
+              </td>
+              <td class="quick-order-list__quantity">
+                {% if variant.available %}
+                  {%- liquid
+                    assign rule_min = variant.quantity_rule.min | default: 1
+                    assign rule_max = variant.quantity_rule.max
+                    assign rule_step = variant.quantity_rule.increment | default: 1
+                  -%}
+                  <quick-add-bulk
+                    data-min="{{ rule_min }}"
+                    data-max="{{ rule_max }}"
+                    data-step="{{ rule_step }}"
+                    data-rule-min-message="{{ 'products.product.quantity.rule_min_sentence' | t: count: rule_min }}"
+                    data-rule-step-message="{{ 'products.product.quantity.rule_step_sentence' | t: count: rule_step }}"
+                    data-rule-max-message="{%- if rule_max -%}{{ 'products.product.quantity.rule_max_sentence' | t: count: rule_max }}{%- endif -%}"
+                    data-variant-title="{{ variant.title | escape }}"
+                    id="quick-add-bulk-{{ variant.id }}-{{ section_id }}-{{ product.id }}"
+                    class="quick-add-bulk"
+                    data-index="{{ variant.id }}"
+                  >
+                    {%- render 'quantity-input',
+                      product_ref: product,
+                      hide_label: true,
+                      value: 0,
+                      min: 0,
+                      step: rule_step,
+                      rule_min: rule_min,
+                      rule_max: rule_max,
+                      rule_step: rule_step,
+                      allow_zero: true
+                    -%}
+                  </quick-add-bulk>
+                {% else %}
+                  <p class="variant-sold-out-text">{{ 'products.product.sold_out' | t }}</p>
+                {% endif %}
+              </td>
+              <td class="quick-order-list__price"
+                  data-base-price="{{ variant.price | money | escape }}"
+                  data-base-price-amount="{{ variant.price }}">
+                {%- if variant.quantity_price_breaks.size > 0 -%}
+                  <script type="application/json" data-tier-breaks>
+                    [
+                      {%- for tier in variant.quantity_price_breaks -%}
+                        { "min": {{ tier.minimum_quantity }}, "price": {{ tier.price | money | json }} }{%- unless forloop.last -%},{%- endunless -%}
+                      {%- endfor -%}
+                    ]
+                  </script>
+                {%- endif -%}
+                <div class="variant-item__price-wrapper">
+                  <div class="price
+                    {%- if variant.available == false %} price--sold-out{% endif -%}
+                    {%- if variant.compare_at_price > variant.price %} price--on-sale{% endif -%}
+                  ">
+                    <div class="price__container">
+                      {%- if variant.compare_at_price > variant.price -%}
+                        <div class="price__sale">
+                          <div class="price__sale-inner">
+                            <span class="visually-hidden">{{ 'products.product.price.regular_price' | t }}</span>
+                            <del>{{ variant.compare_at_price | money }}</del>
+                            <span class="visually-hidden">{{ 'products.product.price.sale_price' | t }}</span>
+                            <ins data-current-price>{{ variant.price | money }}</ins>
+                          </div>
+                        </div>
+                      {%- else -%}
+                        <div class="price__regular">
+                          <span class="visually-hidden">{{ 'products.product.price.regular_price' | t }}</span>
+                          <span data-current-price>{{ variant.price | money }}</span>
+                        </div>
+                      {%- endif -%}
+                      {%- if variant.unit_price_measurement -%}
+                        <div class="product__notice caption caption--small">
+                          <span class="visually-hidden">{{ 'products.product.quick_order_list.unit_price' | t }}</span>
+                          {{ variant.unit_price | money }}
+                          <span aria-hidden="true">/</span>
+                          {%- if variant.unit_price_measurement.reference_value != 1 -%}
+                            {{ variant.unit_price_measurement.reference_value }}
+                          {%- endif -%}
+                          {{ variant.unit_price_measurement.reference_unit }}
+                        </div>
+                      {%- endif -%}
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          {%- endfor -%}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="quick-order-list__total">
+      {%-
+        liquid
+        assign value = 'products.product.add_to_cart' | t
+        render 'button', type: 'button', name: 'modal-atc', value: value, style: 'solid', fullwidth: true, class: 'quick-order-list__add-to-cart button', disabled: true
+        assign value = nil
+      -%}
+    </div>
+
+    <div class="quick-order-list-error caption caption--small" data-quick-order-list-error role="alert" hidden></div>
+  </div>
+</form>
+</quick-order-list>

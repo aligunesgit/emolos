@@ -1,0 +1,21 @@
+{{ 'component-back-to-top.css' | asset_url | stylesheet_tag }}
+
+{% assign position_from_bottom = '2.5rem' %}
+
+{% style %}
+	.back-to-top {
+		position: fixed;
+		inset-block-end: {{ position_from_bottom }};
+		inset-inline-end: {{ position_from_bottom }};
+	}
+{% endstyle %}
+
+<back-to-top class="hide">
+	<button
+		href="#"
+		class="button back-to-top {{ settings.button_primary_style }}"
+		style="border-radius: {{ settings.button_border_radius }}"
+	>
+		{% render 'icon', icon_name: 'theme-chevron' %}
+	</button>
+</back-to-top>

@@ -1,0 +1,54 @@
+{%- assign order_ref = order_ref -%}
+
+<div class="account-card {{ class }}">
+  {%- unless hide_title -%}
+    <h3 class="account-card__title h5">
+      {{- 'customer.account.last_order' | t -}}
+    </h3>
+  {%- endunless -%}
+
+  <div class="account-card__row">
+    <h6 class="account-card__subtitle">{{- 'customer.orders.order' | t -}}</h6>
+
+    <p class="account-card__text">
+      {{- order_ref.name -}}
+    </p>
+  </div>
+
+  <div class="account-card__row">
+    <h6 class="account-card__subtitle">{{- 'customer.orders.order_date' | t -}}</h6>
+
+    <p class="account-card__text">
+      {{- order_ref.created_at | date: format: 'short' -}}
+    </p>
+  </div>
+
+  <div class="account-card__row">
+    <h6 class="account-card__subtitle">{{- 'customer.orders.payment_status' | t -}}</h6>
+
+    <p class="account-card__text">
+      {{- order_ref.financial_status_label -}}
+    </p>
+  </div>
+
+  <div class="account-card__row">
+    <h6 class="account-card__subtitle">{{- 'customer.orders.shipping_status' | t -}}</h6>
+
+    <p class="account-card__text">
+      {{- order_ref.fulfillment_status_label -}}
+    </p>
+  </div>
+
+  <div class="account-card__row">
+    <h6 class="account-card__subtitle">{{- 'customer.orders.total' | t -}}</h6>
+
+    <p class="account-card__text">
+      {{- order_ref.total_price | money -}}
+    </p>
+  </div>
+
+  <div class="account-card__actions">
+    {%- assign value = 'customer.orders.view_order' | t -%}
+    {%- render 'button', type: 'link', href: order_ref.customer_url, value: value -%}
+  </div>
+</div>

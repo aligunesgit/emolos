@@ -1,0 +1,457 @@
+{{ 'section-store-locator.css' | asset_url | stylesheet_tag }}
+{%- render 'section-common-styles', section: section -%}
+
+{% if section.blocks.size > 1 %}
+  <script src="{{ 'store-locator-filter.js' | asset_url }}" defer="defer"></script>
+{% endif %}
+<script src="{{- 'store-locator-slider.js' | asset_url -}}" defer="defer"></script>
+
+{% style %}
+  #shopify-section-{{ section.id }} > * {
+    --section-height: {{ section.settings.section_height | default: '40' | append: 'vw' }};
+    --section-gap-between-tiles: {{ section.settings.gap_between_tiles | default: '0.2' | append: 'rem' }};
+  }
+  @media screen and (min-width: 750px) {
+    #shopify-section-{{ section.id }} .store-locator__container {
+      {% if section.settings.section_height != blank and section.settings.section_height != 0 %}
+        max-height: {{ section.settings.section_height }}vh;
+      {% else %}
+        max-height: auto;
+      {% endif %}
+    }
+  }
+{% endstyle %}
+
+{%- if section.settings.layout == 'full' -%}
+  {%- assign section_map_additional_classes = 'store-locator__container__full-map' -%}
+{%- endif -%}
+
+<div class="section section-new overflow-hidden js-animation-fade-in {% if section.settings.layout == 'image_and_sidebar' %} store-locator__image_sidebar{% endif %} color-{{ section.settings.color_scheme }} gradient isolate">
+  <div class="container max-w-{{- section.settings.section_width -}}">
+    <div class="store-locator__container {% if section.settings.layout == 'map' %} store-locator__container__map{% endif %}">
+
+      <aside class="store-locator__aside{% if section.settings.layout == 'map' %} store-locator__sidebar-hidden{% endif %}{% if section.blocks.size <= 1 %} store-locator__aside__single-tile{% endif %} color-{{ section.settings.color_scheme_find_store }}">
+
+      {% if section.blocks.size > 1 %}
+        <div class="store-locator__card-header color-{{ section.settings.color_scheme_find_store }}">
+          <h3 class="store-locator__card-header__title">
+            {{ 'store_locator.search_bar.title' | t }}
+          </h3>
+          <div class="store-locator__form-container">
+            <div class="form-row">
+              {%- liquid
+                assign placeholder = 'store_locator.search_bar.search_by_location' | t
+                render 'text-input', id: 'search-store-locator', type: 'search', name: 'search-store-locator', placeholder: placeholder, class: 'store-locator__card-header__input', attr: 'autocomplete="off"'
+              assign placeholder = nil
+              -%}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      {%- if section.blocks.size > 0 -%}
+        <div class="store-locator__card-content store-locator__card-content-aside scrollbar {% if section.blocks.size <= 1 %} store-locator__card-content__single-tile{% endif %} color-{{ section.settings.color_scheme_store_container }}">
+          {% for block in section.blocks %}
+            {% liquid
+              assign store_latitude_string = block.settings.store_latitude | times: 1
+              assign store_longitude_string =  block.settings.store_longitude | times: 1
+
+              assign store_link = block.settings.store_pin_link
+              if block.settings.store_pink_link == blank
+                assign store_link = ''
+                assign store_link = store_link | append: 'https://www.google.com/maps/dir/?api=1&destination=latitude,longitude'
+                assign store_link = store_link | replace: 'latitude', store_latitude_string
+                assign store_link = store_link | replace: 'longitude', store_longitude_string
+              endif
+
+              assign store_address_br = block.settings.store_address | newline_to_br
+            %}
+
+            <div class="store-locator-cards__tile  store-locator-cards__aside-filtered color-{{ block.settings.color_scheme }} gradient isolate {% if section.blocks.size <= 1 %}store-locator-cards__single-tile{% endif %}" data-image-number={{ forloop.index }}>
+              {% render 'store-locator-pin', storeName: block.settings.title, storeAddress: store_address_br, storeOpeningHours: block.settings.store_opening_hours, storePin: block.settings.store_pin, storeLink: store_link, storeTel: block.settings.store_tel, buttonStyle: block.settings.button_style, coordinateTitle: block.settings.coordinate_title,
+              storeLongitude: block.settings.store_longitude, storeLatitude: block.settings.store_latitude %}
+            </div>
+          {% endfor %}
+        </div>
+      {%- endif -%}
+
+      {%- assign data_swiper_options = '{"spaceBetweenDesktop": 16, "spaceBetweenMobile": 16}' -%}
+
+      {% if section.blocks.size > 0 %}
+        <div class="store-locator__slider-container">
+          <div class="store-locator-cards">
+            <div class="store-locator__cards-container">
+                <store-locator-slider id="store-locator-slider" class="swiper store-locator-cards__swiper" data-swiper-options='{{- data_swiper_options -}}'>
+                  <div class="swiper-wrapper store-locator-cards__swiper-wrapper">
+                    {% for block in section.blocks %}
+                      {%- assign store_address_br = block.settings.store_address | newline_to_br -%}
+                      <div class="swiper-slide store-locator-cards__swiper-slide store-locator-cards__filtered color-{{ block.settings.color_scheme }} gradient isolate" data-image-number={{ forloop.index }}>
+                        <div class="store-locator-cards__tile js-animation-fade-in">
+                          {% render 'store-locator-pin', storeName: block.settings.title, storeAddress: store_address_br, storeOpeningHours: block.settings.store_opening_hours, storePin: block.settings.store_pin, storeLink: directions_link, storeTel: block.settings.store_tel, buttonStyle: block.settings.button_style %}
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </store-locator-slider>
+            </div>
+          </div>
+      </div>
+      {% endif %}
+
+      </aside>
+
+      {%- if section.settings.layout != 'image_and_sidebar' -%}
+        <div class="store-locator__map-container {{ section_map_additional_classes }}">
+          <div id="google_map"
+            class="store-locator-google-map"
+            data-map-pin-icon="{{ 'icon-map-pin.svg' | asset_url }}"
+          ></div>
+          <div id="map-zoom-level">{{ section.settings.zoom_level }}</div>
+        </div>
+        <script src="https://maps.googleapis.com/maps/api/js?key={{ section.settings.api_key | default: '' }}&callback=initiateGoogleMap" async="" defer="defer"></script>
+      {%- endif -%}
+
+      {%- if section.settings.layout == 'image_and_sidebar' -%}
+        <div class="store-locator__image-container">
+          {% for block in section.blocks %}
+            <span data-image-number={{ forloop.index }} class="store-locator__image-selector">
+              {%- liquid
+                if block.settings.store_image != blank
+                  render 'image', image: block.settings.store_image, class: 'store-locator__image-container__image'
+                else
+                  echo 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg store-locator__image-container__image'
+                endif
+              -%}
+            </span>
+          {% endfor %}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+<script src="{{ 'google-map.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "t:sections.store-locator.name",
+  "tag": "section",
+  "class": "section-store-locator",
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.store-locator.settings.section_layout.caption"
+    },
+    {
+      "type": "range",
+      "id": "section_height",
+      "label": "t:sections.store-locator.settings.section_height.label",
+      "info": "t:sections.store-locator.settings.section_height.info",
+      "min": 25,
+      "max": 100,
+      "step": 5,
+      "unit": "vh",
+      "default": 60
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "t:sections.store-locator.settings.map_layout.label",
+      "options": [
+        {
+          "value": "map_and_sidebar",
+          "label": "t:sections.store-locator.settings.map_layout.options.layout_map_sidebar.label"
+        },
+        {
+          "value": "image_and_sidebar",
+          "label": "t:sections.store-locator.settings.map_layout.options.layout_image_sidebar.label"
+        },
+        {
+          "value": "map",
+          "label": "t:sections.store-locator.settings.map_layout.options.layout_map.label"
+        }
+      ],
+      "default": "image_and_sidebar"
+    },
+    {
+     "type": "color_scheme",
+      "id": "color_scheme_find_store",
+      "label": "t:sections.store-locator.settings.color_scheme_find_store.label",
+      "default": "scheme-4"
+    },
+    {
+     "type": "color_scheme",
+      "id": "color_scheme_store_container",
+      "label": "t:sections.store-locator.settings.color_scheme_store_container.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.store-locator.settings.header_map.content"
+    },
+    {
+      "type": "textarea",
+      "id": "api_key",
+      "label": "t:sections.store-locator.settings.api_key.label",
+      "info": "t:sections.store-locator.settings.api_key.info"
+    },
+    {
+      "type": "range",
+      "id": "zoom_level",
+      "min": 0,
+      "max": 21,
+      "step": 1,
+      "label": "t:sections.map.settings.zoom_level.label",
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:global.settings.section.width.label",
+      "options": [
+        {
+          "value": "page",
+          "label": "t:global.settings.section.width.options.page.label"
+        },
+        {
+          "value": "fluid",
+          "label": "t:global.settings.section.width.options.fluid.label"
+        },
+        {
+          "value": "full",
+          "label": "t:global.settings.section.width.options.full.label"
+        }
+      ],
+      "default": "page"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top",
+      "label": "t:global.settings.spacing.top.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom",
+      "label": "t:global.settings.spacing.bottom.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "section_border",
+      "label": "t:global.settings.section.border.label",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:global.settings.section.border.options.none.label"
+        },
+        {
+          "value": "top",
+          "label": "t:global.settings.section.border.options.top.label"
+        },
+        {
+          "value": "bottom",
+          "label": "t:global.settings.section.border.options.bottom.label"
+        },
+        {
+          "value": "both",
+          "label": "t:global.settings.section.border.options.both.label"
+        }
+      ],
+      "default": "none"
+    }
+  ],
+  "limit": 1,
+  "blocks": [
+    {
+      "type": "pin",
+      "name": "t:sections.store-locator.blocks.pin.name",
+      "settings": [
+        {
+          "type": "color_scheme",
+          "id": "color_scheme",
+          "label": "t:global.settings.color_scheme.label",
+          "default": "scheme-1"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.store-locator.blocks.pin.settings.header_store_info.content"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "t:sections.store-locator.blocks.pin.settings.title.label"
+        },
+        {
+          "type": "textarea",
+          "id": "store_address",
+          "label": "t:sections.store-locator.blocks.pin.settings.store_address.label"
+        },
+        {
+          "type": "text",
+          "id": "store_tel",
+          "label": "t:sections.store-locator.blocks.pin.settings.store_tel.label"
+        },
+        {
+          "type": "richtext",
+          "id": "store_opening_hours",
+          "label": "t:sections.store-locator.blocks.pin.settings.store_opening_hours.label"
+        },
+        {
+          "type": "image_picker",
+          "id": "store_image",
+          "label": "t:sections.store-locator.blocks.pin.settings.store_image.label"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.store-locator.blocks.pin.settings.header_long_lat.content"
+        },
+        {
+          "type": "text",
+          "id": "store_latitude",
+          "label": "t:sections.store-locator.blocks.pin.settings.store_latitude.label",
+          "info": "t:sections.store-locator.blocks.pin.settings.store_latitude.info"
+        },
+        {
+          "type": "text",
+          "id": "store_longitude",
+          "label": "t:sections.store-locator.blocks.pin.settings.store_longitude.label",
+          "info": "t:sections.store-locator.blocks.pin.settings.store_longitude.info"
+        },
+        {
+          "type": "textarea",
+          "id": "coordinate_title",
+          "label": "t:sections.store-locator.blocks.pin.settings.coordinate_title.label",
+          "info": "t:sections.store-locator.blocks.pin.settings.coordinate_title.info"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.store-locator.blocks.pin.settings.header_actions.content"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "t:sections.global.settings.button_style.label",
+          "options": [
+            {
+              "value": "button--filled",
+              "label": "t:sections.global.settings.button_style.options.filled.label"
+            },
+            {
+              "value": "button--outlined",
+              "label": "t:sections.global.settings.button_style.options.outlined.label"
+            },
+            {
+              "value": "default",
+              "label": "t:sections.global.settings.button_style.options.default.label"
+            }
+          ],
+          "default": "button--outlined"
+        },
+        {
+          "type": "text",
+          "id": "store_pin",
+          "label": "t:sections.store-locator.blocks.pin.settings.store_pin.label"
+        },
+        {
+          "type": "url",
+          "id": "store_pin_link",
+          "label": "t:sections.store-locator.blocks.pin.settings.store_pin_link.label",
+          "info": "t:sections.store-locator.blocks.pin.settings.store_pin_link.info"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.store-locator.name",
+      "category": "t:categories.content.name",
+      "blocks": [
+        {
+          "type": "pin",
+          "settings": {
+            "title": "Your store name",
+            "store_address": "Your store address",
+            "store_opening_hours": "<p>Mon-Sat: 10am-8pm<br/>Sunday</p>",
+            "store_pin": "Directions",
+            "store_pin_link": "",
+            "store_tel": "+01 234 567 8900",
+            "store_latitude": "48.85850418716008",
+            "store_longitude": "2.294803163425021",
+            "coordinate_title": ""
+          }
+        },
+        {
+          "type": "pin",
+          "settings": {
+            "title": "Your store name",
+            "store_address": "Your store address",
+            "store_opening_hours": "<p>Mon-Sat: 10am-8pm<br/>Sunday</p>",
+            "store_pin": "Directions",
+            "store_pin_link": "",
+            "store_tel": "+01 234 567 8900",
+            "store_latitude": "41.902331905731444",
+            "store_longitude": "12.45445667605574",
+            "coordinate_title": ""
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,1876 @@
+{{- 'section-promotional-banner.css' | asset_url | stylesheet_tag -}}
+
+{% comment %} MAIN PROMOTIONAL ITEMS {% endcomment %}
+{% capture promotional_items %}
+   {%- for block in section.blocks -%}
+      {% liquid
+        assign block_size = block.settings.block_size
+        assign block_size_column = 6
+        if block_size == 'large'
+          assign block_size_column = 4
+        elsif block_size == 'half'
+          assign block_size_column = 3
+        elsif block_size == 'small'
+          assign block_size_column = 2
+        endif
+      %}
+      {%- style -%}
+        .block-{{ block.id }} {
+          --gradient-background: {{ block.settings.gradient_background_color |  default: 'rgb(var(--color-background))' }};
+          --block-grid-column: {{ block_size_column }};
+          --block-padding-multiplier: {{ block.settings.spacing_inner }};
+        }
+
+        .block-{{ block.id }} :is(iframe, video, img),
+        .block-{{ block.id }} {
+            --aspect-ratio: {{ block.settings.desktop_aspect_ratio }};
+            aspect-ratio: var(--aspect-ratio)
+        }
+
+        @media screen and (max-width: 749px) {
+          .block-{{ block.id }} :is(iframe, video, img),
+          .block-{{ block.id }} {
+              --aspect-ratio: {{ block.settings.mobile_aspect_ratio | default: block.settings.desktop_aspect_ratio }};
+          }
+        }
+
+        {% if block.settings.heading_bottom_spacing %}
+          .block-{{ block.id }} .section-promotional-banner__title{
+            margin-block-end: calc({{ block.settings.heading_bottom_spacing }} * var(--spacing-unit));
+          }
+        {% endif %}
+
+      {%- endstyle -%}
+
+      {%- liquid
+        assign item_heading = block.settings.heading
+        assign item_text = block.settings.text
+
+        assign media_position = block.settings.media_position
+        if block.settings.enable_overlapping_media
+          assign media_position = block.settings.media_position_for_overlapping_media
+        endif
+      %}
+
+      <div
+        class="section-promotional-banner__block promotional-banner__block--size-{{ block_size }} block-{{ block.id }} section-promotional-banner__block--{{ block.type }} color-{{ block.settings.color_scheme }} gradient show-on--{{ block.settings.show_on }} {%- if block.settings.enable_overlapping_media and media_position == "background" -%}media-position--right{%- else -%}media-position--{{ media_position }}{%- endif -%}"
+        {{ block.shopify_attributes -}}
+      >
+        {% case block.type %}
+          {% when 'product' %}
+            {%- liquid
+              assign item_product = block.settings.product
+            -%}
+            {% if item_product != blank %}
+              {%- liquid
+                assign product_images = item_product.media | where: 'media_type', 'image'
+                assign product_local_videos = item_product.media | where: 'media_type', 'video'
+                assign product_external_videos = item_product.media | where: 'media_type', 'external_video'
+                assign product_videos = product_local_videos | concat: product_external_videos
+                assign product_media = product_images | concat: product_videos | sort: 'position'
+              -%}
+              <div class="section-promotional-banner__product-media-wrapper">
+                <div class="section-promotional-banner__media-grid media">
+                  {% for media in product_media limit: 2 %}
+                    <div class="section-promotional-banner__media media">
+                      {% case media.media_type %}
+                        {% when 'image' %}
+                          {%- render 'promotional-media-renderer', image: media -%}
+                        {% when 'video' %}
+                           {%- render 'promotional-media-renderer', video: media, image_size: '1440x', -%}
+                        {% when 'external_video' %}
+                          {%- render 'external-video',
+                            video: media,
+                            video_id: media.external_id,
+                            video_type: media.host
+                          -%}
+                      {% endcase %}
+                    </div>
+                  {% endfor %}
+                </div>
+                {% if block.settings.badge != blank %}
+                  <div class="section-promotional-banner__badge color-{{ block.settings.badge_color_scheme }}">
+                    {{- block.settings.badge -}}
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
+
+          {% when 'banner' %}
+            {%- liquid
+              assign item_image = block.settings.image
+              assign item_image_overlap = block.settings.image_overlap
+
+              assign item_image_mobile = block.settings.image_mobile
+              assign item_image_mobile_overlap = block.settings.image_mobile_overlap
+
+              assign item_video = block.settings.video
+              assign item_video_external = block.settings.video_external
+              assign item_video_controls = block.settings.show_controls_on_video
+
+              assign item_video_mobile = block.settings.video_mobile
+              assign item_video_external_mobile = block.settings.video_external_mobile
+              assign item_video_controls_mobile = block.settings.show_controls_on_video_mobile
+
+              assign item_video_overlap = block.settings.video_overlap
+              assign item_video_overlap_external = block.settings.video_overlap_external
+              assign item_video_overlap_controls = block.settings.show_controls_on_video_overlap
+
+              assign item_video_mobile_overlap = block.settings.video_mobile_overlap
+              assign item_video_overlap_external_mobile = block.settings.video_mobile_overlap_external
+              assign item_video_overlap_controls_mobile = block.settings.show_controls_on_video_mobile_overlap
+
+              assign has_media = false
+              assign has_mobile_media = false
+
+              assign has_media_mobile_overlap = false
+
+              if item_image != blank or item_video != blank or item_video_external != blank
+                assign has_media = true
+              endif
+
+              if item_image_mobile != blank or item_video_mobile != blank or item_video_external_mobile != blank
+                assign has_mobile_media = true
+              endif
+
+              if item_image_mobile_overlap != blank or item_video_mobile_overlap != blank or item_video_overlap_external_mobile != blank
+                assign has_media_mobile_overlap = true
+              endif
+            -%}
+
+            {%- if has_media or has_mobile_media -%}
+              {%- style -%}
+              {% if media_position == "background" %}
+                {% liquid
+                  assign block_aspect_ratio = block.settings.desktop_aspect_ratio
+                  assign block_mobile_aspect_ratio = block.settings.mobile_aspect_ratio
+
+                  if block_aspect_ratio == "auto"
+                    assign image_aspect_ratio = item_image.aspect_ratio
+                    assign video_aspect_ratio = item_video.aspect_ratio
+
+                    if image_aspect_ratio
+                      assign block_aspect_ratio = image_aspect_ratio
+                    endif
+
+                    if video_aspect_ratio
+                      assign block_aspect_ratio = video_aspect_ratio
+                    endif
+
+                    if item_video_external != blank
+                      # fallback aspect ratio for external video when aspect ratio is auto
+                      assign block_aspect_ratio = 1.77
+                    endif
+                  endif
+
+                  if block_mobile_aspect_ratio == "auto"
+                    assign image_mobile_aspect_ratio = item_image_mobile.aspect_ratio
+                    assign video_mobile_aspect_ratio = item_video_mobile.aspect_ratio
+
+                    if image_mobile_aspect_ratio
+                      assign block_mobile_aspect_ratio = image_mobile_aspect_ratio
+                    endif
+
+                    if video_mobile_aspect_ratio
+                      assign block_mobile_aspect_ratio =  video_mobile_aspect_ratio
+                    endif
+
+                    if item_video_external_mobile != blank
+                      # fallback aspect ratio for external video when aspect ratio is auto
+                      assign block_mobile_aspect_ratio = 1.77
+                    endif
+
+                    # inherit desktop aspect ratio if mobile media is blank
+                    if item_image_mobile == blank and item_video_mobile == blank and item_video_external_mobile == blank
+                      assign block_mobile_aspect_ratio = block_aspect_ratio
+                    endif
+                  endif
+                %}
+
+                section .block-{{ block.id }} :is(iframe, video, img),
+                section .block-{{ block.id }} {
+                    --aspect-ratio: {{ block_aspect_ratio }};
+                    aspect-ratio: var(--aspect-ratio)
+                }
+
+                @media screen and (max-width: 749px) {
+                  section .block-{{ block.id }} :is(iframe, video, img),
+                  section .block-{{ block.id }} {
+                      --aspect-ratio: {{ block_mobile_aspect_ratio }};
+                  }
+                }
+              {% endif %}
+
+                .block-{{ block.id }} .section-promotional-banner__media-overlap :is(iframe, video, img),
+                .block-{{ block.id }} .section-promotional-banner__media-overlap {
+                  {% unless item_image == blank and item_video == blank and item_video_external == blank %}
+                  --overlap-offset: {{ block.settings.overlap_offset }};
+                  {% endunless %}
+                  --aspect-ratio: {{ block.settings.desktop_aspect_ratio_overlap }};
+                  aspect-ratio: var(--aspect-ratio)
+                }
+
+                @media screen and (max-width: 749px) {
+                  .block-{{ block.id }} .section-promotional-banner__media-overlap :is(iframe, video, img),
+                  .block-{{ block.id }} .section-promotional-banner__media-overlap {
+                    --overlap-offset: {{ block.settings.overlap_offset_mobile }};
+                    --aspect-ratio: {{ block.settings.mobile_aspect_ratio_overlap }};
+                    aspect-ratio: var(--aspect-ratio)
+                  }
+                }
+              {%- endstyle -%}
+
+              <div class="section-promotional-banner__media-grid {% if block.settings.enable_overlapping_media -%}section-promotional-banner__media--overlap{%- else -%}media{%- endif -%}{% unless has_media %} show-on--mobile{% endunless %}">
+                {% liquid
+                  assign desktop_media_overlap_viewport = ''
+                  if has_media_mobile_overlap
+                    assign desktop_media_overlap_viewport = 'desktop'
+                  endif
+                %}
+
+                {% if block.settings.enable_overlapping_media %}
+                  {% render 'promotional-media-renderer',
+                    image: item_image_overlap,
+                    video: item_video_overlap,
+                    video_external: item_video_overlap_external,
+                    video_controls: item_video_overlap_controls,
+                    image_size: '1440x',
+                    wrapper_class: 'section-promotional-banner__media-overlap',
+                    viewport: desktop_media_overlap_viewport
+                  %}
+                {% endif %}
+
+                {% liquid
+                  assign desktop_media_viewport = ''
+                  if has_mobile_media
+                    assign desktop_media_viewport = 'desktop'
+                  endif
+                %}
+
+                {% render 'promotional-media-renderer',
+                  image: item_image,
+                  video: item_video,
+                  video_external: item_video_external,
+                  video_controls: item_video_controls,
+                  image_size: '1440x',
+                  wrapper_class: 'section-promotional-banner__media',
+                  show_overlay: block.settings.enable_media_overlay,
+                  viewport: desktop_media_viewport
+                %}
+
+                {%- if has_media_mobile_overlap -%}
+                  {% render 'promotional-media-renderer',
+                    image: item_image_mobile_overlap,
+                    video: item_video_mobile_overlap,
+                    video_external: item_video_overlap_external_mobile,
+                    video_controls: item_video_overlap_controls_mobile,
+                    image_size: '720x',
+                    wrapper_class: 'section-promotional-banner__media-overlap',
+                    viewport: 'mobile'
+                  %}
+                {% endif %}
+
+                {%- if has_mobile_media -%}
+                  {% render 'promotional-media-renderer',
+                    image: item_image_mobile,
+                    video: item_video_mobile,
+                    video_external: item_video_external_mobile,
+                    video_controls: item_video_controls_mobile,
+                    image_size: '720x',
+                    show_overlay: block.settings.enable_media_overlay,
+                    wrapper_class: 'section-promotional-banner__media',
+                    viewport: 'mobile'
+                  %}
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+        {% endcase %}
+        <div class="section-promotional-banner__content content {{ block.settings.content_position_vertical }} {{ block.settings.content_alignment }} {{ block.settings.content_alignment_for_mobile }}">
+          <div>
+            {%- if block.settings.subheading != blank -%}
+              <div class="section-promotional-banner__subheading">
+                {{- block.settings.subheading -}}
+              </div>
+            {%- endif -%}
+
+            {%- if item_heading != blank -%}
+              <h2 class="inline-richtext heading-static section-promotional-banner__title {{ block.settings.heading_size }}">
+                {{- item_heading -}}
+              </h2>
+            {%- endif -%}
+            {%- if item_text != blank -%}
+              <div class="section-promotional-banner__text">
+                {{- item_text -}}
+              </div>
+            {%- endif -%}
+            {% if block.settings.show_price
+              and block.settings.product != blank
+            %}
+              <div class="section-promotional-banner__product-price">
+                {% render 'price', product_ref: block.settings.product %}
+              </div>
+            {% endif %}
+          </div>
+          {%- if block.settings.button_label != blank -%}
+            {%- render 'button',
+              type: 'link',
+              class: 'button section-promotional-banner__content--button',
+              button_style: block.settings.button_style,
+              value: block.settings.button_label,
+              href: block.settings.button_link
+            -%}
+          {%- endif -%}
+        </div>
+      </div>
+   {%- endfor -%}
+{% endcapture %}
+
+{%- liquid
+  assign all_desktop = true
+  assign all_mobile = true
+
+  for block in section.blocks
+    if block.settings.show_on != 'desktop'
+      assign all_desktop = false
+    endif
+
+    if block.settings.show_on != 'mobile'
+      assign all_mobile = false
+    endif
+  endfor
+-%}
+
+{%- style -%}
+  #shopify-section-{{ section.id }}  {
+    --section-gap-between-banners: var(--grid-spacing);
+    --section-block-order-mobile: {%- if section.settings.block_order_mobile == true -%}2{%- else -%}initial{%- endif -%};
+  }
+
+  #shopify-section-{{ section.id }} > div {
+    padding-block-start: calc(var(--section-spacing-unit-size) * {{ section.settings.spacing_top }});
+    padding-block-end: calc(var(--section-spacing-unit-size) * {{ section.settings.spacing_bottom }});
+  }
+
+  #shopify-section-{{ section.id }} .media--with-controls iframe {
+    pointer-events: auto;
+  }
+
+  {% if all_desktop %}
+    @media screen and (max-width: 749px) {
+      #shopify-section-{{ section.id }} > div {
+        padding-block-start: 0;
+        padding-block-end: 0;
+      }
+    }
+  {% endif %}
+  {% if all_mobile %}
+    @media screen and (min-width: 750px) {
+      #shopify-section-{{ section.id }} > div {
+        padding-block-start: 0;
+        padding-block-end: 0;
+      }
+    }
+  {% endif %}
+{%- endstyle -%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient">
+  <div class="section-promotional-banner container max-w-{{ section.settings.section_width }} js-animation-fade-in">
+    {% if section.settings.heading != blank or section.settings.button_label != blank %}
+      <div class="section-promotional-banner__header">
+        <div class="{{ section.settings.heading_size }}">
+          {{ section.settings.heading }}
+        </div>
+
+        {%- if section.settings.button_label != blank -%}
+          {%- render 'button',
+            type: 'link',
+            class: 'button',
+            button_style: section.settings.button_style,
+            value: section.settings.button_label,
+            href: section.settings.button_link
+          -%}
+        {% endif %}
+      </div>
+    {% endif %}
+    <div class="grid">
+      {{- promotional_items -}}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.promotional-banner.name",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "block_order_mobile",
+      "label": "t:sections.promotional-banner.settings.block_order_mobile.label"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "t:sections.global.element.heading.label"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:sections.global.element.heading_size.label",
+      "options": [
+        {
+          "value": "h6",
+          "label": "XS"
+        },
+        {
+          "value": "h5",
+          "label": "S"
+        },
+        {
+          "value": "h4",
+          "label": "M"
+        },
+        {
+          "value": "h3",
+          "label": "L"
+        },
+        {
+          "value": "h2",
+          "label": "XL"
+        }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:sections.global.element.button_label.label",
+      "info": "t:sections.global.element.button_label.info"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "t:sections.global.element.button.link.label",
+      "visible_if": "{{ section.settings.button_label != blank }}"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "t:sections.global.element.button.style.label",
+      "visible_if": "{{ section.settings.button_label != blank }}",
+      "options": [
+        {
+          "value": "button--filled",
+          "label": "t:sections.global.element.button.style.options.filled.label"
+        },
+        {
+          "value": "button--outlined",
+          "label": "t:sections.global.element.button.style.options.outlined.label"
+        },
+        {
+          "value": "button--text",
+          "label": "t:sections.global.element.button.style.options.text.label"
+        }
+      ],
+      "default": "button--outlined"
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "default": "scheme-1",
+      "label": "t:global.settings.color_scheme.label"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:global.settings.section.width.label",
+      "options": [
+        {
+          "value": "page",
+          "label": "t:global.settings.section.width.options.page.label"
+        },
+        {
+          "value": "fluid",
+          "label": "t:global.settings.section.width.options.fluid.label"
+        },
+        {
+          "value": "full",
+          "label": "t:global.settings.section.width.options.full.label"
+        }
+      ],
+      "default": "page"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top",
+      "label": "t:global.settings.spacing.top.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom",
+      "label": "t:global.settings.spacing.bottom.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "banner",
+      "name": "Banner",
+      "settings": [
+        {
+          "type": "select",
+          "id": "show_on",
+          "label": "t:sections.global.settings.show_on.label",
+          "options": [
+            {
+              "value": "desktop",
+              "label": "t:sections.global.settings.show_on.options.desktop.label"
+            },
+            {
+              "value": "mobile",
+              "label": "t:sections.global.settings.show_on.options.mobile.label"
+            },
+            {
+              "value": "both",
+              "label": "t:sections.global.settings.show_on.options.both.label"
+            }
+          ],
+          "default": "both"
+        },
+        {
+          "type": "select",
+          "id": "block_size",
+          "label": "t:sections.promotional-banner.blocks.banner.settings.block_size.label",
+          "info": "Control the width of the block. Depending on the values large, small, or half, the blocks will be placed side by side.",
+          "options": [
+            {
+              "value": "full",
+              "label": "t:sections.promotional-banner.blocks.banner.settings.block_size.options.full.label"
+            },
+            {
+              "value": "large",
+              "label": "t:sections.promotional-banner.blocks.banner.settings.block_size.options.large.label"
+            },
+            {
+              "value": "half",
+              "label": "t:sections.promotional-banner.blocks.banner.settings.block_size.options.half.label"
+            },
+            {
+              "value": "small",
+              "label": "t:sections.promotional-banner.blocks.banner.settings.block_size.options.small.label"
+            }
+          ],
+          "default": "full"
+        },
+        {
+          "type": "color_scheme",
+          "id": "color_scheme",
+          "label": "t:global.settings.color_scheme.label",
+          "default": "scheme-3"
+        },
+        {
+          "type": "color_background",
+          "id": "gradient_background_color",
+          "label": "t:global.settings.color_scheme.custom_background_color.label",
+          "info": "t:global.settings.color_scheme.custom_background_color.info"
+        },
+        {
+          "type": "header",
+          "content": "t:global.settings.text.label"
+        },
+        {
+          "type": "select",
+          "id": "content_position_vertical",
+          "label": "t:sections.global.settings.content.position.label",
+          "options": [
+            {
+              "value": "justify-start",
+              "label": "t:sections.global.settings.content.position.options.start.label"
+            },
+            {
+              "value": "justify-center",
+              "label": "t:sections.global.settings.content.position.options.center.label"
+            },
+            {
+              "value": "justify-end",
+              "label": "t:sections.global.settings.content.position.options.end.label"
+            }
+          ],
+          "default": "justify-center"
+        },
+        {
+          "type": "select",
+          "id": "content_alignment",
+          "label": "t:sections.global.settings.content_alignment.label",
+          "options": [
+            {
+              "value": "align-start text-start",
+              "label": "t:sections.global.settings.content_alignment.options.left.label"
+            },
+            {
+              "value": "align-center text-center",
+              "label": "t:sections.global.settings.content_alignment.options.center.label"
+            },
+            {
+              "value": "align-end text-end",
+              "label": "t:sections.global.settings.content_alignment.options.right.label"
+            }
+          ],
+          "default": "align-center text-center"
+        },
+        {
+          "type": "select",
+          "id": "content_alignment_for_mobile",
+          "label": "t:sections.global.settings.content.alignment.for__mobile.label",
+          "options": [
+            {
+              "value": "align-start--mobile text-start--mobile",
+              "label": "t:sections.global.settings.content_alignment.options.left.label"
+            },
+            {
+              "value": "align-center--mobile text-center--mobile",
+              "label": "t:sections.global.settings.content_alignment.options.center.label"
+            },
+            {
+              "value": "align-end--mobile text-end--mobile",
+              "label": "t:sections.global.settings.content_alignment.options.right.label"
+            }
+          ],
+          "default": "align-center--mobile text-center--mobile"
+        },
+
+        {
+          "type": "inline_richtext",
+          "id": "subheading",
+          "label": "t:sections.global.element.subheading.label"
+        },
+        {
+          "type": "inline_richtext",
+          "id": "heading",
+          "label": "t:sections.global.element.heading.label",
+          "default": "Promotional Collection Banner"
+        },
+        {
+          "type": "select",
+          "id": "heading_size",
+          "label": "t:sections.global.element.heading_size.label",
+          "options": [
+            {
+              "value": "h6",
+              "label": "XS"
+            },
+            {
+              "value": "h5",
+              "label": "S"
+            },
+            {
+              "value": "h4",
+              "label": "M"
+            },
+            {
+              "value": "h3",
+              "label": "L"
+            },
+            {
+              "value": "h2",
+              "label": "XL"
+            }
+          ],
+          "default": "h3"
+        },
+        {
+          "type": "select",
+          "id": "heading_bottom_spacing",
+          "label": "t:sections.promotional-banner.blocks.banner.settings.heading_bottom_spacing.label",
+          "options": [
+            {
+              "value": "0",
+              "label": "NO"
+            },
+            {
+              "value": "0.25",
+              "label": "S"
+            },
+            {
+              "value": "0.5",
+              "label": "M"
+            },
+            {
+              "value": "0.75",
+              "label": "L"
+            },
+            {
+              "value": "1",
+              "label": "XL"
+            }
+          ],
+          "default": "0.25"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "t:sections.global.element.text.label"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "t:sections.global.element.button_label.label",
+          "info": "t:sections.global.element.button_label.info"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "t:sections.global.element.button.link.label",
+          "visible_if": "{{ block.settings.button_label != blank }}"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "t:sections.global.element.button.style.label",
+          "visible_if": "{{ block.settings.button_label != blank }}",
+          "options": [
+            {
+              "value": "button--filled",
+              "label": "t:sections.global.element.button.style.options.filled.label"
+            },
+            {
+              "value": "button--outlined",
+              "label": "t:sections.global.element.button.style.options.outlined.label"
+            },
+            {
+              "value": "button--text",
+              "label": "t:sections.global.element.button.style.options.text.label"
+            }
+          ],
+          "default": "button--filled"
+        },
+        {
+          "type": "header",
+          "content": "t:global.settings.media.label"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_overlapping_media",
+          "label": "t:sections.promotional-banner.blocks.banner.settings.enable_overlapping_media.label",
+          "default": false
+        },
+
+        {
+          "type": "select",
+          "id": "media_position",
+          "label": "t:global.settings.media.position.label",
+          "options": [
+            {
+              "value": "left",
+              "label": "t:global.settings.media.position.options.start-arrow.label"
+            },
+            {
+              "value": "right",
+              "label": "t:global.settings.media.position.options.end-arrow.label"
+            },
+            {
+              "value": "background",
+              "label": "Background",
+            }
+          ],
+          "default": "right",
+          "info": "t:sections.promotional-banner.blocks.banner.settings.media_position.info",
+          "visible_if": "{{ block.settings.enable_overlapping_media == false }}"
+        },
+        {
+          "type": "select",
+          "id": "media_position_for_overlapping_media",
+          "label": "t:global.settings.media.position.label",
+          "options": [
+            {
+              "value": "top",
+              "label": "t:global.settings.media.position.options.top.label"
+            },
+            {
+              "value": "bottom",
+              "label": "t:global.settings.media.position.options.bottom.label"
+            },{
+              "value": "left",
+              "label": "t:global.settings.media.position.options.start-arrow.label"
+            },
+            {
+              "value": "right",
+              "label": "t:global.settings.media.position.options.end-arrow.label"
+            },
+          ],
+          "default": "right",
+          "info": "The media will be displayed bottom on mobile",
+          "visible_if": "{{ block.settings.enable_overlapping_media }}"
+        },
+
+        {
+          "type": "checkbox",
+          "id": "enable_media_overlay",
+          "label": "t:sections.promotional-banner.blocks.banner.settings.enable_overlay.label",
+          "default": false,
+          "visible_if": "{{ block.settings.media_position == 'background'  and block.settings.enable_overlapping_media == false }}"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "t:sections.global.element.image.label"
+        },
+        {
+          "type": "video",
+          "id": "video",
+          "label": "t:sections.global.element.video.label",
+          "info": "t:sections.global.element.video.info"
+        },
+        {
+          "type": "video_url",
+          "id": "video_external",
+          "accept": ["youtube", "vimeo"],
+          "label": "t:sections.global.element.video_external.label",
+          "info": "t:sections.global.element.video_external.info"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_controls_on_video",
+          "label": "t:sections.global.element.video.show_controls.label",
+          "default": false,
+          "visible_if": "{{ block.settings.video != blank or block.settings.video_external != blank }}"
+        },
+        {
+          "type": "select",
+          "id": "desktop_aspect_ratio",
+          "label": "t:global.settings.aspect_ratio.label",
+          "info": "t:sections.promotional-banner.blocks.banner.settings.banner_aspect_ratio.info",
+          "options": [
+            {
+              "value": "auto",
+              "label": "t:global.settings.aspect_ratio.options.auto.label",
+              "group": "t:global.settings.aspect_ratio.group__auto.label"
+            },
+            {
+              "value": "1/1",
+              "label": "1:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__square.label"
+            },
+            {
+              "value": "4/3",
+              "label": "4:3",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "3/4",
+              "label": "3:4",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "3/2",
+              "label": "3:2",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "2/3",
+              "label": "2:3",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "5/4",
+              "label": "5:4",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "4/5",
+              "label": "4:5",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "16/9",
+              "label": "16:9",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "9/16",
+              "label": "9:16",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "2/1",
+              "label": "2:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "4/1",
+              "label": "4:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "8/1",
+              "label": "8:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "1/2",
+              "label": "1:2",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            }
+          ],
+          "default": "4/5"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.promotional-banner.blocks.banner.settings.media_overlapping.label",
+          "info": "t:sections.promotional-banner.blocks.banner.settings.media_overlapping.info",
+          "visible_if": "{{ block.settings.enable_overlapping_media }}"
+        },
+        {
+          "type": "image_picker",
+          "id": "image_overlap",
+          "label": "t:sections.global.element.image.label",
+          "visible_if": "{{ block.settings.enable_overlapping_media }}"
+        },
+        {
+          "type": "video",
+          "id": "video_overlap",
+          "label": "t:sections.global.element.video.label",
+          "info": "t:sections.global.element.video.info",
+          "visible_if": "{{ block.settings.enable_overlapping_media }}"
+        },
+        {
+          "type": "video_url",
+          "id": "video_overlap_external",
+          "accept": ["youtube", "vimeo"],
+          "label": "t:sections.global.element.video_external.label",
+          "info": "t:sections.global.element.video_external.info",
+          "visible_if": "{{ block.settings.enable_overlapping_media }}"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_controls_on_video_overlap",
+          "label": "t:sections.global.element.video.show_controls.label",
+          "default": false,
+          "visible_if": "{{ block.settings.enable_overlapping_media and block.settings.video_overlap != blank or block.settings.video_overlap_external != blank }}"
+        },
+        {
+          "type": "range",
+          "id": "overlap_offset",
+          "label": "t:sections.promotional-banner.blocks.banner.settings.media_overlapping.offset.label",
+          "min": 0,
+          "max": 10,
+          "step": 1,
+          "default": 6,
+          "info": "t:sections.promotional-banner.blocks.banner.settings.media_overlapping.offset.info",
+          "visible_if": "{{ block.settings.enable_overlapping_media }}"
+        },
+        {
+          "type": "select",
+          "id": "desktop_aspect_ratio_overlap",
+          "label":"t:global.settings.aspect_ratio.for__mobile.label",
+          "info": "t:sections.promotional-banner.blocks.banner.settings.banner_aspect_ratio.info",
+          "visible_if": "{{ block.settings.enable_overlapping_media }}",
+          "options": [
+            {
+              "value": "auto",
+              "label": "t:global.settings.aspect_ratio.options.auto.label",
+              "group": "t:global.settings.aspect_ratio.group__auto.label"
+            },
+            {
+              "value": "1/1",
+              "label": "1:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__square.label"
+            },
+            {
+              "value": "4/3",
+              "label": "4:3",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "3/4",
+              "label": "3:4",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "3/2",
+              "label": "3:2",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "2/3",
+              "label": "2:3",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "5/4",
+              "label": "5:4",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "4/5",
+              "label": "4:5",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "16/9",
+              "label": "16:9",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "9/16",
+              "label": "9:16",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "2/1",
+              "label": "2:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "4/1",
+              "label": "4:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "8/1",
+              "label": "8:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "1/2",
+              "label": "1:2",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            }
+          ],
+          "default": "4/3"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_mobile_media",
+          "label": "t:sections.global.settings.enable_mobile_specific_media.label",
+          "info": "t:sections.global.settings.header_media_mobile.info",
+          "default": false
+        },
+        {
+          "type": "header",
+          "content": "t:sections.global.settings.header_media_mobile.content",
+          "visible_if": "{{ block.settings.enable_mobile_media }}"
+        },
+        {
+          "type": "image_picker",
+          "id": "image_mobile",
+          "label": "t:sections.global.element.image.label",
+          "visible_if": "{{ block.settings.enable_mobile_media }}"
+        },
+        {
+          "type": "video",
+          "id": "video_mobile",
+          "label": "t:sections.global.element.video.label",
+          "info": "t:sections.global.element.video.info",
+          "visible_if": "{{ block.settings.enable_mobile_media }}"
+        },
+        {
+          "type": "video_url",
+          "id": "video_external_mobile",
+          "accept": ["youtube", "vimeo"],
+          "label": "t:sections.global.element.video_external.label",
+          "info": "t:sections.global.element.video_external.info",
+          "visible_if": "{{ block.settings.enable_mobile_media }}"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_controls_on_video_mobile",
+          "label": "t:sections.global.element.video.for__mobile.show_controls.label",
+          "default": false,
+          "visible_if": "{{ block.settings.enable_mobile_media and block.settings.video_mobile != blank or block.settings.video_external_mobile != blank }}"
+        },
+        {
+          "type": "select",
+          "id": "mobile_aspect_ratio",
+          "label": "t:global.settings.aspect_ratio.for__mobile.label",
+          "info": "t:sections.promotional-banner.blocks.banner.settings.banner_aspect_ratio.info",
+          "visible_if": "{{ block.settings.enable_mobile_media }}",
+          "options": [
+            {
+              "value": "auto",
+              "label": "t:global.settings.aspect_ratio.options.auto.label",
+              "group": "t:global.settings.aspect_ratio.group__auto.label"
+            },
+            {
+              "value": "1/1",
+              "label": "1:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__square.label"
+            },
+            {
+              "value": "4/3",
+              "label": "4:3",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "3/4",
+              "label": "3:4",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "3/2",
+              "label": "3:2",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "2/3",
+              "label": "2:3",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "5/4",
+              "label": "5:4",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "4/5",
+              "label": "4:5",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "16/9",
+              "label": "16:9",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "9/16",
+              "label": "9:16",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "2/1",
+              "label": "2:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "4/1",
+              "label": "4:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "8/1",
+              "label": "8:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "1/2",
+              "label": "1:2",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            }
+          ],
+          "default": "1/1"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.promotional-banner.blocks.banner.settings.media_overlapping.for__mobile.label",
+          "info": "t:sections.promotional-banner.blocks.banner.settings.media_overlapping.info",
+          "visible_if": "{{ block.settings.enable_overlapping_media and block.settings.enable_mobile_media }}"
+        },
+
+        {
+          "type": "image_picker",
+          "id": "image_mobile_overlap",
+          "label": "t:sections.global.element.image.label",
+          "visible_if": "{{ block.settings.enable_overlapping_media and block.settings.enable_mobile_media }}"
+        },
+        {
+          "type": "video",
+          "id": "video_mobile_overlap",
+          "label": "t:sections.global.element.video.label",
+          "info": "t:sections.global.element.video.info",
+          "visible_if": "{{ block.settings.enable_overlapping_media and block.settings.enable_mobile_media }}"
+        },
+        {
+          "type": "video_url",
+          "id": "video_mobile_overlap_external",
+          "accept": ["youtube", "vimeo"],
+          "label": "t:sections.global.element.video_external.label",
+          "info": "t:sections.global.element.video_external.info",
+          "visible_if": "{{ block.settings.enable_overlapping_media and block.settings.enable_mobile_media }}"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_controls_on_video_mobile_overlap",
+          "label": "t:sections.global.element.video.for__mobile.show_controls.label",
+          "default": false,
+          "visible_if": "{{ block.settings.enable_overlapping_media and block.settings.enable_mobile_media and block.settings.video_mobile_overlap != blank or block.settings.video_mobile_overlap_external != blank }}"
+        },
+        {
+          "type": "range",
+          "id": "overlap_offset_mobile",
+          "label": "t:sections.promotional-banner.blocks.banner.settings.media_overlapping.offset.for__mobile.label",
+          "min": 0,
+          "max": 10,
+          "step": 1,
+          "default": 6,
+          "info": "t:sections.promotional-banner.blocks.banner.settings.media_overlapping.offset.info",
+          "visible_if": "{{ block.settings.enable_overlapping_media and block.settings.enable_mobile_media }}"
+        },
+        {
+          "type": "select",
+          "id": "mobile_aspect_ratio_overlap",
+          "label":"t:global.settings.aspect_ratio.for__mobile.label",
+          "info": "t:sections.promotional-banner.blocks.banner.settings.banner_aspect_ratio.info",
+          "visible_if": "{{ block.settings.enable_overlapping_media and block.settings.enable_mobile_media }}",
+          "options": [
+            {
+              "value": "auto",
+              "label": "t:global.settings.aspect_ratio.options.auto.label",
+              "group": "t:global.settings.aspect_ratio.group__auto.label"
+            },
+            {
+              "value": "1/1",
+              "label": "1:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__square.label"
+            },
+            {
+              "value": "4/3",
+              "label": "4:3",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "3/4",
+              "label": "3:4",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "3/2",
+              "label": "3:2",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "2/3",
+              "label": "2:3",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "5/4",
+              "label": "5:4",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "4/5",
+              "label": "4:5",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "16/9",
+              "label": "16:9",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "9/16",
+              "label": "9:16",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "2/1",
+              "label": "2:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "4/1",
+              "label": "4:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "8/1",
+              "label": "8:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "1/2",
+              "label": "1:2",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            }
+          ],
+          "default": "auto"
+        },
+
+        {
+          "type": "header",
+          "content": "t:sections.promotional-banner.blocks.banner.settings.spacing_inner.label"
+        },
+        {
+          "type": "select",
+          "id": "spacing_inner",
+          "label": "t:sections.promotional-banner.blocks.banner.settings.spacing_inner.label",
+          "options": [
+            {
+              "value": "0",
+              "label": "No"
+            },
+            {
+              "value": "1",
+              "label": "S"
+            },
+            {
+              "value": "2",
+              "label": "M"
+            },
+            {
+              "value": "4",
+              "label": "L"
+            },
+            {
+              "value": "6",
+              "label": "XL"
+            }
+          ],
+          "default": "2"
+        }
+      ]
+    },
+    {
+      "type": "product",
+      "name": "Product",
+      "settings": [
+        {
+          "type": "select",
+          "id": "show_on",
+          "label": "t:sections.global.settings.show_on.label",
+          "options": [
+            {
+              "value": "desktop",
+              "label": "t:sections.global.settings.show_on.options.desktop.label"
+            },
+            {
+              "value": "mobile",
+              "label": "t:sections.global.settings.show_on.options.mobile.label"
+            },
+            {
+              "value": "both",
+              "label": "t:sections.global.settings.show_on.options.both.label"
+            }
+          ],
+          "default": "both"
+        },
+        {
+          "type": "select",
+          "id": "block_size",
+          "label": "t:sections.promotional-banner.blocks.banner.settings.block_size.label",
+          "info": "t:sections.promotional-banner.blocks.banner.settings.block_size.info",
+          "options": [
+            {
+              "value": "full",
+              "label": "t:sections.promotional-banner.blocks.banner.settings.block_size.options.full.label"
+            },
+            {
+              "value": "large",
+              "label": "t:sections.promotional-banner.blocks.banner.settings.block_size.options.large.label"
+            },
+            {
+              "value": "half",
+              "label": "t:sections.promotional-banner.blocks.banner.settings.block_size.options.half.label"
+            },
+            {
+              "value": "small",
+              "label": "t:sections.promotional-banner.blocks.banner.settings.block_size.options.small.label"
+            }
+          ],
+          "default": "full"
+        },
+        {
+          "type": "color_scheme",
+          "id": "color_scheme",
+          "label": "t:global.settings.color_scheme.label",
+          "default": "scheme-3"
+        },
+        {
+          "type": "color_background",
+          "id": "gradient_background_color",
+          "label": "t:global.settings.color_scheme.custom_background_color.label",
+          "info": "t:global.settings.color_scheme.custom_background_color.info"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.global.element.product.label"
+        },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "t:sections.global.element.product.label"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_price",
+          "label": "t:sections.promotional-banner.blocks.product.settings.show_product_price.label",
+          "default": true,
+          "visible_if": "{{ block.settings.product != blank }}"
+        },
+        {
+          "type": "inline_richtext",
+          "id": "badge",
+          "label": "t:sections.promotional-banner.blocks.product.settings.badge.label",
+          "visible_if": "{{ block.settings.product != blank }}"
+        },
+        {
+          "type": "color_scheme",
+          "id": "badge_color_scheme",
+          "default": "scheme-1",
+          "label": "t:sections.promotional-banner.blocks.product.settings.badge_color_schema.label",
+          "visible_if": "{{ block.settings.product != blank and block.settings.badge != blank }}"
+        },
+        {
+          "type": "header",
+          "content": "t:global.settings.text.label"
+        },
+        {
+          "type": "select",
+          "id": "content_position_vertical",
+          "label": "t:sections.global.settings.content.position.label",
+          "options": [
+            {
+              "value": "justify-start",
+              "label": "t:sections.global.settings.content.position.options.start.label"
+            },
+            {
+              "value": "justify-center",
+              "label": "t:sections.global.settings.content.position.options.center.label"
+            },
+            {
+              "value": "justify-end",
+              "label": "t:sections.global.settings.content.position.options.end.label"
+            }
+          ],
+          "default": "justify-center"
+        },
+        {
+          "type": "select",
+          "id": "content_alignment",
+          "label": "t:sections.global.settings.content_alignment.label",
+          "options": [
+            {
+              "value": "align-start text-start",
+              "label": "t:sections.global.settings.content_alignment.options.left.label"
+            },
+            {
+              "value": "align-center text-center",
+              "label": "t:sections.global.settings.content_alignment.options.center.label"
+            },
+            {
+              "value": "align-end text-end",
+              "label": "t:sections.global.settings.content_alignment.options.right.label"
+            }
+          ],
+          "default": "align-center text-center"
+        },
+        {
+          "type": "select",
+          "id": "content_alignment_for_mobile",
+          "label": "t:sections.global.settings.content.alignment.for__mobile.label",
+          "options": [
+            {
+              "value": "align-start--mobile text-start--mobile",
+              "label": "t:sections.global.settings.content_alignment.options.left.label"
+            },
+            {
+              "value": "align-center--mobile text-center--mobile",
+              "label": "t:sections.global.settings.content_alignment.options.center.label"
+            },
+            {
+              "value": "align-end--mobile text-end--mobile",
+              "label": "t:sections.global.settings.content_alignment.options.right.label"
+            }
+          ],
+          "default": "align-center--mobile text-center--mobile"
+        },
+
+
+        {
+          "type": "inline_richtext",
+          "id": "subheading",
+          "label": "t:sections.global.element.subheading.label"
+        },
+        {
+          "type": "inline_richtext",
+          "id": "heading",
+          "label": "t:sections.global.element.heading.label",
+          "default": "Promotional Collection Banner",
+        },
+        {
+          "type": "select",
+          "id": "heading_size",
+          "label": "t:sections.global.element.heading_size.label",
+          "options": [
+            {
+              "value": "h6",
+              "label": "XS"
+            },
+            {
+              "value": "h5",
+              "label": "S"
+            },
+            {
+              "value": "h4",
+              "label": "M"
+            },
+            {
+              "value": "h3",
+              "label": "L"
+            },
+            {
+              "value": "h2",
+              "label": "XL"
+            }
+          ],
+          "default": "h3"
+        },
+        {
+          "type": "select",
+          "id": "heading_bottom_spacing",
+          "label": "t:sections.promotional-banner.blocks.banner.settings.heading_bottom_spacing.label",
+          "options": [
+            {
+              "value": "0",
+              "label": "No"
+            },
+            {
+              "value": "0.25",
+              "label": "S"
+            },
+            {
+              "value": "0.5",
+              "label": "M"
+            },
+            {
+              "value": "0.75",
+              "label": "L"
+            },
+            {
+              "value": "1",
+              "label": "XL"
+            }
+          ],
+         "default": "0.25"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "t:sections.global.element.text.label"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "t:sections.global.element.button_label.label",
+          "info": "t:sections.global.element.button_label.info"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "t:sections.global.element.button.link.label",
+          "default": "{{ block.settings.product.url }}",
+          "visible_if": "{{ block.settings.button_label != blank }}"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "t:sections.global.element.button.style.label",
+          "visible_if": "{{ block.settings.button_label != blank }}",
+          "options": [
+            {
+              "value": "button--filled",
+              "label": "t:sections.global.element.button.style.options.filled.label"
+            },
+            {
+              "value": "button--outlined",
+              "label": "t:sections.global.element.button.style.options.outlined.label"
+            },
+            {
+              "value": "button--text",
+              "label": "t:sections.global.element.button.style.options.text.label"
+            }
+          ],
+          "default": "button--filled"
+        },
+
+        {
+          "type": "header",
+          "content": "t:sections.promotional-banner.blocks.product.settings.product_media.label",
+          "info": "t:sections.promotional-banner.blocks.banner.settings.banner_aspect_ratio.info",
+        },
+        {
+          "type": "select",
+          "id": "media_position",
+          "label": "t:global.settings.media.position.label",
+          "options": [
+            {
+              "value": "left",
+              "label": "t:global.settings.media.position.options.start-arrow.label"
+            },
+            {
+              "value": "right",
+              "label": "t:global.settings.media.position.options.end-arrow.label"
+            },
+            {
+              "value": "top",
+              "label": "t:global.settings.media.position.options.top.label"
+            },
+            {
+              "value": "bottom",
+              "label": "t:global.settings.media.position.options.bottom.label"
+            }
+          ],
+          "default": "bottom",
+          "info": "t:sections.promotional-banner.blocks.product.settings.media_position.info"
+        },
+        {
+          "type": "select",
+          "id": "desktop_aspect_ratio",
+          "label": "t:global.settings.aspect_ratio.label",
+          "options": [
+            {
+              "value": "auto",
+              "label": "t:global.settings.aspect_ratio.options.auto.label",
+              "group": "t:global.settings.aspect_ratio.group__auto.label"
+            },
+            {
+              "value": "1/1",
+              "label": "1:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__square.label"
+            },
+            {
+              "value": "4/3",
+              "label": "4:3",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "3/4",
+              "label": "3:4",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "3/2",
+              "label": "3:2",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "2/3",
+              "label": "2:3",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "5/4",
+              "label": "5:4",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "4/5",
+              "label": "4:5",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "16/9",
+              "label": "16:9",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "9/16",
+              "label": "9:16",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "2/1",
+              "label": "2:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "4/1",
+              "label": "4:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "8/1",
+              "label": "8:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "1/2",
+              "label": "1:2",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            }
+          ],
+          "default": "4/5"
+        },
+
+        {
+          "type": "select",
+          "id": "mobile_aspect_ratio",
+          "label": "t:global.settings.aspect_ratio.for__mobile.label",
+          "options": [
+            {
+              "value": "auto",
+              "label": "t:global.settings.aspect_ratio.options.auto.label",
+              "group": "t:global.settings.aspect_ratio.group__auto.label"
+            },
+            {
+              "value": "1/1",
+              "label": "1:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__square.label"
+            },
+            {
+              "value": "4/3",
+              "label": "4:3",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "3/4",
+              "label": "3:4",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "3/2",
+              "label": "3:2",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "2/3",
+              "label": "2:3",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "5/4",
+              "label": "5:4",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "4/5",
+              "label": "4:5",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "16/9",
+              "label": "16:9",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "9/16",
+              "label": "9:16",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            },
+            {
+              "value": "2/1",
+              "label": "2:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "4/1",
+              "label": "4:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "8/1",
+              "label": "8:1",
+              "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+            },
+            {
+              "value": "1/2",
+              "label": "1:2",
+              "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+            }
+          ],
+          "default": "2/3"
+        },
+
+        {
+          "type": "header",
+          "content": "t:sections.promotional-banner.blocks.banner.settings.spacing_inner.label"
+        },
+        {
+          "type": "select",
+          "id": "spacing_inner",
+          "label": "t:sections.promotional-banner.blocks.banner.settings.spacing_inner.label",
+          "options": [
+            {
+              "value": "0",
+              "label": "No"
+            },
+            {
+              "value": "1",
+              "label": "S"
+            },
+            {
+              "value": "2",
+              "label": "M"
+            },
+            {
+              "value": "4",
+              "label": "L"
+            },
+            {
+              "value": "6",
+              "label": "XL"
+            }
+          ],
+          "default": "2"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Promotional banner",
+      "category": "Promotional",
+      "blocks": [
+        {
+          "type": "banner",
+          "settings": {
+            "block_size": "full",
+            "desktop_aspect_ratio": "16/9",
+            "mobile_aspect_ratio": "3/4"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

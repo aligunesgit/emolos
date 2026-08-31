@@ -1,0 +1,634 @@
+{{- 'section-collection.css' | asset_url | stylesheet_tag -}}
+{{- 'component-card-product.css' | asset_url | stylesheet_tag -}}
+{{- 'component-card-text.css' | asset_url | stylesheet_tag -}}
+{%- render 'section-common-styles', section: section -%}
+
+{%- if settings.quick_add_to_cart == 'bulk' -%}
+  <script src="{{ 'bulk-add.js' | asset_url }}" defer="defer"></script>
+  <script src="{{ 'quick-add-bulk.js' | asset_url }}" defer="defer"></script>
+  <script src="{{ 'quantity-popover.js' | asset_url }}" defer="defer"></script>
+  <script src="{{ 'price-per-item.js' | asset_url }}" defer="defer"></script>
+  <script src="{{ 'quick-order-list.js' | asset_url }}" defer="defer"></script>
+  {{- 'component-quick-add-bulk.css' | asset_url | stylesheet_tag -}}
+{%- endif -%}
+{%- liquid
+  assign enable_filtering = true
+  if section.settings.filters_style == 'hidden'
+    assign enable_filtering = false
+  endif
+-%}
+{%- liquid
+  assign enable_filtering = enable_filtering | default: false
+  assign sort_by = collection.sort_by | default: collection.default_sort_by
+  assign total_active_values = 0
+  if collection.url
+    assign results_url = collection.url
+  else
+    assign terms = collection.terms | escape
+    assign results_url = '?q=' | append: terms | append: '&options%5Bprefix%5D=last&sort_by=' | append: sort_by
+  endif
+  assign results_sort_url = collection.url | append: '?sort_by=' | append: sort_by
+-%}
+{% style %}
+  .collection__grid {
+    column-gap: {{ settings.spacing_mobile }}rem;
+  }
+  {% if section.settings.products_per_row_mobile == "1" %}
+    .collection__grid {
+      display: flex;
+      flex-direction: column;
+    }
+  {% endif %}
+  @media screen and (min-width: 990px) {
+    .collection__grid {
+      display: grid;
+      column-gap: {{ settings.spacing_desktop }}rem;
+    }
+  }
+{% endstyle %}
+
+<script src="{{- 'card-product.js' | asset_url -}}" defer="defer"></script>
+<script src="{{- 'collection-load-more.js' | asset_url -}}" defer="defer"></script>
+<script src="{{- 'collection-load-previous.js' | asset_url -}}" defer="defer"></script>
+
+{%- if enable_filtering or section.settings.enable_sorting -%}
+  <script src="{{- 'facets.js' | asset_url -}}" defer="defer"></script>
+{%- endif -%}
+
+{%- if section.settings.enable_infinity_scroll -%}
+  <script src="{{- 'collection-infinity-scroll.js' | asset_url -}}" defer="defer"></script>
+{%- endif -%}
+
+{%- capture collection_additional_classes -%}
+  {{ settings.card_product_layout }}
+{%- endcapture -%}
+
+{%- liquid
+  if enable_filtering or section.settings.enable_sorting or section.settings.enable_products_count or section.settings.products_per_row_ui
+    echo 'component-facets.css' | asset_url | stylesheet_tag
+
+    capture facets_html
+      render 'facets', results: collection, enable_filtering: enable_filtering, enable_sorting: section.settings.enable_sorting, section_id: section.id, filters_style: section.settings.filters_style
+    endcapture
+  elsif section.settings.sidebar_navigation != blank
+    assign collection_additional_classes = collection_additional_classes | append: ' collection--no-utils'
+  endif
+
+  if section.settings.sidebar_navigation != blank
+    assign collection_additional_classes = collection_additional_classes | append: ' collection--has-sidebar'
+  endif
+
+  if section.blocks.size > 0
+    capture card_text_html
+      for block in section.blocks
+        assign card_text_classes = 'collection__card-text js-card-text color-' | append: block.settings.color_scheme
+        if settings.card_product_image_ratio == '0'
+          assign card_text_classes = card_text_classes | append: ' card-text--static'
+        endif
+        render 'card-text', class: card_text_classes, title: block.settings.title, button_text: block.settings.button_text, button_url: block.settings.button_url, button_style: block.settings.button_style
+      endfor
+    endcapture
+  endif
+
+  assign card_text_html = card_text_html | strip
+
+  if card_text_html != ''
+    assign collection_additional_classes = collection_additional_classes | append: ' collection--has-card-text'
+  endif
+-%}
+
+<div class="collection color-{{ section.settings.color_scheme }} gradient js-animation-fade-in {{ collection_additional_classes | strip }} section-{{ section.id }}">
+  {{ facets_html }}
+
+  <div class="container max-w-{{ section.settings.section_width }}">
+    <div class="collection__inner">
+      {% if section.settings.filters_style == 'sidebar'
+        or section.settings.sidebar_navigation != blank
+        and section.settings.sidebar_navigation.links.size > 0
+      %}
+        <aside class="collection__sidebar {% if section.settings.filters_style == 'sidebar' %}collection__aside-filters-sidebar{% endif %} text-navigation-button">
+          {% if section.settings.filters_style == 'sidebar' %}
+            {%- if section.settings.enable_sorting -%}
+              {{- 'component-custom-select.css' | asset_url | stylesheet_tag -}}
+              <script src="{{- 'custom-select.js' | asset_url -}}" defer="defer"></script>
+            {%- endif -%}
+            <facet-filters-form class="collection__aside-filters" data-section-id="{{- section.id -}}">
+              {%- if enable_filtering or section.settings.enable_sorting -%}
+                <form id="FacetFiltersFormAside" class="facets__form">
+                  {%- if collection.terms -%}
+                    <input type="hidden" name="q" value="{{- collection.terms | escape -}}">
+                    <input name="options[prefix]" type="hidden" value="last">
+                  {%- endif -%}
+                  {%- if collection.current_vendor or collection.current_type -%}
+                    <input type="hidden" name="q" value="{{- collection.current_vendor -}}{{- collection.current_type -}}">
+                  {%- endif -%}
+                  {%- if enable_filtering and collection.filters != empty -%}
+                    <h2 class="drawer__title drawer__title--mb-lg heading-static">
+                      {{- 'collection.facets.filters_title' | t -}}
+                    </h2>
+                    <div class="drawer__row drawer__row--mb-lg">
+                      <accordion-default class="accordion facets__accordion">
+                        {%- for filter in collection.filters -%}
+                          {%- render 'facet', index: forloop.index, section_id: section.id, filter: filter, postfix: '-aside' -%}
+                        {%- endfor -%}
+                      </accordion-default>
+                    </div>
+                  {%- endif -%}
+                </form>
+                {%- assign clear_text = 'collection.facets.clear_all' | t -%}
+                <facet-remove>
+                  {%- assign button_value = clear_text | escape -%}
+                  {%- render 'button', type: 'link', class: 'button button--full facets__clear-button', button_style: 'button--outlined', value: button_value, href: results_sort_url -%}
+                </facet-remove>
+              {% endif %}
+            </facet-filters-form>
+          {% endif %}
+          {%- if section.settings.sidebar_navigation != blank and section.settings.sidebar_navigation.links.size > 0 -%}
+            <nav class="collection__nav">
+              <ul class="collection__nav-links list-unstyled no-scrollbar">
+                {%- for link in section.settings.sidebar_navigation.links -%}
+                  <li class="collection__nav-links-item">
+                    <a href="{{- link.url -}}" class="collection__nav-links-link{% if link.current %} is-current{% endif %}" {% if link.current %} aria-current="page"{% endif %} role="button">
+                      {{- link.title | escape -}}
+                    </a>
+
+                    {%- assign link_or_child_current = false -%}
+
+                    {%- if link.current or link.child_current -%}
+                      {%- assign link_or_child_current = true -%}
+                    {%- endif -%}
+
+                    {%- if link.links.size > 0 and link_or_child_current -%}
+                      <ul class="collection__nav-sublinks list-unstyled">
+                        {%- for link in link.links -%}
+                          <li class="collection__nav-sublinks-item">
+                            <a href="{{- link.url -}}" class="collection__nav-sublinks-link{% if link.current %} is-current{% endif %}"{% if link.current %} aria-current="page"{% endif %} role="button">
+                              {{- link.title | escape -}}
+                            </a>
+                          </li>
+                          {%- for link in link.links -%}
+                            <li class="collection__nav-sublinks-link{% if link.current %} is-current{% endif %}"{% if link.current %} aria-current="page"{% endif %}>
+                              <a href="{{- link.url -}}" role="button">
+                                {{- link.title | escape -}}
+                              </a>
+                            </li>
+                          {%- endfor -%}
+                        {%- endfor -%}
+                      </ul>
+                    {%- endif -%}
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </nav>
+          {%- endif -%}
+        </aside>
+      {%- endif -%}
+
+      {%- paginate collection.products by section.settings.products_per_page -%}
+        {%- if collection.products_count == 0 -%}
+          <div class="collection-grid-container" id="ProductGridContainer">
+            <h3 class="collection__title text-center">
+              {{- 'collection.empty' | t -}}
+            </h3>
+          </div>
+        {%- else -%}
+          <div
+            class="collection-grid-container{% if section.settings.enable_infinity_scroll %} infinity-scroll-active{% endif %}"
+            id="ProductGridContainer"
+          >
+            {%- if paginate.pages > 1 and paginate.current_page <= paginate.pages -%}
+              {% if section.settings.pagination_style == 'load_more' %}
+                {%- if paginate.previous -%}
+                  <collection-load-previous
+                    class="collection__actions text-center no-js-hidden{% unless paginate.previous %} hidden{% endunless %}"
+                    data-current-page="{{- paginate.current_page -}}"
+                  >
+                    {%- liquid
+                      assign load_previous_button_data_href = 'data-href="' | append: paginate.previous.url | append: '"'
+                      assign load_previous_value = 'collection.load_previous' | t
+
+                      render 'button', class: 'button js-btn-load-previous', button_style: section.settings.button_style, attr: load_previous_button_data_href, value: load_previous_value, loading_spinner: true
+                    -%}
+                  </collection-load-previous>
+                {%- endif -%}
+              {%- endif -%}
+            {%- endif -%}
+            <div
+              class="collection__grid{% if settings.quick_add_to_cart == 'bulk' %} collection-quick-add-bulk{% endif %}"
+              id="product-grid"
+              data-id="{{- section.id -}}"
+              data-cols="{{- section.settings.products_per_row_default -}}"
+            >
+              {% style %}
+                .section-{{ section.id }} .card-text__title {
+                  --card-text--font-size-multiplier: {{ section.blocks[0].settings.text_size }};
+                }
+              {% endstyle %}
+              {%- liquid
+                if section.blocks.size > 0
+                  capture card_text_html
+                    for block in section.blocks
+                      assign card_text_position = block.settings.position
+                      assign card_text_classes = 'collection__card-text color-' | append: block.settings.color_scheme
+                      render 'card-text', class: card_text_classes, title: block.settings.title, button_text: block.settings.button_text, button_url: block.settings.button_url, button_style: block.settings.button_style
+                    endfor
+                  endcapture
+                endif
+
+                for product_ref in collection.products
+                  if forloop.index == card_text_position
+                    echo card_text_html
+                  endif
+
+                  render 'card-product', product_ref: product_ref, collection_ref: collection, section_id: section.id, card_index: forloop.index, card_product_layout: settings.card_product_layout, image_per_view: section.settings.products_per_row_default
+                endfor
+
+                if card_text_position > collection.products.size
+                  echo card_text_html
+                endif
+              -%}
+            </div>
+
+            {%- if paginate.pages > 1 -%}
+              {% if section.settings.pagination_style == 'load_more' %}
+                <collection-load-more
+                  class="collection__actions text-center no-js-hidden{% unless paginate.next %} hidden{% endunless %}"
+                  data-current-page="{{- paginate.current_page -}}"
+                >
+                  {%- liquid
+                    assign load_more_button_data_href = 'data-href="' | append: paginate.next.url | append: '"'
+                    assign load_more_value = 'collection.ajax_button' | t
+
+                    render 'button', class: 'button js-btn-load-more', button_style: section.settings.button_style, attr: load_more_button_data_href, value: load_more_value, loading_spinner: true
+                  -%}
+                </collection-load-more>
+                <div class="collection__actions no-js">
+                  {%- render 'pagination', paginate: paginate, anchor: '' -%}
+                </div>
+              {% else %}
+                <div class="collection__actions">
+                  {%- render 'pagination', paginate: paginate, anchor: '' -%}
+                </div>
+              {% endif %}
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      {%- endpaginate -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.main-collection.name",
+  "tag": "section",
+  "class": "section-main-collection",
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.main-collection.settings.header_general.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_products_count",
+      "label": "t:sections.main-collection.settings.enable_products_count.label",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "products_per_row_ui",
+      "label": "t:sections.main-collection.settings.products_per_row_ui.label",
+      "info": "t:sections.main-collection.settings.products_per_row_ui.info",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "label": "t:sections.main-collection.settings.enable_sorting.label",
+      "info": "t:sections.main-collection.settings.enable_sorting.info",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "filters_style",
+      "label": "t:sections.main-collection.settings.filters_style.label",
+      "options": [
+        {
+          "value": "hidden",
+          "label": "t:sections.main-collection.settings.filters_style.options.hide.label"
+        },
+        {
+          "value": "drawer",
+          "label": "t:sections.main-collection.settings.filters_style.options.drawer.label"
+        },
+        {
+          "value": "sidebar",
+          "label": "t:sections.main-collection.settings.filters_style.options.sidebar.label"
+        }
+      ],
+      "default": "drawer"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.main-collection.settings.header_sidebar.content"
+    },
+    {
+      "type": "link_list",
+      "id": "sidebar_navigation",
+      "label": "t:sections.main-collection.settings.sidebar_navigation.label",
+      "info": "t:sections.main-collection.settings.sidebar_navigation.info"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.main-collection.settings.header_products_grid.content"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "min": 12,
+      "max": 36,
+      "step": 1,
+      "label": "t:sections.main-collection.settings.products_per_page.label",
+      "info": "t:sections.main-collection.settings.products_per_page.info",
+      "default": 16
+    },
+    {
+      "type": "select",
+      "id": "products_per_row_default",
+      "label": "t:sections.main-collection.settings.products_per_row_default.label",
+      "info": "t:sections.main-collection.settings.products_per_row_default.info",
+      "options": [
+        {
+          "value": "3",
+          "label": "t:sections.main-collection.settings.products_per_row_default.options.three.label"
+        },
+        {
+          "value": "4",
+          "label": "t:sections.main-collection.settings.products_per_row_default.options.four.label"
+        }
+      ],
+      "default": "4"
+    },
+    {
+      "type": "select",
+      "id": "products_per_row_mobile",
+      "label": "t:sections.main-collection.settings.products_per_row_mobile.label",
+      "options": [
+        {
+          "value": "1",
+          "label": "t:sections.main-collection.settings.products_per_row_mobile.options.one.label"
+        },
+        {
+          "value": "2",
+          "label": "t:sections.main-collection.settings.products_per_row_mobile.options.two.label"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "pagination_style",
+      "label": "t:sections.global.settings.pagination.style.label",
+      "options": [
+        {
+          "value": "default",
+          "label": "t:sections.global.settings.pagination.style.options.default.label"
+        },
+        {
+          "value": "load_more",
+          "label": "t:sections.global.settings.pagination.style.options.load_more.label"
+        }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "t:sections.main-collection.settings.button_style.label",
+      "options": [
+        {
+          "value": "button--filled",
+          "label": "t:sections.global.settings.button_style.options.filled.label"
+        },
+        {
+          "value": "button--outlined",
+          "label": "t:sections.global.settings.button_style.options.outlined.label"
+        }
+      ],
+      "default": "button--outlined"
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:global.settings.section.width.label",
+      "options": [
+        {
+          "value": "page",
+          "label": "t:global.settings.section.width.options.page.label"
+        },
+        {
+          "value": "fluid",
+          "label": "t:global.settings.section.width.options.fluid.label"
+        }
+      ],
+      "default": "page"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top",
+      "label": "t:global.settings.spacing.top.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "0"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom",
+      "label": "t:global.settings.spacing.bottom.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "section_border",
+      "label": "t:global.settings.section.border.label",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:global.settings.section.border.options.none.label"
+        },
+        {
+          "value": "top",
+          "label": "t:global.settings.section.border.options.top.label"
+        },
+        {
+          "value": "bottom",
+          "label": "t:global.settings.section.border.options.bottom.label"
+        },
+        {
+          "value": "both",
+          "label": "t:global.settings.section.border.options.both.label"
+        }
+      ],
+      "default": "none"
+    }
+  ],
+  "max_blocks": 1,
+  "blocks": [
+    {
+      "type": "text-card",
+      "name": "t:sections.main-collection.blocks.text-card.name",
+      "settings": [
+        {
+          "type": "header",
+          "content": "t:sections.main-collection.blocks.text-card.settings.header_general.content"
+        },
+        {
+          "type": "range",
+          "id": "position",
+          "min": 1,
+          "max": 28,
+          "step": 1,
+          "label": "t:sections.main-collection.blocks.text-card.settings.position.label",
+          "info": "t:sections.main-collection.blocks.text-card.settings.position.info",
+          "default": 8
+        },
+        {
+          "type": "header",
+          "content": "t:sections.main-collection.blocks.text-card.settings.header_text.content"
+        },
+        {
+          "type": "inline_richtext",
+          "id": "title",
+          "label": "t:sections.main-collection.blocks.text-card.settings.title.label",
+          "default": "Heading goes here"
+        },
+        {
+          "type": "select",
+          "id": "text_size",
+          "label": "t:sections.main-collection.blocks.text-card.settings.text_size.label",
+          "options": [
+            {
+              "value": "0.6",
+              "label": "S"
+            },
+            {
+              "value": "0.8",
+              "label": "M"
+            },
+            {
+              "value": "1",
+              "label": "L"
+            }
+          ],
+          "default": "1"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.main-collection.blocks.text-card.settings.header_button.content"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "t:sections.main-collection.blocks.text-card.settings.button_text.label"
+        },
+        {
+          "type": "url",
+          "id": "button_url",
+          "label": "t:sections.main-collection.blocks.text-card.settings.button_url.label"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "t:sections.global.settings.button_style.label",
+          "options": [
+            {
+              "value": "button--filled",
+              "label": "t:sections.global.settings.button_style.options.filled.label"
+            },
+            {
+              "value": "button--outlined",
+              "label": "t:sections.global.settings.button_style.options.outlined.label"
+            },
+            {
+              "value": "button--link",
+              "label": "t:sections.global.settings.button_style.options.text.label"
+            }
+          ],
+          "default": "button--outlined"
+        },
+        {
+          "type": "header",
+          "content": "t:global.header.settings.content",
+          "info": "t:global.header.settings.info"
+        },
+        {
+          "type": "color_scheme",
+          "id": "color_scheme",
+          "label": "t:global.settings.color_scheme.label",
+          "default": "scheme-1"
+        }
+      ]
+    }
+  ],
+  "default": {
+    "blocks": [
+      {
+        "type": "text-card"
+      }
+    ]
+  }
+}
+{% endschema %}

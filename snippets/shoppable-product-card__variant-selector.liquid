@@ -1,0 +1,40 @@
+{%- assign current_variant = product.selected_or_first_available_variant -%}
+{%- if product.has_only_default_variant == false -%}
+  <div class='product-selector'>
+    <input type='hidden' name='id' value='{{- current_variant.id -}}'>
+    {%- for option in product.options_with_values -%}
+      {%- liquid
+        assign name = 'options[' | append: option.name | append: ']'
+      -%}
+      <fieldset class="product-options{% if product.has_only_default_variant %} hidden{% endif %}" data-input-wrapper id="{{ product_option_href -}}">
+        <legend class="product-selector__label">{{- option.name -}}</legend>
+        <div class="product-options__value-list js-product-options-value-list">
+          <ul class="slim-scrollbar">
+            {%- for value in option.values -%}
+              <li>
+                {%- liquid
+                  assign attr = ''
+                  assign show_label = false
+                  if option.selected_value == value
+                    assign class = class | append: ' is-active'
+                    assign attr = 'checked'
+                  endif
+                  if option_disabled
+                    assign class = class | append: ' product-options__item--disabled'
+                  endif
+                  assign swatch_id = section.id | append: '-' | append: product.id | append: '-' | append: value
+                  render 'product-option', value: value, class: class, name: name, attr: attr, product_handle: product.handle, id: swatch_id
+                -%}
+              </li>
+            {%- endfor -%}
+          </ul>
+        </div>
+      </fieldset>
+    {%- endfor -%}
+    <script data-product-variants-json type='application/json'>
+      {{- product.variants | json -}}
+    </script>
+  </div>
+{%- else -%}
+  <input type='hidden' name='id' value='{{- current_variant.id -}}'>
+{%- endif -%}

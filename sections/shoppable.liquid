@@ -1,0 +1,988 @@
+{% comment %} ### Imports - Shopify | Design Mode ### {% endcomment %}
+{%- if request.design_mode -%}
+  <script
+    src='{{- 'shoppable-shopify--design-mode.js' | asset_url -}}'
+    defer='defer'
+  ></script>
+{%- endif -%}
+
+{%- render 'section-common-styles', section: section -%}
+
+{%- if section.blocks.size > 0 and section.settings.source_of_slide == 'manual' or product.metafields.theme.shoppable_socials.value and section.settings.source_of_slide == 'metaobject'-%}
+
+  {% style %}
+    #shopify-section-{{ section.id }} {
+      --shoppable-product-card-aspect-ratio: {{ section.settings.aspect_ratio }};
+      --shoppable-layout-aspect-ratio: {{ section.settings.aspect_ratio_for_layout }};
+    }
+  {% endstyle %}
+
+  {% comment %} ### Imports - Globals ### {% endcomment %}
+  {{- 'section-shoppable.css' | asset_url | stylesheet_tag -}}
+
+  <script
+    src='{{- 'shoppable-product-card.js' | asset_url -}}'
+    defer='defer'
+  ></script>
+  <script
+    src='{{- 'shoppable-drawer.js' | asset_url -}}'
+    defer='defer'
+  ></script>
+  {% comment %} ### Imports - Conditional ### {% endcomment %}
+  {%- assign layouts = 'carousel,tags,slider,sidebar' -%}
+  {%- if request.design_mode -%}
+    {%- assign layouts = layouts | split: ',' -%}
+    {%- for layout in layouts -%}
+      {%- assign js_file = 'shoppable-layout__'
+        | append: layout
+        | append: '.js'
+      -%}
+      <script
+        src='{{- js_file | asset_url -}}'
+        defer='defer'
+      ></script>
+    {%- endfor -%}
+  {%- else -%}
+    {%- if layouts contains section.settings.layout -%}
+      {%- assign js_file = 'shoppable-layout__'
+        | append: section.settings.layout
+        | append: '.js'
+      -%}
+      <script
+        src='{{- js_file | asset_url -}}'
+        defer='defer'
+      ></script>
+    {%- endif -%}
+  {%- endif -%}
+
+  {% comment %} ### Section ### {% endcomment %}
+  <div id='section-{{ section.id }}' class="color-{{ section.settings.color_scheme }} gradient shoppable-section__{{section.settings.layout}}">
+    <div class='shoppable section shoppable-container__{{section.settings.layout}}'>
+      {% comment %} ### Header ### {% endcomment %}
+      {%- capture follow_account_btn -%}
+        {%- assign follow_button_classes = 'button ' | append: section.settings.button_style -%}
+        <a
+          href='{{- section.settings.social_url -}}'
+          class="{{follow_button_classes}}"
+          target='_blank'
+          role="button"
+        >
+          {%- capture btn_label -%}
+            {{ section.settings.follow_button_label }} {%- if section.settings.social_username != blank -%}@{{- section.settings.social_username -}}{%- endif -%}
+          {%- endcapture -%}
+          {{- btn_label -}}
+        </a>
+      {%- endcapture -%}
+      {%- if section.settings.follow_button_label != blank or section.settings.social_username != blank or section.settings.header_title != blank and section.settings.layout != 'sidebar'-%}
+        <div class='shoppable__header--{{- section.settings.header_layout }} {% if section.settings.layout == 'tags' %} shoppable-layout__tags-wrapper{% endif %}'>
+          <div class="container max-w-{{ section.settings.section_width }}">
+            <div class='shoppable__header-inner'>
+              {%- unless section.index == 1 -%}
+                <h2 class="heading-static {{ section.settings.heading_size }}">{{- section.settings.header_title -}}</h2>
+              {%- else -%}
+                <h1 class="heading-static {{ section.settings.heading_size }}">{{- section.settings.header_title -}}</h1>
+              {%- endunless -%}
+              {%- if section.settings.follow_button_label != blank or section.settings.social_username != blank -%}
+                {{- follow_account_btn -}}
+              {%- endif -%}
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+      {% comment %} ### Main ### {% endcomment %}
+      <div class='container max-w-{{ section.settings.section_width }} {% if section.settings.layout == 'sidebar'%} container__layout-sidebar{% endif %} {% if section.settings.layout == 'tags' %} shoppable-layout__tags-wrapper{% endif %}'>
+        {%- comment -%} tags groups for 'tags' layouts -{%- endcomment -%}
+        {%- liquid
+          if section.settings.layout == 'tags' or section.settings.layout == 'sidebar'
+            assign tag_stories = blank
+            if section.settings.source_of_slide == 'metaobject'
+              if product.metafields.theme.shoppable_socials.value
+                for item in product.metafields.theme.shoppable_socials.value
+                  assign tag_stories = item.tag_story
+                endfor
+              endif
+            else
+              for block in section.blocks
+                assign tag_stories = tag_stories | append: block.settings.tag_story | append: ','
+              endfor
+            endif
+            assign tag_stories = tag_stories | split: ',' | uniq | join: ','
+            assign tag_stories = tag_stories | split: ','
+          endif
+        -%}
+        {% comment %} ### Layouts ### {% endcomment %}
+         {%- liquid
+              if section.settings.source_of_slide == 'metaobject'
+                if product.metafields.theme.shoppable_socials.value
+                  assign shoppable_blocks = product.metafields.theme.shoppable_socials.value
+                endif
+              else
+                assign shoppable_blocks = section.blocks
+              endif
+
+          -%}
+        {%- render 'shoppable-layouts',
+          layout: section.settings.layout,
+          blocks: shoppable_blocks,
+          tags: tag_stories
+        -%}
+      </div>
+
+      {%- comment -%}
+        ### Header | Bottom ###
+        for design purposes in compact layout and on mobile screen display follow button at the bottom
+      {%- endcomment -%}
+      {% unless section.settings.header_layout == 'extended' %}
+        {%- if section.settings.follow_button_label != blank or section.settings.social_username != blank
+        -%}
+          <div class='shoppable__header--bottom'>
+            {{- follow_account_btn -}}
+          </div>
+        {%- endif -%}
+      {% endunless %}
+    </div>
+
+    {% assign color_class = 'color-' | append: section.settings.color_scheme_drawer %}
+
+    {% comment %} ### Drawer ### {% endcomment %}
+    {%- render 'shoppable-drawer',
+      layout: section.settings.layout,
+      tags: tag_stories,
+      class: color_class
+    -%}
+  </div>
+
+  {% comment %} ### Product Cards | Hidden ### {% endcomment %}
+  <div class='shoppable__product-card--holder hidden'>
+    {%- liquid
+      assign products = blank
+      if section.settings.source_of_slide == 'metaobject'
+        for block in product.metafields.theme.shoppable_socials.value
+          for product_card in (1..4)
+            assign block_item_id = 'product_0' | append: product_card
+            assign product_ref = block[block_item_id].value
+            unless product_ref == '' or products contains product_ref
+              assign products = products | append: product_ref.handle | append: ','
+              render 'shoppable-product-card', product_ref: block[block_item_id].value
+            endunless
+          endfor
+        endfor
+      else
+        for block in section.blocks
+          for product_card in (1..4)
+            assign block_item_id = 'product_0' | append: product_card
+            assign product_ref = block.settings[block_item_id]
+            unless product_ref == '' or products contains product_ref
+              assign products = products | append: product_ref.handle | append: ','
+              render 'shoppable-product-card', product_ref: block.settings[block_item_id]
+            endunless
+          endfor
+        endfor
+      endif
+
+      render 'shoppable-product-card'
+    -%}
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:sections.shoppable.name",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.shoppable.settings.headers.layout.content"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme_drawer",
+      "label": "t:sections.shoppable.settings.color_scheme_for_drawer.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "t:sections.shoppable.settings.layout.label",
+      "options": [
+        {
+          "value": "list",
+          "label": "t:sections.shoppable.settings.layout.options.list"
+        },
+        {
+          "value": "grid",
+          "label": "t:sections.shoppable.settings.layout.options.grid"
+        },
+        {
+          "value": "carousel",
+          "label": "t:sections.shoppable.settings.layout.options.carousel"
+        },
+        {
+          "value": "tags",
+          "label": "t:sections.shoppable.settings.layout.options.tags"
+        },
+        {
+          "value": "slider",
+          "label": "t:sections.shoppable.settings.layout.options.slider"
+        }
+      ],
+      "default": "list"
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio_for_layout",
+      "label": "t:global.settings.aspect_ratio.label",
+      "info": "t:sections.shoppable.settings.aspect_ratio_for_layout.info",
+      "options": [
+        {
+          "value": "auto",
+          "label": "t:sections.global.settings.aspect_ratio.options__0.label",
+          "group": "t:sections.global.settings.aspect_ratio.group__auto.label"
+        },
+        {
+          "value": "1/1",
+          "label": "1:1",
+          "group": "t:sections.global.settings.aspect_ratio.group__square.label"
+        },
+        {
+          "value": "4/3",
+          "label": "4:3",
+          "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+        },
+        {
+          "value": "3/4",
+          "label": "3:4",
+          "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+        },
+        {
+          "value": "3/2",
+          "label": "3:2",
+          "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+        },
+        {
+          "value": "2/3",
+          "label": "2:3",
+          "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+        },
+        {
+          "value": "5/4",
+          "label": "5:4",
+          "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+        },
+        {
+          "value": "4/5",
+          "label": "4:5",
+          "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+        },
+        {
+          "value": "16/9",
+          "label": "16:9",
+          "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+        },
+        {
+          "value": "9/16",
+          "label": "9:16",
+          "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+        },
+        {
+          "value": "2/1",
+          "label": "2:1",
+          "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+        },
+        {
+          "value": "4/1",
+          "label": "4:1",
+          "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+        },
+        {
+          "value": "8/1",
+          "label": "8:1",
+          "group": "t:sections.global.settings.aspect_ratio.group__landscape.label"
+        },
+        {
+          "value": "1/2",
+          "label": "1:2",
+          "group": "t:sections.global.settings.aspect_ratio.group__portrait.label"
+        }
+      ],
+      "default": "1/1"
+    },
+    {
+      "type": "select",
+      "id": "grid_items",
+      "label": "t:sections.shoppable.settings.grid_items.label",
+      "info": "t:sections.shoppable.settings.grid_items.info",
+      "options": [
+        {
+          "value": "3",
+          "label": "t:sections.shoppable.settings.grid_items.options.3"
+        },
+        {
+          "value": "4",
+          "label": "t:sections.shoppable.settings.grid_items.options.4"
+        }
+      ],
+      "default": "4"
+    },
+    {
+      "type": "range",
+      "id": "tag_items_slides_perview",
+      "label": "t:sections.shoppable.settings.tag_items_slides_perview.label",
+      "info": "t:sections.shoppable.settings.tag_items_slides_perview.info",
+      "min": 5,
+      "max": 8,
+      "step": 1,
+      "default": 7
+    },
+    {
+      "type": "select",
+      "id": "source_of_slide",
+      "label": "t:sections.shoppable.settings.source_of_slide.label",
+      "info": "t:sections.shoppable.settings.source_of_slide.info",
+      "options": [
+        {
+          "value": "manual",
+          "label": "t:sections.shoppable.settings.source_of_slide.options.manual.label"
+        },
+        {
+          "value": "metaobject",
+          "label": "t:sections.shoppable.settings.source_of_slide.options.metaobject.label"
+        }
+      ],
+      "default": "manual"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "t:sections.shoppable.settings.show_dots.label",
+      "info": "t:sections.shoppable.settings.show_dots.info",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:sections.shoppable.settings.button_label.label",
+      "info": "t:sections.shoppable.settings.button_label.info",
+      "default": "Shop The Look"
+    },
+    {
+      "type": "select",
+      "id": "button_label_style",
+      "label": "t:sections.global.settings.button_style.label",
+      "options": [
+        {
+          "value": "button--filled",
+          "label": "t:sections.global.settings.button_style.options.filled.label"
+        },
+        {
+          "value": "button--outlined",
+          "label": "t:sections.global.settings.button_style.options.outlined.label"
+        },
+        {
+          "value": "link",
+          "label": "t:sections.global.settings.button_style.options.default.label"
+        }
+      ],
+      "default": "button--filled"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.shoppable.settings.headers.header.content"
+    },
+    {
+      "type": "select",
+      "id": "header_layout",
+      "label": "t:sections.shoppable.settings.header_layout.label",
+      "options": [
+        {
+          "value": "compact",
+          "label": "t:sections.shoppable.settings.header_layout.options.compact"
+        },
+        {
+          "value": "extended",
+          "label": "t:sections.shoppable.settings.header_layout.options.extended"
+        }
+      ],
+      "default": "compact"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "header_title",
+      "label": "t:sections.shoppable.settings.header_title.label",
+      "info": "t:sections.shoppable.settings.header_title.info",
+      "default": "Shoppable"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:sections.global.element.heading_size.label",
+      "options": [
+        {
+          "value": "h6",
+          "label": "XS"
+        },
+        {
+          "value": "h5",
+          "label": "S"
+        },
+        {
+          "value": "h4",
+          "label": "M"
+        },
+        {
+          "value": "h3",
+          "label": "L"
+        },
+        {
+          "value": "h2",
+          "label": "XL"
+        }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.shoppable.settings.headers.social.content"
+    },
+    {
+      "type": "image_picker",
+      "id": "social_avatar",
+      "label": "t:sections.shoppable.settings.social_avatar.label",
+      "info": "t:sections.shoppable.settings.social_avatar.info"
+    },
+    {
+      "type": "text",
+      "id": "follow_button_label",
+      "label": "t:sections.shoppable.settings.button_label.label",
+      "default": "Follow Us"
+    },
+    {
+      "type": "text",
+      "id": "social_username",
+      "label": "t:sections.shoppable.settings.social_username.label",
+      "default": "Sahara"
+    },
+    {
+      "type": "url",
+      "id": "social_url",
+      "label": "t:sections.shoppable.settings.social_url.label"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "t:sections.global.settings.button_style.label",
+      "options": [
+        {
+          "value": "button--filled",
+          "label": "t:sections.global.settings.button_style.options.filled.label"
+        },
+        {
+          "value": "button--outlined",
+          "label": "t:sections.global.settings.button_style.options.outlined.label"
+        },
+        {
+          "value": "link",
+          "label": "t:sections.global.settings.button_style.options.default.label"
+        }
+      ],
+      "default": "button--outlined"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.shoppable.settings.headers.block_items.content",
+      "info": "t:sections.shoppable.settings.headers.block_items.info"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme_for_items",
+      "label": "t:sections.shoppable.settings.color_scheme_for_items.label",
+      "info": "t:sections.shoppable.settings.color_scheme_for_items.info",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.shoppable.settings.headers.products.content",
+      "info": "t:sections.shoppable.settings.headers.products.info"
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio",
+      "label": "t:global.settings.aspect_ratio.label",
+      "info": "t:sections.shop-the-look.settings.aspect_ratio.info",
+      "options": [
+        {
+          "value": "auto",
+          "label": "t:global.settings.aspect_ratio.options.auto.label",
+          "group": "t:global.settings.aspect_ratio.group__auto.label"
+        },
+        {
+          "value": "1/1",
+          "label": "1:1",
+          "group": "t:global.settings.aspect_ratio.group__square.label"
+        },
+        {
+          "value": "1/2",
+          "label": "1:2",
+          "group": "t:global.settings.aspect_ratio.group__portrait.label"
+        },
+        {
+          "value": "2/3",
+          "label": "2:3",
+          "group": "t:global.settings.aspect_ratio.group__portrait.label"
+        },
+        {
+          "value": "3/4",
+          "label": "3:4",
+          "group": "t:global.settings.aspect_ratio.group__portrait.label"
+        },
+        {
+          "value": "4/5",
+          "label": "4:5",
+          "group": "t:global.settings.aspect_ratio.group__portrait.label"
+        },
+        {
+          "value": "9/16",
+          "label": "9:16",
+          "group": "t:global.settings.aspect_ratio.group__portrait.label"
+        }
+      ],
+      "default": "auto"
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:global.settings.section.width.label",
+      "options": [
+        {
+          "value": "page",
+          "label": "t:global.settings.section.width.options.page.label"
+        },
+        {
+          "value": "fluid",
+          "label": "t:global.settings.section.width.options.fluid.label"
+        }
+      ],
+      "default": "page"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top",
+      "label": "t:global.settings.spacing.top.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom",
+      "label": "t:global.settings.spacing.bottom.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "section_border",
+      "label": "t:global.settings.section.border.label",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:global.settings.section.border.options.none.label"
+        },
+        {
+          "value": "top",
+          "label": "t:global.settings.section.border.options.top.label"
+        },
+        {
+          "value": "bottom",
+          "label": "t:global.settings.section.border.options.bottom.label"
+        },
+        {
+          "value": "both",
+          "label": "t:global.settings.section.border.options.both.label"
+        }
+      ],
+      "default": "none"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "shoppable-social-item",
+      "name": "t:sections.shoppable.blocks.shoppable_social_item.name",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "social_post_image",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.social_post_image.label"
+        },
+        {
+          "type": "richtext",
+          "id": "social_post_content",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.social_post_content.label",
+          "default": "<p>Embrace the summer with our curated looks. Discover the styles we love, inspired by you. Shine in the season's favorite outfits.</p><p>#hashtag #hashtag #hashtag</p>"
+        },
+        {
+          "type": "url",
+          "id": "social_post_url",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.social_post_url.label"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.shoppable.blocks.shoppable_social_item.settings.headers.social_stories.content"
+        },
+        {
+          "type": "text",
+          "id": "tag_story",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.tag_story.label",
+          "info": "t:sections.shoppable.blocks.shoppable_social_item.settings.tag_story.info",
+          "default": "hashtag"
+        },
+        {
+          "type": "video",
+          "id": "social_story_video",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.social_story_video.label",
+          "info": "t:sections.shoppable.blocks.shoppable_social_item.settings.social_story_video.info"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.shoppable.settings.headers.social.content"
+        },
+        {
+          "type": "image_picker",
+          "id": "social_avatar",
+          "label": "t:sections.shoppable.settings.social_avatar.label",
+          "info": "t:sections.shoppable.settings.social_avatar.info"
+        },
+        {
+          "type": "select",
+          "id": "social_avatar_object_fit",
+          "label": "t:sections.shoppable.settings.social_avatar_object_fit.label",
+          "options": [
+            {
+              "value": "cover",
+              "label": "t:sections.main-product.settings.product_media_object_fit.options.cover.label"
+            },
+            {
+              "value": "contain",
+              "label": "t:sections.main-product.settings.product_media_object_fit.options.contain.label"
+            }
+          ],
+          "default": "cover"
+        },
+        {
+          "type": "text",
+          "id": "social_username",
+          "label": "t:sections.shoppable.settings.social_username.label",
+          "default": "Sahara"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.shoppable.blocks.shoppable_social_item.settings.headers.product_01.content"
+        },
+        {
+          "type": "product",
+          "id": "product_01",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.product.label"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.shoppable.blocks.shoppable_social_item.settings.headers.product_01_dots.content",
+          "info": "t:sections.shoppable.blocks.shoppable_social_item.settings.headers.product_dots.info"
+        },
+        {
+          "type": "range",
+          "id": "product_01_dot_x",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.product_dot_x.label",
+          "default": 50
+        },
+        {
+          "type": "range",
+          "id": "product_01_dot_y",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.product_dot_y.label",
+          "default": 50
+        },
+        {
+          "type": "header",
+          "content": "t:sections.shoppable.blocks.shoppable_social_item.settings.headers.product_02.content"
+        },
+        {
+          "type": "product",
+          "id": "product_02",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.product.label"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.shoppable.blocks.shoppable_social_item.settings.headers.product_02_dots.content",
+          "info": "t:sections.shoppable.blocks.shoppable_social_item.settings.headers.product_dots.info"
+        },
+        {
+          "type": "range",
+          "id": "product_02_dot_x",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.product_dot_x.label",
+          "default": 50
+        },
+        {
+          "type": "range",
+          "id": "product_02_dot_y",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.product_dot_y.label",
+          "default": 50
+        },
+        {
+          "type": "header",
+          "content": "t:sections.shoppable.blocks.shoppable_social_item.settings.headers.product_03.content"
+        },
+        {
+          "type": "product",
+          "id": "product_03",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.product.label"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.shoppable.blocks.shoppable_social_item.settings.headers.product_03_dots.content",
+          "info": "t:sections.shoppable.blocks.shoppable_social_item.settings.headers.product_dots.info"
+        },
+        {
+          "type": "range",
+          "id": "product_03_dot_x",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.product_dot_x.label",
+          "default": 50
+        },
+        {
+          "type": "range",
+          "id": "product_03_dot_y",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.product_dot_y.label",
+          "default": 50
+        },
+        {
+          "type": "header",
+          "content": "t:sections.shoppable.blocks.shoppable_social_item.settings.headers.product_04.content"
+        },
+        {
+          "type": "product",
+          "id": "product_04",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.product.label"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.shoppable.blocks.shoppable_social_item.settings.headers.product_04_dots.content",
+          "info": "t:sections.shoppable.blocks.shoppable_social_item.settings.headers.product_dots.info"
+        },
+        {
+          "type": "range",
+          "id": "product_04_dot_x",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.product_dot_x.label",
+          "default": 50
+        },
+        {
+          "type": "range",
+          "id": "product_04_dot_y",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "label": "t:sections.shoppable.blocks.shoppable_social_item.settings.product_dot_y.label",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.shoppable.presets.list.name",
+      "category": "t:categories.features.name",
+      "blocks": [
+        {
+          "type": "shoppable-social-item"
+        }
+      ]
+    },
+    {
+      "name": "t:sections.shoppable.presets.grid.name",
+      "category": "t:categories.features.name",
+      "settings": {
+        "layout": "grid"
+      },
+      "blocks": [
+        {
+          "type": "shoppable-social-item"
+        },
+        {
+          "type": "shoppable-social-item"
+        },
+        {
+          "type": "shoppable-social-item"
+        },
+        {
+          "type": "shoppable-social-item"
+        }
+      ]
+    },
+    {
+      "name": "t:sections.shoppable.presets.carousel.name",
+      "category": "t:categories.features.name",
+      "settings": {
+        "layout": "carousel"
+      },
+      "blocks": [
+        {
+          "type": "shoppable-social-item"
+        },
+        {
+          "type": "shoppable-social-item"
+        },
+        {
+          "type": "shoppable-social-item"
+        },
+        {
+          "type": "shoppable-social-item"
+        },
+        {
+          "type": "shoppable-social-item"
+        }
+      ]
+    },
+    {
+      "name": "t:sections.shoppable.presets.tags.name",
+      "category": "t:categories.features.name",
+      "settings": {
+        "layout": "tags"
+      },
+      "blocks": [
+        {
+          "type": "shoppable-social-item",
+          "settings": {
+            "tag_story": "hashtag"
+          }
+        },
+        {
+          "type": "shoppable-social-item",
+          "settings": {
+            "tag_story": "shop"
+          }
+        },
+        {
+          "type": "shoppable-social-item",
+          "settings": {
+            "tag_story": "product"
+          }
+        },
+        {
+          "type": "shoppable-social-item",
+          "settings": {
+            "tag_story": "new"
+          }
+        },
+        {
+          "type": "shoppable-social-item",
+          "settings": {
+            "tag_story": "sale"
+          }
+        }
+      ]
+    },
+    {
+      "name": "t:sections.shoppable.presets.slider.name",
+      "category": "t:categories.features.name",
+      "settings": {
+        "layout": "slider"
+      },
+      "blocks": [
+        {
+          "type": "shoppable-social-item"
+        },
+        {
+          "type": "shoppable-social-item"
+        },
+        {
+          "type": "shoppable-social-item"
+        },
+        {
+          "type": "shoppable-social-item"
+        },
+        {
+          "type": "shoppable-social-item"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

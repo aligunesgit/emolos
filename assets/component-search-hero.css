@@ -1,0 +1,35 @@
+.search-hero {
+  position: relative;
+  background-color: rgb(var(--color-background));
+  text-align: center;
+}
+
+.search-hero__title {
+  margin: 0 0 1.2rem;
+}
+
+.search-hero__title:last-child {
+  margin-block-end: 0;
+}
+
+.search-hero__title > span {
+  display: block;
+}
+
+.search-hero__title-small {
+  text-transform: capitalize;
+  margin-block-end: 1.2rem;
+}
+
+@media screen and (max-width: 749px) {
+  .search-hero__title {
+    line-height: var(--line-height-static-sm);
+  }
+}
+
+@media screen and (min-width: 750px) {
+
+  .search-hero .breadcrumbs + h1 {
+    margin-block-start: 8.5rem;
+  }
+}

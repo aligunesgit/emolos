@@ -1,0 +1,345 @@
+{{- 'section-accordions.css' | asset_url | stylesheet_tag -}}
+{%- render 'section-common-styles', section: section -%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient isoloate accordions js-animation-fade-in">
+  <div class="container max-w-{{ section.settings.section_width }}">
+    {%- if section.settings.title != blank -%}
+      <h3 class="accordions__title heading-static {{ section.settings.heading_size }}">
+        {{- section.settings.title -}}
+      </h3>
+    {%- endif -%}
+
+    <accordion-default class="accordion" data-hide-multiple>
+      {%- for block in section.blocks -%}
+        {%- liquid
+          if block.settings.title == blank
+            continue
+          elsif block.settings.content == blank and block.settings.page == blank
+            continue
+          endif
+
+          if block.settings.is_open
+            assign details_class = ' is-active default-active'
+            assign details_attr = 'open'
+          else
+            assign details_class = blank
+            assign details_attr = blank
+          endif
+        -%}
+
+        <details class="accordion__section{{ details_class }}" id="Details-{{- block.id -}}" {{ details_attr }} {{- block.shopify_attributes -}}>
+          <summary class="accordion__button heading-static {{ block.settings.heading_size }}" id="Details-Summary-{{- block.id -}}">
+            {{- block.settings.title | escape -}}
+
+            <div class="accordion__icon svg-color-inherit">
+              {% render 'icon', icon_name: 'theme-chevron-down' %}
+            </div>
+          </summary>
+
+          <div class="accordion__body" id="Details-Content-{{- block.id -}}">
+            <div class="accordion__body-inner">
+              {%- if block.settings.page != blank and block.settings.page.content != blank -%}
+                {{- block.settings.page.content -}}
+              {%- elsif block.settings.content != blank -%}
+                {{- block.settings.content -}}
+              {%- endif -%}
+            </div>
+          </div>
+        </details>
+      {%- endfor -%}
+    </accordion-default>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    let accordions = document.querySelectorAll('.accordion__section');
+
+    accordions.forEach(function (accordion) {
+      accordion.addEventListener('click', function (event) {
+        updateOpenAccordionHeights(event.currentTarget);
+      });
+    });
+
+    function updateOpenAccordionHeights(clickedAccordion) {
+      let openAccordions = document.querySelectorAll('.accordion__section[open]');
+
+      openAccordions.forEach(function (accordion) {
+        let accordionBody = accordion.querySelector('.accordion__body');
+        if (accordionBody) {
+          let bodyHeight = accordionBody.scrollHeight;
+
+          let observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+              if (mutation.attributeName === 'open' && !accordion.hasAttribute('open')) {
+                if (bodyHeight !== 0 || bodyHeight > 300) {
+                  let rect = clickedAccordion.getBoundingClientRect();
+                  let targetScrollTop = window.pageYOffset + rect.top;
+
+                  let offset = 200;
+                  targetScrollTop -= offset;
+
+                  window.scrollTo({
+                    top: targetScrollTop,
+                    behavior: 'smooth'
+                  });
+                }
+              }
+            });
+          });
+
+          observer.observe(accordion, { attributes: true });
+        }
+      });
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "t:sections.accordions.name",
+  "tag": "section",
+  "class": "section-new section-accordions",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "title",
+      "label": "t:sections.accordions.settings.title.label",
+      "default": "Frequently asked questions"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:sections.global.element.heading_size.label",
+      "options": [
+        {
+          "value": "h6",
+          "label": "XS"
+        },
+        {
+          "value": "h5",
+          "label": "S"
+        },
+        {
+          "value": "h4",
+          "label": "M"
+        },
+        {
+          "value": "h3",
+          "label": "L"
+        },
+        {
+          "value": "h2",
+          "label": "XL"
+        }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:global.settings.section.width.label",
+      "options": [
+        {
+          "value": "narrower",
+          "label": "t:global.settings.section.width.options.narrower.label"
+        },
+        {
+          "value": "narrow",
+          "label": "t:global.settings.section.width.options.narrow.label"
+        },
+        {
+          "value": "page",
+          "label": "t:global.settings.section.width.options.page.label"
+        },
+        {
+          "value": "fluid",
+          "label": "t:global.settings.section.width.options.fluid.label"
+        }
+      ],
+      "default": "narrow"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top",
+      "label": "t:global.settings.spacing.top.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom",
+      "label": "t:global.settings.spacing.bottom.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "section_border",
+      "label": "t:global.settings.section.border.label",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:global.settings.section.border.options.none.label"
+        },
+        {
+          "value": "top",
+          "label": "t:global.settings.section.border.options.top.label"
+        },
+        {
+          "value": "bottom",
+          "label": "t:global.settings.section.border.options.bottom.label"
+        },
+        {
+          "value": "both",
+          "label": "t:global.settings.section.border.options.both.label"
+        }
+      ],
+      "default": "none"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "topic",
+      "name": "t:sections.accordions.blocks.topic.name",
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "is_open",
+          "label": "t:sections.accordions.blocks.topic.settings.is_open.label",
+          "info": "t:sections.accordions.blocks.topic.settings.is_open.info"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "t:sections.accordions.blocks.topic.settings.title.label",
+          "default": "Topic heading"
+        },
+        {
+          "type": "select",
+          "id": "heading_size",
+          "label": "t:sections.global.element.heading_size.label",
+          "options": [
+            {
+              "value": "h6",
+              "label": "XS"
+            },
+            {
+              "value": "h5",
+              "label": "S"
+            },
+            {
+              "value": "h4",
+              "label": "M"
+            },
+            {
+              "value": "h3",
+              "label": "L"
+            },
+            {
+              "value": "h2",
+              "label": "XL"
+            }
+          ],
+          "default": "h5"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "t:sections.accordions.blocks.topic.settings.content.label",
+          "default": "<p>Descriptive topic content body text</p>"
+        },
+        {
+          "type": "page",
+          "id": "page",
+          "label": "t:sections.accordions.blocks.topic.settings.page.label",
+          "info": "t:sections.accordions.blocks.topic.settings.page.info"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.accordions.name",
+      "category": "t:categories.content.name",
+      "blocks": [
+        {
+          "type": "topic",
+          "settings": {
+            "is_open": true,
+            "title": "Shipping details",
+            "content": "<p>Add additional information about shipping policy.</p>"
+          }
+        },
+        {
+          "type": "topic",
+          "settings": {
+            "title": "Delivery details",
+            "content": "<p>Add additional information about delivery policy.</p>"
+          }
+        },
+        {
+          "type": "topic",
+          "settings": {
+            "title": "Refund details",
+            "content": "<p>Add additional information about refund policy.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

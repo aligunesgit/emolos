@@ -1,0 +1,359 @@
+{{- 'component-card-slider.css' | asset_url | stylesheet_tag -}}
+{{- 'component-card-article.css' | asset_url | stylesheet_tag -}}
+{%- render 'section-common-styles', section: section -%}
+<script src="{{- 'card-slider.js' | asset_url -}}" defer="defer"></script>
+
+{%- assign blog = section.settings.blog | default: blogs['blog'] -%}
+
+{%- if blog != blank and blog.articles_count > 0 -%}
+  {%- liquid
+    capture section_button
+      render 'button', type: 'link', class: 'button button--auto custom_class', button_style: section.settings.button_style, value: section.settings.button_text, href: blog.url
+    endcapture
+  -%}
+
+  {% if section.blocks.size == 1 %}
+    {% style %}
+      @media screen and (max-width: 749px) {
+        #shopify-section-{{ section.id }} .card-slider .card-slider__slide {
+          width: 100% !important;
+        }
+      }
+    {% endstyle %}
+  {% endif %}
+  {% style %}
+    @media screen and (min-width: 750px) {
+      #shopify-section-{{ section.id }} .card-slider {
+        --card-collection-height: calc(var(--section-body-width) / 3);
+        height: var(--card-collection-height);
+      }
+      #shopify-section-{{ section.id }} .card-collection__media {
+        padding-block-end: var(--card-collection-height);
+      }
+    }
+  {% endstyle %}
+
+  <div class="color-{{ section.settings.color_scheme }} section gradient isoloate overflow-hidden js-animation-fade-in {{ section.settings.layout }}">
+    <div class="container max-w-{{ section.settings.section_width }}">
+      <div class="section__head">
+        <h2 class="section__title heading-static {{ section.settings.heading_size }}">
+          {{- blog.title -}}
+        </h2>
+      </div>
+
+      <div class="section__body">
+        <card-slider
+          class="swiper card-slider card-slider--articles js-articles"
+          data-swiper-options='{
+            "spaceBetweenDesktop": {{ settings.spacing_desktop | times: 10 | round: 0 }},
+            "spaceBetweenMobile": {{ settings.spacing_mobile | times: 10 | round: 0 }}
+          }'
+        >
+          <div class="swiper-wrapper card-slider__wrapper">
+            {% if section.blocks.size > 0 %}
+                {%- for block in section.blocks -%}
+                  <div class="swiper-slide card-slider__slide">
+                    {%- render 'card-article', article: block.settings.article, class: 'card-article--entry-2', content_alignment: section.settings.content_alignment, image_per_view: 3, show_date: section.settings.show_date, show_author: section.settings.show_author, show_excerpt: section.settings.show_excerpt, show_read_more: section.settings.show_read_more -%}
+                  </div>
+                {%- endfor -%}
+              {% elsif section.settings.blog != blank and section.settings.blog.articles_count > 0 -%}
+                {%- for article in blog.articles -%}
+                  <div class="swiper-slide card-slider__slide">
+                    {%- render 'card-article', article: article, class: 'card-article--entry-2', content_alignment: section.settings.content_alignment, image_per_view: 3, show_date: section.settings.show_date, show_author: section.settings.show_author, show_excerpt: section.settings.show_excerpt, show_read_more: section.settings.show_read_more -%}
+                  </div>
+                {%- endfor -%}
+              {%- else -%}
+                {%- for i in (1..3) -%}
+                  <div class="swiper-slide card-slider__slide">
+                    {%- render 'card-article', class: 'card-article--entry-2', content_alignment: section.settings.content_alignment, image_per_view: 3, show_date: section.settings.show_date, show_author: section.settings.show_author, show_excerpt: section.settings.show_excerpt, show_read_more: section.settings.show_read_more -%}
+                  </div>
+                {%- endfor -%}
+              {%- endif -%}
+          </div>
+
+          <div class="swiper-buttons small-hide svg-color-inherit card-slider__buttons {{ section.settings.button_style }} no-js-hidden">
+            <button class="swiper-button swiper-button--prev">
+              {% render 'icon', icon_name: 'theme-arrow' %}
+            </button>
+
+            <button class="swiper-button swiper-button--next">
+              {% render 'icon', icon_name: 'theme-arrow' %}
+            </button>
+          </div>
+        </card-slider>
+      </div>
+
+      <div class="section__foot">
+        {{ section_button | replace_first: 'custom_class' }}
+      </div>
+
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:sections.blog-articles.name",
+  "class": "section-new section-blog-articles",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "t:sections.blog-articles.settings.heading.label",
+      "default": "Blog"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:sections.global.element.heading_size.label",
+      "options": [
+        {
+          "value": "h6",
+          "label": "XS"
+        },
+        {
+          "value": "h5",
+          "label": "S"
+        },
+        {
+          "value": "h4",
+          "label": "M"
+        },
+        {
+          "value": "h3",
+          "label": "L"
+        },
+        {
+          "value": "h2",
+          "label": "XL"
+        }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "blog",
+      "id": "blog",
+      "label": "t:sections.blog-articles.settings.blog.label"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "t:sections.blog-articles.settings.button_text.label",
+      "default": "Visit Blog"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "t:sections.global.settings.button_style.label",
+      "options": [
+        {
+          "value": "button--filled",
+          "label": "t:sections.global.settings.button_style.options.filled.label"
+        },
+        {
+          "value": "button--outlined",
+          "label": "t:sections.global.settings.button_style.options.outlined.label"
+        },
+        {
+          "value": "default",
+          "label": "t:sections.global.settings.button_style.options.default.label"
+        }
+      ],
+      "info": "t:sections.global.settings.button_style.info",
+      "default": "button--filled"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.global.settings.header_layout.content"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "t:sections.global.settings.layout.label",
+      "options": [
+        {
+          "value": "layout-1",
+          "label": "t:sections.global.settings.layout.options.layout_1.label"
+        },
+        {
+          "value": "layout-2",
+          "label": "t:sections.global.settings.layout.options.layout_2.label"
+        }
+      ],
+      "default": "layout-1",
+      "info": "t:sections.global.settings.layout.info"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_excerpt",
+      "default": true,
+      "label": "t:sections.blog-articles.settings.show_excerpt.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "default": false,
+      "label": "t:sections.blog-articles.settings.show_date.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "default": false,
+      "label": "t:sections.blog-articles.settings.show_author.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_read_more",
+      "default": false,
+      "label": "t:sections.blog-articles.settings.show_read_more.label"
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "t:sections.global.settings.content_alignment.label",
+      "options": [
+        {
+          "value": "text-left",
+          "label": "t:sections.global.settings.content_alignment.options.left.label"
+        },
+        {
+          "value": "text-center",
+          "label": "t:sections.global.settings.content_alignment.options.center.label"
+        },
+        {
+          "value": "text-right",
+          "label": "t:sections.global.settings.content_alignment.options.right.label"
+        }
+      ],
+      "default": "text-center"
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:global.settings.section.width.label",
+      "options": [
+        {
+          "value": "page",
+          "label": "t:global.settings.section.width.options.page.label"
+        },
+        {
+          "value": "fluid",
+          "label": "t:global.settings.section.width.options.fluid.label"
+        }
+      ],
+      "default": "page"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top",
+      "label": "t:global.settings.spacing.top.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom",
+      "label": "t:global.settings.spacing.bottom.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "section_border",
+      "label": "t:global.settings.section.border.label",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:global.settings.section.border.options.none.label"
+        },
+        {
+          "value": "top",
+          "label": "t:global.settings.section.border.options.top.label"
+        },
+        {
+          "value": "bottom",
+          "label": "t:global.settings.section.border.options.bottom.label"
+        },
+        {
+          "value": "both",
+          "label": "t:global.settings.section.border.options.both.label"
+        }
+      ],
+      "default": "none"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "article",
+      "name": "t:sections.blog-articles.blocks.article.name",
+      "settings": [
+        {
+          "type": "article",
+          "id": "article",
+          "label": "t:sections.blog-articles.blocks.article.name"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.blog-articles.name",
+      "category": "t:categories.blog.name"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,227 @@
+{% schema %}
+{
+  "name": "Image Banner Duo",
+  "tag": "section",
+  "class": "section-image-banner-duo",
+  "settings": [],
+  "blocks": [
+    {
+      "type": "banner",
+      "name": "Banner Column",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Desktop Image"
+        },
+        {
+          "type": "image_picker",
+          "id": "image_mobile",
+          "label": "Mobile Image (optional)"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Heading text"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "Button label",
+          "default": "Shop now"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "Button link"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 2,
+  "presets": [
+    {
+      "name": "Image Banner Duo",
+      "blocks": [
+        {
+          "type": "banner"
+        },
+        {
+          "type": "banner"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+<div class="image-banner-duo">
+  {% for block in section.blocks %}
+    <div class="image-banner-duo__item" {{ block.shopify_attributes }}>
+      {% if block.settings.image != blank %}
+        <div class="image-banner-duo__image">
+          {%- if block.settings.image_mobile != blank -%}
+            <img 
+              src="{{ block.settings.image | img_url: 'master' }}" 
+              alt="{{ block.settings.heading | escape }}"
+              class="image-banner-duo__image-desktop">
+            <img 
+              src="{{ block.settings.image_mobile | img_url: 'master' }}" 
+              alt="{{ block.settings.heading | escape }}"
+              class="image-banner-duo__image-mobile">
+          {%- else -%}
+            <img 
+              src="{{ block.settings.image | img_url: 'master' }}" 
+              alt="{{ block.settings.heading | escape }}">
+          {%- endif -%}
+        </div>
+      {% endif %}
+      <div class="image-banner-duo__content">
+        {% if block.settings.heading != blank %}
+          <h2 class="image-banner-duo__heading">{{ block.settings.heading }}</h2>
+        {% endif %}
+        {% if block.settings.button_label != blank and block.settings.button_link != blank %}
+          <a href="{{ block.settings.button_link }}" class="image-banner-duo__button">
+            {{ block.settings.button_label }}
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<style>
+.image-banner-duo {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.image-banner-duo__item {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  min-height: 400px;
+}
+
+.image-banner-duo__image {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.image-banner-duo__image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  transform: scale(0.70); /* Resimleri %85 boyutuna küçült */
+  transform-origin: center; /* Ortadan küçült */
+}
+
+.image-banner-duo__image-mobile {
+  display: none;
+}
+
+.image-banner-duo__content {
+  position: absolute;
+  bottom: 125px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: white;
+  z-index: 2;
+  width: 90%;
+}
+
+.image-banner-duo__heading {
+  font-size: 32px;
+  font-weight: bold;
+  margin: 0 0 15px 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.image-banner-duo__button {
+  display: inline-block;
+  padding: 12px 30px;
+  background-color: white;
+  color: #333;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.image-banner-duo__button:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+/* Tablet ve Mobil - Yan yana kalır */
+@media screen and (max-width: 768px) {
+  .image-banner-duo {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .image-banner-duo__item {
+    min-height: 300px;
+  }
+
+  .image-banner-duo__image-desktop {
+    display: none;
+  }
+
+  .image-banner-duo__image-mobile {
+    display: block;
+  }
+
+  .image-banner-duo__image img {
+    transform: scale(1); /* Mobilde normal boyut */
+  }
+
+  .image-banner-duo__content {
+    bottom: 15px;
+  }
+
+  .image-banner-duo__heading {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .image-banner-duo__button {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+}
+
+/* Küçük Mobil */
+@media screen and (max-width: 480px) {
+  .image-banner-duo {
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .image-banner-duo__item {
+    min-height: 250px;
+  }
+
+  .image-banner-duo__content {
+    bottom: 10px;
+  }
+
+  .image-banner-duo__heading {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .image-banner-duo__button {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+}
+</style>

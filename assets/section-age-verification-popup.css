@@ -1,0 +1,164 @@
+age-verification-popup {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: var(--z-modals);
+  width: 100%;
+  height: 100%;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: end;
+      -ms-flex-align: end;
+          align-items: flex-end;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  padding-block-start: 4rem;
+  text-align: center;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: visibility, background-color;
+  -webkit-transition: visibility var(--duration-default), background-color var(--duration-default), opacity var(--duration-default);
+  -o-transition: visibility var(--duration-default), background-color var(--duration-default), opacity var(--duration-default);
+  transition: visibility var(--duration-default), background-color var(--duration-default), opacity var(--duration-default);
+}
+
+age-verification-popup[data-open-in-design-mode] {
+  visibility: visible;
+  opacity: 1;
+}
+
+age-verification-popup[open] {
+  inset: 0;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: none;
+  background-color: rgba(0, 0, 0, 0.2);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+body.age-verification-popup-is-open::before {
+  content: "";
+  display: block;
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(1.2rem);
+  z-index: 1000;
+  height: 200%;
+}
+
+body.age-verification-popup-is-open {
+  overflow: hidden;
+}
+
+body.age-verification-popup-is-open .section-age-verification-popup {
+  z-index: 1001;
+}
+
+body.age-verification-popup-is-open age-verification-popup[open] {
+  background-color: transparent;
+}
+
+age-verification-popup[open] .age-verification-popup__wrapper {
+  -webkit-transform: translateY(0);
+      -ms-transform: translateY(0);
+          transform: translateY(0);
+}
+
+age-verification-popup p {
+  margin: 0 0 1rem;
+}
+
+age-verification-popup p:last-child {
+  margin-block-end: 0;
+}
+
+.age-verification-popup__wrapper {
+  pointer-events: auto;
+  overflow-y: auto;
+  max-height: 100%;
+  position: relative;
+  width: 100%;
+  -webkit-transform: translateY(100%);
+      -ms-transform: translateY(100%);
+          transform: translateY(100%);
+  -webkit-transition: -webkit-transform var(--duration-default);
+  transition: -webkit-transform var(--duration-default);
+  -o-transition: transform var(--duration-default);
+  transition: transform var(--duration-default);
+  transition: transform var(--duration-default), -webkit-transform var(--duration-default);
+}
+
+.age-verification-popup__content {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  gap: 2.4rem;
+  padding: 4rem var(--page-gutter);
+}
+
+.age-verification-popup__title {
+  margin: 0;
+}
+
+.age-verification-popup__actions {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-column-gap: 1.6rem;
+     -moz-column-gap: 1.6rem;
+          column-gap: 1.6rem;
+}
+
+.age-verification-popup__actions button,
+.age-verification-popup__actions a {
+  min-width: calc((100% - 1.6rem)/2);
+  pointer-events: all;
+}
+
+.age-verification-popup__entry {
+  margin-block-end: 0;
+  color: rgb(var(--color-foreground));
+}
+
+.age-verification-popup__entry a {
+  text-decoration: underline;
+  text-underline-offset: 1px;
+}
+
+@media screen and (min-width: 750px) {
+  age-verification-popup {
+    padding: 4rem;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    opacity: 0;
+  }
+
+  age-verification-popup[open] .age-verification-popup__wrapper {
+    -webkit-transform: none;
+        -ms-transform: none;
+            transform: none;
+  }
+
+  .age-verification-popup__wrapper {
+    max-width: 45rem;
+    -webkit-transform: none;
+        -ms-transform: none;
+            transform: none;
+  }
+
+  .age-verification-popup__content {
+    padding: 4rem;
+  }
+}

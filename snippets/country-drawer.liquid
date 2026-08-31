@@ -1,0 +1,169 @@
+{%- comment -%}
+  Accepts:
+
+  - section {Section}
+  - button_class {String}
+  - button_prepend_text {String}
+  - append_id {String}
+{%- endcomment -%}
+
+{% style %}
+  .country-drawer__button-text,
+  .header__utils-link span.country-drawer__button-text {
+    display: flex;
+    align-items: start;
+    column-gap: 4px;
+  }
+{% endstyle %}
+
+{% liquid
+  assign country_flag = localization.country | image_url: width: 18 | image_tag
+
+  capture button_text
+    case settings.country_drawer_display_option
+      when 'country-name--iso-code--currency-symbol'
+        echo localization.country.name | append: ' | ' | append: localization.country.currency.iso_code | append: ' | ' | append: localization.country.currency.symbol
+      when 'country-name--iso-code'
+        echo localization.country.name | append: ' | ' | append: localization.country.currency.iso_code
+      when 'country-name'
+        echo localization.country.name
+      when 'iso-code--currency-symbol'
+        echo localization.country.currency.iso_code | append: ' | ' | append: localization.country.currency.symbol
+      when 'flag'
+        echo country_flag
+      when 'flag--country-name'
+        echo country_flag | append: ' ' | append: localization.country.name
+      else
+        echo localization.country.currency.iso_code
+    endcase
+  endcapture
+%}
+
+{%- if button_prepend_text -%}
+  {%- assign button_text = button_text | prepend: ' ' | prepend: button_prepend_text -%}
+{%- endif -%}
+
+<details id="Country-drawer-{{- append_id -}}" class="drawer__container">
+  <summary
+    class="drawer__button drawer__button--text svg-color-inherit{{ button_class }}"
+    id="Country-drawer-button-{{- append_id -}}"
+    aria-label="{{- 'localization.title' | t -}}"
+    tabindex="0"
+  >
+    <span class="drawer__button-text country-drawer__button-text" role="button">
+      {{- button_text -}}
+    </span>
+
+    <noscript>
+      {% render 'icon', icon_name: 'theme-arrow-close' %}
+    </noscript>
+  </summary>
+
+  <div class="drawer__content js-drawer" id="Country-menu-drawer-{{- append_id -}}" tabindex="-1">
+    <button
+      class="drawer__button-close text-current button-reset no-js-hidden js-btn-close-drawer svg-color-inherit"
+      aria-label="{{- 'actions.close' | t -}}"
+      aria-controls="Country-menu-drawer-{{- append_id -}}"
+      aria-expanded="false"
+    >
+      {% render 'icon', icon_name: 'theme-arrow-close' %}
+    </button>
+
+    <div class="drawer__row drawer__row--gutter-sm">
+      {%- if settings.show_country_drawer_title -%}
+        <h2 class="drawer__title heading-static">{{- 'localization.title' | t -}}</h2>
+      {%- endif -%}
+      {%- if settings.show_country_drawer_content -%}
+        <p>{{- 'localization.content' | t -}}</p>
+      {%- endif -%}
+    </div>
+
+    {%- if localization.available_countries.size > 1 or localization.available_languages.size > 1 -%}
+      <div class="drawer__row">
+        <localization-form>
+          {% form 'localization' %}
+            {% if localization.available_countries.size > 1 %}
+              <div class="form-row">
+                <theme-dropdown class="theme-dropdown w-full" data-direction="down">
+                  <button
+                    type="button"
+                    class="dropdown-button select-input__el"
+                    id="country-drawer-selector-{{ append_id }}"
+                  >
+                    <span class="dropdown-button__text-content">
+                      {{ localization.country.name }} ({{ localization.country.currency.iso_code }}|{{ localization.country.currency.symbol }})
+                    </span>
+                    {% render 'icon', icon_name: 'theme-chevron-down' %}
+                  </button>
+
+                  <div class="dropdown-content">
+                    <ul class="slim-scrollbar">
+                      {% for country in localization.available_countries %}
+                        <li class="{% if localization.country.iso_code == country.iso_code %}is-active{% endif %}">
+                          <a href="#" data-value="{{ country.iso_code }}">
+                            {{ country.name }} ({{ country.currency.iso_code }}|{{ country.currency.symbol }})
+                          </a>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+
+                  <input
+                    type="hidden"
+                    name="country_code"
+                    value="{{ localization.country.iso_code }}"
+                  >
+                </theme-dropdown>
+              </div>
+            {% endif %}
+
+            {% if localization.available_languages.size > 1 %}
+              <div class="form-row">
+                <theme-dropdown class="theme-dropdown w-full" data-direction="down">
+                  <button
+                    type="button"
+                    class="dropdown-button select-input__el"
+                    id="country-drawer-language-{{ append_id }}"
+                  >
+                    <span class="dropdown-button__text-content">
+                      {{ localization.language.endonym_name | capitalize }}
+                    </span>
+                    {% render 'icon', icon_name: 'theme-chevron-down' %}
+                  </button>
+
+                  <div class="dropdown-content">
+                    <ul class="slim-scrollbar">
+                      {% for language in localization.available_languages %}
+                        <li class="{% if language.iso_code == localization.language.iso_code %}is-active{% endif %}">
+                          <a href="#" data-value="{{ language.iso_code }}">
+                            {{ language.endonym_name | capitalize }}
+                          </a>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+
+                  <input
+                    type="hidden"
+                    name="language_code"
+                    value="{{ localization.language.iso_code }}"
+                  >
+                </theme-dropdown>
+              </div>
+            {% endif %}
+
+            <div class="form-row no-js">
+              <button
+                type="submit"
+                class="button button--outlined button--full no-js"
+              >
+                {{ 'actions.submit' | t }}
+              </button>
+            </div>
+          {% endform %}
+        </localization-form>
+      </div>
+
+    {%- endif -%}
+  </div>
+</details>

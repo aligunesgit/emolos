@@ -1,0 +1,168 @@
+{{ 'component-countdown-timer.css' | asset_url | stylesheet_tag }}
+
+{% liquid
+  assign column_type = column_type | default: 'col'
+  assign custom_text = custom_text | default: false
+
+  assign timer_timezone = settings.timezone
+  assign timer_year = timer_year
+  assign timer_month = timer_month
+  assign timer_day = timer_day
+  assign timer_hour = timer_hour
+  assign timer_minute = timer_minute
+  assign timer_extend = timer_extend | times: 1 | default: 0
+
+	assign timer_text_first_letter = timer_text_first_letter | default: false
+
+	assign timer_end_message = timer_end_message | default: blank
+
+  assign timezone_striped = timer_timezone | replace: '-', '' | replace: '+', ''
+  if timer_timezone < 10 and timer_timezone > -10
+    assign timezone = '0' | append: timezone_striped
+  else
+    assign timezone = timezone_striped
+  endif
+  if timer_timezone < 0
+    assign timezone = '-' | append: timezone | append: '00'
+  else
+    assign timezone = '+' | append: timezone | append: '00'
+  endif
+
+  capture date
+    if timer_day < 10
+      assign timer_day = '0' | append: timer_day
+    endif
+    echo timer_day | append: '-' | append: timer_month | append: '-' | append: timer_year
+  endcapture
+
+  capture time
+    if timer_hour < 10
+      assign timer_hour = '0' | append: timer_hour
+    endif
+    if timer_minute < 10
+      assign timer_minute = '0' | append: timer_minute
+    endif
+    echo timer_hour | append: ':' | append: timer_minute
+  endcapture
+
+  assign timer_layout = timer_layout | default: '1'
+
+	# calculate diff between now and timer
+	assign now_date_seconds = 'now' | date: '%s'
+
+	assign timer = date | append: ' ' | append: time | append: ' ' | append: timezone
+	assign timer_timezone = timer | date: '%z'
+	assign timer_date_seconds = timer | date: '%s'
+
+	assign diff_seconds = timer_date_seconds | minus: now_date_seconds
+
+	assign diff_day_count = diff_seconds | divided_by: 86400
+	assign diff_hour_count = diff_seconds | modulo: 86400 | divided_by: 3600
+	assign diff_minute_count = diff_seconds | modulo: 3600 | divided_by: 60
+	assign diff_second_count = diff_seconds | modulo: 60
+	# echo 'tz: ' | append: diff_timezone | append: ' diff: ' | append: diff_seconds
+
+  # timer extender - add extra day to the timer if the timer is less than 1 day
+  if diff_day_count < 1 and timer_extend > 0
+    assign timer_day = timer_day | plus: timer_extend
+    if timer_day > 30
+      assign timer_day = timer_day | minus: 30
+      assign timer_month = timer_month | plus: 1
+      if timer_month > 12
+        assign timer_month = timer_month | minus: 12
+        assign timer_year = timer_year | plus: 1
+      endif
+    endif
+    if timer_day < 10
+      assign timer_day = '0' | append: timer_day
+    endif
+    assign timer_extend_seconds = timer_extend | times: 86400
+    assign diff_seconds = diff_seconds | plus: timer_extend_seconds
+    capture date
+      echo timer_day | append: '-' | append: timer_month | append: '-' | append: timer_year
+    endcapture
+  endif
+
+	# timer text
+	assign timer_day_text = 'countdown_timer.day' | t: count: diff_day_count
+	assign timer_hour_text = 'countdown_timer.hour' | t: count: diff_hour_count
+	assign timer_minute_text = 'countdown_timer.minute' | t: count: diff_minute_count
+	assign timer_second_text = 'countdown_timer.second' | t: count: diff_second_count
+  if timer_text_first_letter
+    assign timer_day_text = timer_day_text | split: '' | first
+    assign timer_hour_text = timer_hour_text | split: '' | first
+    assign timer_minute_text = timer_minute_text | split: '' | first
+    assign timer_second_text = timer_second_text | split: '' | first
+  else
+    assign timer_day_text = 'countdown_timer.day' | t: count: diff_day_count
+    assign timer_hour_text = 'countdown_timer.hour' | t: count: diff_hour_count
+    assign timer_minute_text = 'countdown_timer.minute' | t: count: diff_minute_count
+    assign timer_second_text = 'countdown_timer.second' | t: count: diff_second_count
+  endif
+%}
+
+<div {% if class %}class="{{ class }}"{% endif %}>
+  <countdown-timer
+    id="timer-{{ id }}"
+    class="countdown-timer loading-effect"
+    data-date="{{ date }}"
+    data-time="{{ time }}"
+    data-timezone="{{ timezone }}"
+    data-timer-layout="{{ timer_layout }}"
+    data-is-ended="false"
+    data-end-message="{%- if timer_end_message != blank -%}true{%- else -%}false{%- endif -%}"
+  >
+    <div class="countdown-timer__columns">
+      {%- if custom_text -%}
+        <div class="countdown-timer__column countdown-timer__column--{{ column_type }} text">
+          <div>
+            <span class="countdown-timer__column-text">{{ custom_text }}</span>
+          </div>
+        </div>
+      {%- endif -%}
+
+			{% if diff_seconds > 0 %}
+				{% if show_timer_days %}
+					<div class="countdown-timer__column countdown-timer__column--{{ column_type }} days">
+						<div>
+							<span class="countdown-timer__column-number">0</span>
+							<span class="countdown-timer__column-text">{{ timer_day_text }}</span>
+						</div>
+					</div>
+				{% endif %}
+
+				{% if show_timer_hours %}
+					<div class="countdown-timer__column countdown-timer__column--{{ column_type }} hours">
+						<div>
+							<span class="countdown-timer__column-number">0</span>
+							<span class="countdown-timer__column-text">{{ timer_hour_text }}</span>
+						</div>
+					</div>
+				{% endif %}
+
+				{% if show_timer_minutes %}
+					<div class="countdown-timer__column countdown-timer__column--{{ column_type }} minutes">
+						<div>
+							<span class="countdown-timer__column-number">0</span>
+							<span class="countdown-timer__column-text">{{ timer_minute_text }}</span>
+						</div>
+					</div>
+				{% endif %}
+
+				{% if show_timer_seconds %}
+					<div class="countdown-timer__column countdown-timer__column--{{ column_type }} seconds">
+						<div>
+							<span class="countdown-timer__column-number">0</span>
+							<span class="countdown-timer__column-text">{{ timer_second_text }}</span>
+						</div>
+					</div>
+				{% endif %}
+			{% endif %}
+    </div>
+    {% if timer_end_message != blank %}
+      <div class="countdown-timer__message text-center hidden">
+        {{ timer_end_message }}
+      </div>
+    {% endif %}
+  </countdown-timer>
+</div>

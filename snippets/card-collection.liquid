@@ -1,0 +1,62 @@
+{%- comment -%}
+  Renders a collection card
+
+  Accepts:
+  - collection_ref: {Object} - Collection object
+  - class: {String} - Class to be applied to the card
+  - class_without_image: {String} Class to be applied when the card has no image. Replaces original class
+{%- endcomment -%}
+{%- liquid
+  assign class = class | default: blank
+  assign title = title | default: collection_ref.title
+  assign image = image | default: collection_ref.featured_image
+  assign heading_size = heading_size | default: 'h3'
+
+  if section.settings.enable_first_product_image
+    assign image = collection_ref.products.first.featured_image
+  endif
+  if collection_ref.metafields.card.image != blank
+    assign image = collection_ref.metafields.card.image
+  endif
+
+  if image != blank
+    assign media_class = ' media--overlay'
+
+    capture card_image
+      assign image_alt = image.alt | default: title
+      render 'image', image: image, image_per_view: image_per_view, alt: image_alt
+    endcapture
+  else
+    assign class = class | append: ' card-collection--no-image'
+  endif
+
+  assign card_style = card_style | default: 'compact'
+-%}
+
+<div class="card-collection card-collection--{{ card_style }} {{ class }}">
+  <a href="{{- collection_ref.url -}}">
+    {% unless section.settings.text_only and card_style == 'normal' %}
+      <div class="media{{ media_class }} card-collection__media">
+        {% if image != blank %}
+          {{ card_image }}
+        {% else %}
+          {{ 'collection-1' | placeholder_svg_tag: 'placeholder-svg' }}
+        {% endif %}
+      </div>
+    {% endunless %}
+    {% if card_style != 'normal' %}
+      <div class="card-collection__content">
+        <h3 class="card-collection__title heading-static {{ heading_size }}">
+          {{- title -}}
+        </h3>
+        <span class="link card-collection__link">
+          {{- 'featured-collections.card.link' | t -}}
+        </span>
+      </div>
+    {% else %}
+      <h3 class="card-collection__title {% if card_style == 'normal' %}card-collection__title-collection{% endif %} heading-static {{ heading_size }}">
+        {{- title -}}
+      </h3>
+    {% endif %}
+  </a>
+</div>

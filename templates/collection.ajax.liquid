@@ -1,0 +1,12 @@
+<div class="collection-grid-container{% if section.settings.enable_infinity_scroll %} infinity-scroll-active{% endif %}" id="ProductGridContainer">
+  <div
+    class="collection__grid"
+    id="product-grid"
+    data-id="{{ section.id }}"
+    data-cols="{{ section.settings.products_per_row_default }}"
+  >
+    {%- for product in collection.products -%}
+      {%- render 'card-product', product_ref: product, section_id: section.id, card_index: forloop.index, card_product_layout: settings.card_product_layout -%}
+    {%- endfor -%}
+  </div>
+</div>

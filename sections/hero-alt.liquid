@@ -1,0 +1,299 @@
+{{- 'section-hero-alt.css' | asset_url | stylesheet_tag -}}
+{%- render 'section-common-styles', section: section -%}
+
+{% style %}
+  #shopify-section-{{ section.id }} > * {
+    --hero-alt-banner-height: {{ section.settings.hero_alt_banner_height | default: '50' | append: 'vh' }};
+  }
+{% endstyle %}
+
+<div class="color-{{ section.settings.color_scheme }} gradient isolate hero-alt js-animation-fade-in">
+  <div class="container hero-alt__container max-w-{{ section.settings.section_width }}">
+    <div class="hero-alt__inner">
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+        {%- when 'text' -%}
+          <div class="hero-alt__body">
+            <div class="hero-alt__content">
+              {%- if block.settings.subtitle != blank -%}
+                <p class="hero-alt__subtitle text-navigation-button">
+                  {{- block.settings.subtitle | escape -}}
+                </p>
+              {%- endif -%}
+
+              <h1 class="hero-alt__title">
+                {{- block.settings.title | default: page.title | default: page_title -}}
+              </h1>
+
+              {%- if block.settings.content != blank -%}
+                <div class="hero-alt__entry entry entry--list-padding-none h4">
+                  {{- block.settings.content -}}
+                </div>
+              {%- endif -%}
+              {%- if block.settings.button_separator == true -%}
+                <div class="hero-alt__content--separator"></div>
+              {%- endif -%}
+              {%- if block.settings.button_text != blank and block.settings.button_url != blank -%}
+                <div class="hero-alt__button">
+                  {%- render 'button',
+                    type: 'link',
+                    class: 'button',
+                    button_style: block.settings.button_style,
+                    value: block.settings.button_text,
+                    href: block.settings.button_url
+                  -%}
+                </div>
+              {%- endif -%}
+            </div>
+          </div>
+        {%- when 'media' -%}
+          <div class="hero-alt__head">
+            <div class="media hero-alt__media svg-color-inherit">
+              {%- liquid
+                if block.settings.image != blank
+                  render 'image', image: block.settings.image, image_url_width: 2160
+                else
+                  echo 'image' | placeholder_svg_tag: 'placeholder-svg'
+                endif
+              -%}
+            </div>
+          </div>
+        {%- endcase -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.hero-alt.name",
+  "tag": "section",
+  "class": "section-hero-alt",
+  "settings": [
+    {
+      "type": "range",
+      "id": "hero_alt_banner_height",
+      "label": "t:sections.hero-alt.settings.banner_height.label",
+      "info": "t:sections.hero-alt.settings.banner_height.info",
+      "min": 40,
+      "max": 100,
+      "step": 10,
+      "unit": "vh",
+      "default": 50
+    },
+    {
+      "type": "header",
+      "content": "t:sections.global.settings.header_color_scheme.content"
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+        {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:global.settings.section.width.label",
+      "options": [
+        {
+          "value": "page",
+          "label": "t:global.settings.section.width.options.page.label"
+        },
+        {
+          "value": "fluid",
+          "label": "t:global.settings.section.width.options.fluid.label"
+        },
+        {
+          "value": "full",
+          "label": "t:global.settings.section.width.options.full.label"
+        }
+      ],
+      "default": "page"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top",
+      "label": "t:global.settings.spacing.top.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom",
+      "label": "t:global.settings.spacing.bottom.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "section_border",
+      "label": "t:global.settings.section.border.label",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:global.settings.section.border.options.none.label"
+        },
+        {
+          "value": "top",
+          "label": "t:global.settings.section.border.options.top.label"
+        },
+        {
+          "value": "bottom",
+          "label": "t:global.settings.section.border.options.bottom.label"
+        },
+        {
+          "value": "both",
+          "label": "t:global.settings.section.border.options.both.label"
+        }
+      ],
+      "default": "none"
+    }
+  ],
+  "max_blocks": 2,
+  "blocks": [
+    {
+      "type": "text",
+      "limit": 1,
+      "name": "t:sections.hero-alt.blocks.text.name",
+      "settings": [
+        {
+          "type": "text",
+          "id": "subtitle",
+          "label": "t:sections.hero-alt.blocks.text.settings.subtitle.label",
+          "default": "Highlight your promotion"
+        },
+        {
+          "type": "textarea",
+          "id": "title",
+          "label": "t:sections.hero-alt.blocks.text.settings.title.label",
+          "default": "Highlight an image"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "t:sections.hero-alt.blocks.text.settings.content.label",
+          "default": "<p>Add text to describe your promotion.</p>"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.hero-banner.blocks.slide.settings.header_button.content"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "t:sections.global.settings.button_style.label",
+          "options": [
+            {
+              "value": "button--filled",
+              "label": "t:sections.global.settings.button_style.options.filled.label"
+            },
+            {
+              "value": "button--outlined",
+              "label": "t:sections.global.settings.button_style.options.outlined.label"
+            },
+            {
+              "value": "default",
+              "label": "t:sections.global.settings.button_style.options.default.label"
+            }
+          ],
+          "info": "t:sections.global.settings.button_style.info",
+          "default": "button--filled"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "t:sections.hero-banner.blocks.slide.settings.button_text.label",
+          "default": "View more"
+        },
+        {
+          "type": "url",
+          "id": "button_url",
+          "label": "t:sections.hero-banner.blocks.slide.settings.button_url.label",
+          "default": "/"
+        },
+        {
+          "type": "checkbox",
+          "id": "button_separator",
+          "label": "t:sections.hero-alt.blocks.text.settings.button_separator.label",
+          "info": "t:sections.hero-alt.blocks.text.settings.button_separator.info",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "media",
+      "limit": 1,
+      "name": "t:sections.hero-alt.blocks.media.name",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "t:sections.hero-alt.blocks.media.settings.image.label"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.hero-alt.name",
+      "category": "t:categories.banners.name",
+      "blocks": [
+        {
+          "type": "text"
+        },
+        {
+          "type": "media"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,449 @@
+{{- 'section-trust-indicators.css' | asset_url | stylesheet_tag -}}
+{%- render 'section-common-styles', section: section -%}
+
+{%- if section.settings.slider_mobile and section.blocks.size > 1 -%}
+  <script src="{{- 'trust-indicators-slider.js' | asset_url -}}" defer="defer"> </script>
+{%- endif -%}
+
+{%- assign tiles_html = '' -%}
+
+{% style %}
+  #shopify-section-{{ section.id }} {
+    --block-padding-multiplier: {{ section.settings.spacing_inner }}rem;
+  }
+{% endstyle %}
+
+{%- for block in section.blocks -%}
+  {%- if block.settings.heading == blank and block.settings.link_label == blank or block.settings.link_url == blank -%}
+    {%- continue -%}
+  {%- endif -%}
+
+  {%- capture tile_html -%}
+    <div class="color-{{ block.settings.color_scheme }} section-trust-indicators__tile js-animation-fade-in">
+      <div class="section-trust-indicators__content{% if block.settings.icon == blank %} section-trust-indicators__content--no-icon{% endif %}">
+
+        {%- if block.settings.icon != blank -%}
+          <span class="section-trust-indicators__decorator color-{{ block.settings.color_scheme_icon }}">
+            {%- liquid
+               if block.settings.icon
+                render 'image', image: block.settings.icon, alt: block.settings.title
+               endif
+            -%}
+          </span>
+        {%- endif -%}
+        {%- if block.settings.heading != blank or block.settings.link_label != blank -%}
+        <div class="section-trust-indicators__text">
+          {%- if block.settings.heading != blank -%}
+            <h3 class="section-trust-indicators__title heading-static {{ block.settings.heading_size }}">
+              {{- block.settings.heading -}}
+            </h3>
+          {%- endif -%}
+
+          {%- if block.settings.link_label != blank and block.settings.link_url != blank -%}
+            <a href="{{- block.settings.link_url -}}" class="section-trust-indicators__link link" role="button">
+              {{- block.settings.link_label -}}
+            </a>
+          {%- endif -%}
+        </div>
+        {%- endif -%}
+
+      </div>
+    </div>
+  {%- endcapture -%}
+
+  {%- if section.settings.slider_mobile and section.blocks.size > 1 -%}
+    {%- capture tile_html -%}
+      <div class="swiper-slide section-trust-indicators__swiper-slide">
+        {{ tile_html }}
+      </div>
+    {%- endcapture -%}
+  {%- endif -%}
+
+  {%- assign tiles_html = tiles_html | append: tile_html -%}
+{%- endfor -%}
+
+{%- capture data_swiper_options -%}
+  {
+    "spaceBetweenDesktop": {{ section.settings.spacing_between_blocks | times: settings.spacing_desktop | times: 10 }},
+    "spaceBetweenMobile": {{ section.settings.spacing_between_blocks_mobile | times: settings.spacing_mobile | times: 10 }}
+    {%- if section.settings.slideshow_autoplay_interval > 0 -%},
+      "autoplay": {
+        "delay": {{ section.settings.slideshow_autoplay_interval | times: 1000 }},
+        "disableOnInteraction": false
+      }
+    {%- endif -%}
+  }
+{%- endcapture -%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient isoloate section-trust-indicators--{{ section.settings.layout }} section-trust-indicators--{{ section.blocks.size }}{% if section.settings.separator_for_blocks %} section-trust-indicators--separator{% endif %}">
+  <div class="container max-w-{{ section.settings.section_width }}">
+    {%- if section.settings.slider_mobile and section.blocks.size > 1 -%}
+      <trust-indicators-slider
+        class="swiper section-trust-indicators__swiper"
+        data-swiper-options='{{ data_swiper_options | strip_newlines | replace: " ", "" | escape }}'
+      >
+        <div class="swiper-wrapper section-trust-indicators__swiper-wrapper">
+          {{ tiles_html }}
+        </div>
+      </trust-indicators-slider>
+    {%- else -%}
+      <div class="section-trust-indicators__inner">
+        {{ tiles_html }}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.trust-indicators.name",
+  "tag": "section",
+  "class": "section-trust-indicators",
+  "settings": [
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "t:sections.trust-indicators.settings.layout.label",
+      "options": [
+        {
+          "value": "horizontal",
+          "label": "t:sections.trust-indicators.settings.layout.settings.horizontal.label"
+        },
+        {
+          "value": "vertical",
+          "label": "t:sections.trust-indicators.settings.layout.settings.vertical.label"
+        }
+      ],
+      "default": "vertical"
+    },
+    {
+      "type": "select",
+      "id": "spacing_inner",
+      "label": "t:sections.trust-indicators.settings.spacing_inner.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "No"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_between_blocks",
+      "label": "t:sections.trust-indicators.settings.spacing_between_blocks.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "No"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        },
+      ],
+      "default": "4"
+    },
+    {
+      "type": "checkbox",
+      "id": "separator_for_blocks",
+      "label": "t:sections.trust-indicators.settings.separator.label",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:sections.trust-indicators.settings.heading_mobile.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "slider_mobile",
+      "label": "t:sections.trust-indicators.settings.slider_mobile.label",
+      "info": "t:sections.trust-indicators.settings.slider_mobile.info",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "slideshow_autoplay_interval",
+      "label": "t:sections.trust-indicators.settings.autoplay_interval.label",
+      "info": "t:sections.trust-indicators.settings.autoplay_interval.info",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "default": 3
+    },
+    {
+      "type": "select",
+      "id": "spacing_between_blocks_mobile",
+      "label": "t:sections.trust-indicators.settings.spacing_between_blocks.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "No"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        },
+      ],
+      "default": "4"
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:global.settings.section.width.label",
+      "options": [
+        {
+          "value": "page",
+          "label": "t:global.settings.section.width.options.page.label"
+        },
+        {
+          "value": "fluid",
+          "label": "t:global.settings.section.width.options.fluid.label"
+        },
+        {
+          "value": "full",
+          "label": "t:global.settings.section.width.options.full.label"
+        }
+      ],
+      "default": "page"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top",
+      "label": "t:global.settings.spacing.top.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom",
+      "label": "t:global.settings.spacing.bottom.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "section_border",
+      "label": "t:global.settings.section.border.label",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:global.settings.section.border.options.none.label"
+        },
+        {
+          "value": "top",
+          "label": "t:global.settings.section.border.options.top.label"
+        },
+        {
+          "value": "bottom",
+          "label": "t:global.settings.section.border.options.bottom.label"
+        },
+        {
+          "value": "both",
+          "label": "t:global.settings.section.border.options.both.label"
+        }
+      ],
+      "default": "none"
+    }
+  ],
+  "max_blocks": 3,
+  "blocks": [
+    {
+      "type": "indicator",
+      "name": "t:sections.trust-indicators.blocks.indicator.name",
+      "settings": [
+        {
+          "type": "color_scheme",
+          "id": "color_scheme",
+          "label": "t:global.settings.color_scheme.label",
+          "default": "scheme-1"
+        },
+        {
+          "type": "inline_richtext",
+          "id": "heading",
+          "label": "t:sections.trust-indicators.blocks.indicator.settings.heading.label",
+          "default": "Heading goes here"
+        },
+        {
+          "type": "select",
+          "id": "heading_size",
+          "label": "t:sections.global.element.heading_size.label",
+          "options": [
+            {
+              "value": "h6",
+              "label": "XS"
+            },
+            {
+              "value": "h5",
+              "label": "S"
+            },
+            {
+              "value": "h4",
+              "label": "M"
+            },
+            {
+              "value": "h3",
+              "label": "L"
+            },
+            {
+              "value": "h2",
+              "label": "XL"
+            }
+          ],
+          "default": "h3"
+        },
+        {
+          "type": "text",
+          "id": "link_label",
+          "label": "t:sections.trust-indicators.blocks.indicator.settings.link_label.label",
+          "info": "t:sections.trust-indicators.blocks.indicator.settings.link_label.info",
+          "default": "Learn more"
+        },
+        {
+          "type": "url",
+          "id": "link_url",
+          "label": "t:sections.trust-indicators.blocks.indicator.settings.link_url.label",
+          "default": "/"
+        },
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "t:sections.trust-indicators.blocks.indicator.settings.icon.label"
+        },
+        {
+          "type": "color_scheme",
+          "id": "color_scheme_icon",
+          "label": "t:sections.trust-indicators.blocks.indicator.settings.color_scheme_icon.label",
+          "default": "scheme-1"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.trust-indicators.name",
+      "category": "t:categories.cards.name",
+      "settings": {
+        "slider_mobile": false
+      },
+      "blocks": [
+        {
+          "type": "indicator",
+          "settings": {
+            "heading": "Text-block 1",
+            "color_scheme": "scheme-5"
+          }
+        },
+        {
+          "type": "indicator",
+          "settings": {
+            "heading": "Text-block 2",
+            "color_scheme": "scheme-5"
+          }
+        },
+        {
+          "type": "indicator",
+          "settings": {
+            "heading": "Text-block 3",
+            "color_scheme": "scheme-5"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

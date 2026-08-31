@@ -1,0 +1,434 @@
+{{- 'section-blog.css' | asset_url | stylesheet_tag -}}
+{{- 'component-card-article.css' | asset_url | stylesheet_tag -}}
+{{- 'component-card-text.css' | asset_url | stylesheet_tag -}}
+{%- render 'section-common-styles', section: section -%}
+
+{% style %}
+  .blog__articles-grid {
+    column-gap: {{ settings.spacing_mobile }}rem;
+  }
+  @media screen and (min-width: 990px) {
+    .blog__articles-grid {
+      column-gap: {{ settings.spacing_desktop }}rem;
+    }
+  }
+{% endstyle %}
+
+<script src="{{- 'collection-load-more.js' | asset_url -}}" defer="defer"></script>
+<script src="{{- 'collection-load-previous.js' | asset_url -}}" defer="defer"></script>
+
+{%- paginate blog.articles by section.settings.articles_per_page -%}
+  <div class="blog color-{{ section.settings.color_scheme }} gradient isolate">
+    {%- if blog.articles.size > 0 and section.settings.enable_filtering_by_tags -%}
+      <div class="blog__head">
+        <div class="container blog__head--wrapper">
+          <div class="blog__filters text-navigation-button">
+            <ul class="blog__filters-items list-unstyled">
+              {%- assign all_tags_visible = true -%}
+
+              {%- if current_tags or current_tags.size > 0 -%}
+                {%- assign all_tags_visible = false -%}
+              {%- endif -%}
+
+              <li class="blog__filters-item">
+                {%- if all_tags_visible -%}
+                  <span class="default">
+                    {{- 'blogs.general.show_all' | t -}}
+                  </span>
+                {%- else -%}
+                  <a href="{{- blog.url -}}" role="button">
+                    {{- 'blogs.general.show_all' | t -}}
+                  </a>
+                {%- endif -%}
+              </li>
+
+              {%- assign tags_counter = 0 -%}
+              {%- for tag in blog.all_tags -%}
+                {%- assign tags_counter = tags_counter | plus: 1 -%}
+
+                {%- if current_tags contains tag -%}
+                  <li class="blog__filters-item is-active">
+                    <span>{{- tag -}}</span>
+                  </li>
+                {%- else -%}
+                  <li class='blog__filters-item'>
+                    <a href="{{ blog.url }}/tagged/{{ tag | handle }}">{{ tag }}</a>
+                  </li>
+                {%- endif -%}
+              {%- endfor -%}
+            </ul>
+          </div>
+        </div>
+      </div>
+    {%- endif -%}
+    {%- if paginate.previous and section.settings.pagination_style == 'load_more'-%}
+      <collection-load-previous class="blog__actions container max-w-page blog__container--button text-center no-js-hidden{% unless paginate.previous %} hidden{% endunless %}" data-current-page="{{- paginate.current_page -}}">
+        {%- liquid
+          assign load_previous_button_data_href = 'data-href="' | append: paginate.previous.url | append: '"'
+          assign load_previous_value = 'collection.load_previous' | t
+
+          render 'button', class: 'button js-btn-load-previous', button_style: section.settings.button_style, attr: load_previous_button_data_href, value: load_previous_value, loading_spinner: true
+        -%}
+      </collection-load-previous>
+    {%- endif -%}
+    <div class="blog__articles" id="ProductGridContainer">
+      <div class="container max-w-{{ section.settings.section_width }} blog__container">
+        {%- if blog.articles.size == 0 -%}
+          <div class="blog__articles-empty text-center">
+            <p>{{- 'blogs.general.no_articles_found' | t -}}</p>
+          </div>
+        {%- else -%}
+          <div class="blog__articles-grid text-center" id="product-grid">
+            {%- liquid
+              assign blocks_of_text_card = section.blocks | where: 'type', 'text-card'
+              if blocks_of_text_card.size > 0
+                capture card_text_html
+                  for block in blocks_of_text_card
+                    assign card_text_position = block.settings.position
+                    assign card_text_classes = 'color-' | append: block.settings.color_scheme | append: ' gradient isolate card-text--static blog__card-text'
+
+                    render 'card-text', class: card_text_classes, title: block.settings.title, button_text: block.settings.button_text, button_url: block.settings.button_url, button_style: block.settings.button_style
+                  endfor
+                endcapture
+              endif
+
+              if section.settings.list_of == 'selected'
+                assign selected_article_blocks = section.blocks | where: 'type', 'article'
+                for block in selected_article_blocks
+                  if forloop.index == card_text_position
+                    echo card_text_html
+                  endif
+                  render 'card-article', article: block.settings.article, class: 'blog__card-article', show_tags: section.settings.show_tags, show_date: section.settings.show_date, show_author: section.settings.show_author, show_excerpt: section.settings.show_excerpt, tags_count: section.settings.tags_count, content_alignment: section.settings.content_alignment
+                endfor
+              else
+                for article in blog.articles
+                  if forloop.index == card_text_position
+                    echo card_text_html
+                  endif
+                  render 'card-article', article: article, class: 'blog__card-article', show_tags: section.settings.show_tags, show_date: section.settings.show_date, show_author: section.settings.show_author, show_excerpt: section.settings.show_excerpt, tags_count: section.settings.tags_count, content_alignment: section.settings.content_alignment
+                endfor
+              endif
+
+              if card_text_position > section.settings.articles_per_page
+                echo card_text_html
+              endif
+            -%}
+          </div>
+        {%- endif -%}
+
+        {%- if paginate.pages > 1 -%}
+          {%- if section.settings.pagination_style == 'load_more' -%}
+            <collection-load-more class="blog__actions text-center no-js-hidden{% unless paginate.next %} hidden{% endunless %}" data-current-page="{{- paginate.current_page -}}">
+              {%- liquid
+                assign load_more_button_data_href = 'data-href="' | append: paginate.next.url | append: '"'
+                assign load_more_value = 'collection.ajax_button' | t
+
+                render 'button', class: 'button js-btn-load-more', button_style: 'button--outlined', attr: load_more_button_data_href, value: load_more_value, loading_spinner: true
+              -%}
+            </collection-load-more>
+          {%- else -%}
+            <div class="blog__actions">
+              {%- render 'pagination', paginate: paginate, anchor: '' -%}
+            </div>
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+{%- endpaginate -%}
+
+{% schema %}
+{
+  "name": "t:sections.main-blog.name",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "list_of",
+      "label": "t:sections.main-blog.settings.list_of.label",
+      "options": [
+        {
+          "value": "all",
+          "label": "t:sections.main-blog.settings.list_of.options.all.label"
+        },
+        {
+          "value": "selected",
+          "label": "t:sections.main-blog.settings.list_of.options.selected.label"
+        }
+      ],
+      "default": "all"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filtering_by_tags",
+      "default": true,
+      "label": "t:sections.main-blog.settings.enable_filtering_by_tags.label"
+    },
+    {
+      "type": "range",
+      "id": "articles_per_page",
+      "label": "t:sections.main-blog.settings.articles_per_page.label",
+      "min": 3,
+      "max": 50,
+      "step": 1,
+      "default": 20
+    },
+    {
+      "type": "select",
+      "id": "pagination_style",
+      "label": "t:sections.global.settings.pagination.style.label",
+      "options": [
+        {
+          "value": "default",
+          "label": "t:sections.global.settings.pagination.style.options.default.label"
+        },
+        {
+          "value": "load_more",
+          "label": "t:sections.global.settings.pagination.style.options.load_more.label"
+        }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.main-blog.settings.header_card_article.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_excerpt",
+      "default": true,
+      "label": "t:sections.main-blog.settings.show_excerpt.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "default": true,
+      "label": "t:sections.main-blog.settings.show_date.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "default": true,
+      "label": "t:sections.main-blog.settings.show_author.label"
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "t:sections.global.settings.content_alignment.label",
+      "options": [
+        {
+          "value": "text-left",
+          "label": "t:sections.global.settings.content_alignment.options.left.label"
+        },
+        {
+          "value": "text-center",
+          "label": "t:sections.global.settings.content_alignment.options.center.label"
+        },
+        {
+          "value": "text-right",
+          "label": "t:sections.global.settings.content_alignment.options.right.label"
+        }
+      ],
+      "default": "text-center"
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:global.settings.section.width.label",
+      "options": [
+        {
+          "value": "page",
+          "label": "t:global.settings.section.width.options.page.label"
+        },
+        {
+          "value": "fluid",
+          "label": "t:global.settings.section.width.options.fluid.label"
+        },
+        {
+          "value": "full",
+          "label": "t:global.settings.section.width.options.full.label"
+        }
+      ],
+      "default": "page"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top",
+      "label": "t:global.settings.spacing.top.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom",
+      "label": "t:global.settings.spacing.bottom.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "section_border",
+      "label": "t:global.settings.section.border.label",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:global.settings.section.border.options.none.label"
+        },
+        {
+          "value": "top",
+          "label": "t:global.settings.section.border.options.top.label"
+        },
+        {
+          "value": "bottom",
+          "label": "t:global.settings.section.border.options.bottom.label"
+        },
+        {
+          "value": "both",
+          "label": "t:global.settings.section.border.options.both.label"
+        }
+      ],
+      "default": "none"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "text-card",
+      "name": "t:sections.main-collection.blocks.text-card.name",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "inline_richtext",
+          "id": "title",
+          "label": "t:sections.main-collection.blocks.text-card.settings.title.label",
+          "default": "Behind the brand: Find out more about our brand"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "t:sections.global.settings.button_label.label",
+          "default": "Read more"
+        },
+        {
+          "type": "url",
+          "id": "button_url",
+          "label": "t:sections.global.settings.button_link.label",
+          "default": "/"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "t:sections.global.settings.button_style.label",
+          "options": [
+            {
+              "value": "button--filled",
+              "label": "t:sections.global.settings.button_style.options.filled.label"
+            },
+            {
+              "value": "button--outlined",
+              "label": "t:sections.global.settings.button_style.options.outlined.label"
+            },
+            {
+              "value": "default",
+              "label": "t:sections.global.settings.button_style.options.default.label"
+            }
+          ],
+          "info": "t:sections.global.settings.button_style.info",
+          "default": "button--outlined"
+        },
+        {
+          "type": "range",
+          "id": "position",
+          "min": 1,
+          "max": 28,
+          "step": 1,
+          "label": "t:sections.main-collection.blocks.text-card.settings.position.label",
+          "info": "t:sections.main-collection.blocks.text-card.settings.position.info",
+          "default": 8
+        },
+        {
+          "type": "header",
+          "content": "t:global.header.settings.content",
+          "info": "t:global.header.settings.info"
+        },
+        {
+          "type": "color_scheme",
+          "id": "color_scheme",
+          "label": "t:global.settings.color_scheme.label",
+          "default": "scheme-1"
+        },
+      ]
+    },
+    {
+      "type": "article",
+      "name": "t:sections.main-blog.blocks.article.name",
+      "settings": [
+        {
+          "type": "article",
+          "id": "article",
+          "label": "t:sections.main-blog.blocks.article.settings.article.label"
+        }
+      ]
+    }
+  ],
+  "default": {
+    "blocks": [
+      {
+        "type": "text-card"
+      }
+    ]
+  }
+}
+{% endschema %}

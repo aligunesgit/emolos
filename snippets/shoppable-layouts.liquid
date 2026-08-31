@@ -1,0 +1,344 @@
+{%- comment -%} LIST POSTS LAYOUT {%- endcomment -%}
+{%- liquid
+  if section.settings.source_of_slide == 'metaobject'
+    if product.metafields.theme.shoppable_socials.value
+      for item in product.metafields.theme.shoppable_socials.value
+        assign social_post_image = item.social_post_image
+        assign tag_story = item.tag_story
+      endfor
+      assign shoppable_items = product.metafields.theme.shoppable_socials.value
+    endif
+  else
+    assign shoppable_items = section.blocks
+    assign social_post_image = block.settings.social_post_image
+    assign tag_story = block.settings.tag_story
+  endif
+-%}
+{%- capture layout_list -%}
+  {%- for block in shoppable_items -%}
+    {%- liquid
+      if section.settings.source_of_slide == 'manual'
+        assign item = block.settings
+      else
+        assign item = block
+      endif
+    -%}
+    {%- render 'shoppable-block-item',
+      block: item,
+      id: block.id,
+      block_index: forloop.index,
+      shopify_attributes: block.shopify_attributes
+    -%}
+  {%- endfor -%}
+{%- endcapture -%}
+{%- comment -%} GRID & CAROUSEL POST ITEM {%- endcomment -%}
+{%- capture layout_grid_and_carousel_item -%}
+  {%- for block in shoppable_items -%}
+    {%- if layout == 'carousel' -%}<div class='swiper-slide'>{%- endif -%}
+      <div class='shoppable__layout--grid-item color-{{ section.settings.color_scheme_for_items }}'>
+        {%- liquid
+          if section.settings.source_of_slide == 'metaobject'
+            if block.social_post_image != blank
+              render 'image', image: block.social_post_image
+            else
+              assign random_number = 'now' | date: '%N' | modulo: 6 | plus: 1
+              assign placeholder_name = 'collection-' | append: random_number
+              echo placeholder_name | placeholder_svg_tag: 'placeholder-svg'
+            endif
+          else
+            if block.settings.social_post_image != blank
+              render 'image', image: block.settings.social_post_image
+            else
+              assign random_number = 'now' | date: '%N' | modulo: 6 | plus: 1
+              assign placeholder_name = 'collection-' | append: random_number
+              echo placeholder_name | placeholder_svg_tag: 'placeholder-svg'
+            endif
+          endif
+        -%}
+        <button
+          class='button {{ section.settings.button_label_style }} button--shoppable-grid-item'
+          onclick='document.querySelector(".shoppable-drawer--{{ section.id }}").openWithIndex(event, {{- forloop.index0 -}})'
+          aria-expanded="false"
+          aria-controls="shoppable-drawer"
+          aria-label="Open drawer for selected item"
+        >
+          {% render 'icon', icon_name: 'theme-instagram' %}
+          <span>{{- section.settings.button_label -}}</span>
+        </button>
+      </div>
+    {%- if layout == 'carousel' -%}</div>{%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+{%- capture layout_grid -%}
+  <style>
+    @media screen and (min-width: 990px) {
+      #section-{{section.id}} .shoppable__layout--grid {
+        --shoppable-layout-grid: repeat(
+          {{- section.settings.grid_items -}},
+          minmax(0, 1fr)
+        );
+      }
+    }
+  </style>
+  <div class='shoppable__layout--grid'>
+    {{ layout_grid_and_carousel_item }}
+  </div>
+{%- endcapture -%}
+{%- comment -%} CAROUSEL POSTS LAYOUT {%- endcomment -%}
+{%- capture layout_carousel -%}
+  <shoppable-layout-carousel data-grid-items='{{- section.settings.grid_items -}}'>
+    <div class='shoppable__layout--carousel'>
+      <div class='swiper swiper-carousel'>
+        <div class='swiper-wrapper'>
+          {{ layout_grid_and_carousel_item }}
+        </div>
+        {%- assign grid_items_as_integer = section.settings.grid_items | times: 1 -%}
+        {%- if section.blocks.size > grid_items_as_integer -%}
+          <div class='swiper__buttons'>
+            <button class='swiper-button--prev'>
+              {% render 'icon', icon_name: 'theme-arrow' %}
+            </button>
+            <button class='swiper-button--next'>
+              {% render 'icon', icon_name: 'theme-arrow' %}
+            </button>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </shoppable-layout-carousel>
+{%- endcapture -%}
+{%- comment -%} TAG STORIES LAYOUT {%- endcomment -%}
+{%- capture layout_tags -%}
+  {%- capture swiper_buttons -%}
+    <div class='swiper__buttons'>
+      <button class='swiper-button--prev'>
+        {% render 'icon', icon_name: 'theme-arrow' %}
+      </button>
+      <button class='swiper-button--next'>
+        {% render 'icon', icon_name: 'theme-arrow' %}
+      </button>
+    </div>
+  {%- endcapture -%}
+  {% if request.design_mode %}
+    {% style %}
+      @media screen and (min-width: 750px) {
+        .shoppable__layout--tags .swiper-slide {
+          flex-shrink: 1;
+        }
+      }
+    {% endstyle %}
+  {% endif %}
+  <shoppable-layout-tags class='shoppable__layout--tags'>
+    <div class='swiper swiper-tag-desktop' data-slides-perview-desktop="{{- section.settings.tag_items_slides_perview -}}">
+      <div class='swiper-wrapper'>
+        {%- for tag in tags -%}
+          <div class='swiper-slide'>
+            <button
+              type='button'
+              class='button--shoppable__layout--story'
+              onclick='document.querySelector(".shoppable-drawer--{{ section.id }}").openWithTag(event, "{{- tag -}}");'
+              aria-expanded="false"
+              aria-controls="shoppable-drawer"
+              aria-label="Open drawer for selected item"
+            >
+              {%- for block in shoppable_items -%}
+                {%- liquid
+                  if section.settings.source_of_slide == 'metaobject'
+                    if product.metafields.theme.shoppable_socials.value
+                      assign item = product.metafields.theme.shoppable_socials.value
+                    endif
+                  else
+                    assign item = block.settings
+                  endif
+                -%}
+                {%- if section.settings.source_of_slide == 'metaobject' -%}
+                  {%- if block.tag_story contains tag -%}
+                    <div class='shoppable__layout--tags--image-wrapper'>
+                      {%- liquid
+                        if block.social_post_image != blank
+                          render 'image', image: block.social_post_image
+                        else
+                          echo 'product-6' | placeholder_svg_tag
+                        endif
+                      -%}
+                      {% render 'icon', icon_name: 'theme-instagram-ring', icon_variation: true %}
+                    </div>
+                    {% break %}
+                  {%- endif -%}
+                {%- endif -%}
+                {%- if item.tag_story == tag and section.settings.source_of_slide == 'manual' -%}
+                  <div class='shoppable__layout--tags--image-wrapper'>
+                    {%- liquid
+                      if item.social_post_image != blank
+                        render 'image', image: item.social_post_image
+                      else
+                        echo 'product-6' | placeholder_svg_tag
+                      endif
+                    -%}
+                    {% render 'icon', icon_name: 'theme-instagram-ring', icon_variation: true %}
+                  </div>
+                  {% break %}
+                {%- endif -%}
+              {%- endfor -%}
+              <h5>{{ tag | prepend: '#' }}</h5>
+            </button>
+          </div>
+        {%- endfor -%}
+      </div>
+      {{- swiper_buttons -}}
+    </div>
+
+    <div class='swiper swiper-tag-mobile {% if tags.size <= 6 %} swiper-no-swiping{% endif %}'>
+      <div class='swiper-wrapper'>
+        {%- assign slides_count = tags.size | divided_by: 6 | ceil -%}
+        {%- for slide in (0..slides_count) -%}
+          {%- assign slide_index = forloop.index0 -%}
+          <div class='swiper-slide'>
+            <div class='shoppable__layout--tags-grid'>
+              {%- for item in (1..6) -%}
+                {%- assign story_index = slide_index | times: 6 | plus: forloop.index0 -%}
+                {%- assign tag = tags[story_index] -%}
+                {%- if tag != blank -%}
+                  <button
+                    type='button'
+                    class='button--shoppable__layout--story'
+                    onclick='document.querySelector(".shoppable-drawer--{{ section.id }}").openWithTag(event, "{{- tag -}}");'
+                    aria-expanded="false"
+                    aria-controls="shoppable-drawer"
+                    aria-label="Open drawer for selected item"
+                  >
+                    {%- for block in shoppable_items -%}
+                      {%- liquid
+                        if section.settings.source_of_slide == 'metaobject'
+                          if product.metafields.theme.shoppable_socials.value
+                            for item in product.metafields.theme.shoppable_socials.value
+                              assign item = item
+                            endfor
+                          endif
+                        endif
+                      -%}
+                      {%- if section.settings.source_of_slide == 'metaobject' -%}
+                          {%- if block.tag_story contains tag -%}
+                            <div class='shoppable__layout--tags--image-wrapper'>
+                              {%- liquid
+                                if block.social_post_image != blank
+                                  render 'image', image: block.social_post_image
+                                else
+                                  echo 'product-6' | placeholder_svg_tag
+                                endif
+                              -%}
+                              {% render 'icon', icon_name: 'theme-instagram-ring', icon_variation: true %}
+                            </div>
+                            {% break %}
+                          {%- endif -%}
+                        {%- endif -%}
+                        {%- if block.settings.tag_story == tag and section.settings.source_of_slide == 'manual' -%}
+                          <div class='shoppable__layout--tags--image-wrapper'>
+                            {%- liquid
+                              if block.settings.social_post_image != blank
+                                render 'image', image: block.settings.social_post_image
+                              else
+                                echo 'product-6' | placeholder_svg_tag
+                              endif
+                            -%}
+                            {% render 'icon', icon_name: 'theme-instagram-ring', icon_variation: true %}
+                          </div>
+                          {% break %}
+                        {%- endif -%}
+                    {%- endfor -%}
+                    <h5>{{ tag | prepend: '#' }}</h5>
+                  </button>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+      {% if tags.size > 6 %}
+        {{- swiper_buttons -}}
+      {% endif %}
+    </div>
+  </shoppable-layout-tags>
+{%- endcapture -%}
+{%- comment -%} MARQUEE CAROUSEL STORIES LAYOUT {%- endcomment -%}
+{%- capture layout_slider -%}
+  <shoppable-layout-slider id="{{ section.id }}">
+    <div class='shoppable-layout__slider--wrapper'>
+      <div
+        class='swiper swiper-shoppable-slider'
+      >
+        <div class='swiper-wrapper'>
+          {%- for block in shoppable_items -%}
+            {%- liquid
+              if section.settings.source_of_slide == 'metaobject'
+                if shop.metaobjects.shoppable_socials.values
+                  assign social_story_video = block.social_post_video
+                  assign social_post_image = block.social_post_image
+                  assign product_ref = block.product_01.value
+                endif
+              else
+                assign social_story_video = block.settings.social_story_video
+                assign social_post_image = block.settings.social_post_image
+                assign product_ref = block.settings.product_01
+              endif
+            -%}
+            <div class='swiper-slide color-{{ section.settings.color_scheme_for_items }}'>
+              <div class='swiper-slide__inner'>
+                {%- if social_story_video -%}
+                    {{-
+                      social_story_video
+                      | video_tag:
+                        autoplay: false,
+                        loop: true,
+                        muted: true,
+                        controls: false
+                    -}}
+                {%- else -%}
+                  {%- liquid
+                    if social_post_image != blank
+                      render 'image', image: social_post_image
+                    else
+                      assign random_number = 'now' | date: '%N' | modulo: 6 | plus: 1
+                      assign placeholder_name = 'collection-' | append: random_number
+                      echo placeholder_name | placeholder_svg_tag: 'placeholder-svg'
+                    endif
+                  -%}
+                {%- endif -%}
+              </div>
+              <div class='swiper-slide__footer' onclick='this.closest("shoppable-layout-slider").open(event, {{- forloop.index0 -}}, "{{- section.id -}}");'>
+                {%- liquid
+                  if product_ref != '' and product_ref != nil
+                    render 'shoppable-product-card__thumb', product_ref: product_ref
+                  else
+                    render 'shoppable-product-card__thumb'
+                  endif
+                -%}
+              </div>
+            </div>
+          {%- endfor -%}
+        </div>
+        <div class="swiper-buttons small-hide no-js-hidden">
+          <button class="swiper-button swiper-button--prev">
+            {% render 'icon', icon_name: 'theme-arrow' %}
+          </button>
+          <button class="swiper-button swiper-button--next">
+            {% render 'icon', icon_name: 'theme-arrow' %}
+          </button>
+        </div>
+      </div>
+    </div>
+  </shoppable-layout-slider>
+{%- endcapture -%}
+{%- comment -%} LAYOUTS {%- endcomment -%}
+{%- case layout -%}
+  {%- when 'list' -%}
+    {{- layout_list -}}
+  {%- when 'grid' -%}
+    {{- layout_grid -}}
+  {%- when 'carousel' -%}
+    {{- layout_carousel -}}
+  {%- when 'tags' -%}
+    {{- layout_tags -}}
+  {%- when 'slider' -%}
+    {{- layout_slider -}}
+{%- endcase -%}

@@ -1,0 +1,406 @@
+{{- 'component-card-slider.css' | asset_url | stylesheet_tag -}}
+{{- 'component-testimonial.css' | asset_url | stylesheet_tag -}}
+{{- 'section-testimonials.css' | asset_url | stylesheet_tag -}}
+{%- render 'section-common-styles', section: section -%}
+
+<script src="{{- 'card-slider.js' | asset_url -}}" defer="defer"></script>
+
+{% style %}
+  {% if section.settings.content_width == 'narrow' %}
+    @media screen and (min-width: 990px) {
+      #shopify-section-{{ section.id }} .testimonial {
+        column-gap: 0;
+      }
+    }
+  {% endif %}
+  {% if section.settings.content_width == 'full' %}
+    #shopify-section-{{ section.id }} .card-slider--testimonials .swiper-buttons.card-slider__buttons {
+      column-gap: 2.4rem;
+    }
+    .image-right .container.max-w-full .card-slider--testimonials:not(.no-image) .card-slider__buttons {
+      padding-inline-start: 0;
+    }
+    .image-right .container.max-w-full .testimonial__body {
+      padding-inline-start: 0;
+    }
+  {% endif %}
+{% endstyle %}
+
+{%- if section.settings.title != blank -%}
+  {%- capture section_title -%}
+    <h6 class="section-testimonials__title heading-static {{ section.settings.heading_size }} small-up-hide">
+      {{- section.settings.title -}}
+    </h6>
+  {%- endcapture -%}
+{%- endif -%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient isoloate overflow-hidden js-animation-fade-in {{ section.settings.layout }}">
+  <div class="container max-w-{{ section.settings.section_width }}">
+    {{ section_title }}
+
+      {% if section.blocks.size == 1 %}
+        <div>
+      {% else %}
+        <card-slider
+          class="swiper card-slider card-slider--testimonials js-testimonials {{ section.settings.layout }}"
+          data-swiper-options='{
+            {%- if section.settings.slider_autoplay > 0 -%}
+              "autoplay": {
+                "delay": {{ section.settings.slider_autoplay | times: 1000 }},
+                "disableOnInteraction": false
+              },
+            {%- endif -%}
+            "spaceBetweenDesktop": {{ settings.spacing_desktop | times: 10 | round: 0 }},
+            "spaceBetweenMobile": {{ settings.spacing_mobile | times: 10 | round: 0 }}
+        }'>
+      {% endif %}
+      <div class="swiper-wrapper card-slider__wrapper">
+        {%- for block in section.blocks -%}
+          {%- if block.settings.link_title != blank and block.settings.link_url != blank -%}
+            {%- capture link_html -%}
+              <div class="testimonial__link">
+                {%- render 'button',
+                  type: 'text',
+                  class: 'button button--text small-hide custom_class',
+                  value: block.settings.link_title,
+                -%}
+              </div>
+            {%- endcapture -%}
+          {%- endif -%}
+
+          <div class="swiper-slide card-slider__slide">
+            <div class="testimonial {{ section.settings.layout }}">
+              {%- unless section.settings.layout == 'no-image' -%}
+                <a {% if block.settings.link_url != blank %}href="{{- block.settings.link_url -}}" aria-label="{{- block.settings.link_title -}}"{% endif %} class="testimonial__head content-w-{{ section.settings.content_width }}">
+                  <div class="media media--1-1 testimonial__media svg-color-inherit">
+                    {%- liquid
+                      if block.settings.image != blank
+                        render 'image', image: block.settings.image, image_per_view: 2
+                      else
+                        echo 'image' | placeholder_svg_tag: 'placeholder-svg'
+                      endif
+                    -%}
+                  </div>
+
+                  {{ link_html }}
+                </a>
+              {%- endunless -%}
+
+              <div class="testimonial__body content-w-{{ section.settings.content_width }}">
+                <div class="testimonial__content">
+                  {{ section_title | remove_first: 'up-' }}
+
+                  {%- if block.settings.quote != blank -%}
+                    <blockquote class="testimonial__quote">
+                      {{- block.settings.quote | replace: '<p>', '<p role="heading">' -}}
+                    </blockquote>
+                  {%- endif -%}
+
+                  {%- if block.settings.author != blank -%}
+                    <cite class="testimonial__author h6">
+                      {{- block.settings.author -}}
+                    </cite>
+                  {%- endif -%}
+                </div>
+              </div>
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+      {% if section.blocks.size > 1 %}
+        <div class="swiper-buttons small-hide svg-color-inherit card-slider__buttons no-js-hidden">
+          <div class="card-slider__buttons-inner">
+            <button class="swiper-button text-current swiper-button--prev">
+              {% render 'icon', icon_name: 'theme-arrow' %}
+            </button>
+            <button class="swiper-button text-current swiper-button--next">
+              {% render 'icon', icon_name: 'theme-arrow' %}
+            </button>
+          </div>
+        </div>
+      {% endif %}
+      {% if section.blocks.size == 1 %}
+        </div>
+      {% else %}
+        </card-slider>
+      {% endif %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.testimonials.name",
+  "tag": "section",
+  "class": "section-testimonials",
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.testimonials.settings.header_general.content"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "t:sections.testimonials.settings.layout.label",
+      "info": "t:sections.testimonials.settings.layout.info",
+      "options": [
+        {
+          "value": "image-left",
+          "label": "t:sections.testimonials.settings.layout.options.image_left.label"
+        },
+        {
+          "value": "image-right",
+          "label": "t:sections.testimonials.settings.layout.options.image_right.label"
+        },
+        {
+          "value": "no-image",
+          "label": "t:sections.testimonials.settings.layout.options.image_none.label"
+        }
+      ],
+      "default": "image-right"
+    },
+    {
+      "type": "select",
+      "id": "content_width",
+      "label": "t:sections.testimonials.settings.content_width.label",
+      "info": "t:sections.testimonials.settings.content_width.info",
+      "options": [
+        {
+          "value": "narrow",
+          "label": "t:sections.testimonials.settings.content_width.options.narrow.label"
+        },
+        {
+          "value": "full",
+          "label": "t:sections.testimonials.settings.content_width.options.full.label"
+        }
+      ],
+      "default": "narrow"
+    },
+    {
+      "type": "range",
+      "id": "slider_autoplay",
+      "label": "t:sections.testimonials.settings.autoplay_interval.label",
+      "info": "t:sections.testimonials.settings.autoplay_interval.info",
+      "min": 0,
+      "max": 10,
+      "step": 0.5,
+      "unit": "sec",
+      "default": 3
+    },
+    {
+      "type": "header",
+      "content": "t:sections.testimonials.settings.header_text.content"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "title",
+      "label": "t:sections.testimonials.settings.title.label",
+      "default": "From the people"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:sections.global.element.heading_size.label",
+      "options": [
+        {
+          "value": "h6",
+          "label": "XS"
+        },
+        {
+          "value": "h5",
+          "label": "S"
+        },
+        {
+          "value": "h4",
+          "label": "M"
+        },
+        {
+          "value": "h3",
+          "label": "L"
+        },
+        {
+          "value": "h2",
+          "label": "XL"
+        }
+      ],
+      "default": "h6"
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:global.settings.section.width.label",
+      "options": [
+        {
+          "value": "page",
+          "label": "t:global.settings.section.width.options.page.label"
+        },
+        {
+          "value": "fluid",
+          "label": "t:global.settings.section.width.options.fluid.label"
+        },
+        {
+          "value": "full",
+          "label": "t:global.settings.section.width.options.full.label"
+        }
+      ],
+      "default": "page"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top",
+      "label": "t:global.settings.spacing.top.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom",
+      "label": "t:global.settings.spacing.bottom.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "section_border",
+      "label": "t:global.settings.section.border.label",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:global.settings.section.border.options.none.label"
+        },
+        {
+          "value": "top",
+          "label": "t:global.settings.section.border.options.top.label"
+        },
+        {
+          "value": "bottom",
+          "label": "t:global.settings.section.border.options.bottom.label"
+        },
+        {
+          "value": "both",
+          "label": "t:global.settings.section.border.options.both.label"
+        }
+      ],
+      "default": "none"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "t:sections.testimonials.blocks.testimonial.name",
+      "settings": [
+        {
+          "type": "header",
+          "content": "t:sections.testimonials.blocks.testimonial.settings.header_media.content"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "t:sections.testimonials.blocks.testimonial.settings.image.label"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.testimonials.blocks.testimonial.settings.header_text.content"
+        },
+        {
+          "type": "richtext",
+          "id": "quote",
+          "label": "t:sections.testimonials.blocks.testimonial.settings.quote.label",
+          "default": "<p>“I absolutely love the quality of my Leo Bikini Bottoms.”</p>"
+        },
+        {
+          "type": "text",
+          "id": "author",
+          "label": "t:sections.testimonials.blocks.testimonial.settings.author.label",
+          "default": "Jane Doe, 2022"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.testimonials.blocks.testimonial.settings.header_link.content"
+        },
+        {
+          "type": "text",
+          "id": "link_title",
+          "label": "t:sections.testimonials.blocks.testimonial.settings.link_title.label",
+          "default": "Buy Leo Bikini Bottoms"
+        },
+        {
+          "type": "url",
+          "id": "link_url",
+          "label": "t:sections.testimonials.blocks.testimonial.settings.link_url.label",
+          "info": "t:sections.testimonials.blocks.testimonial.settings.link_url.info",
+          "default": "/"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.testimonials.name",
+      "category": "t:categories.cards.name",
+      "blocks": [
+        {
+          "type": "testimonial",
+          "settings": {
+            "quote": "<p>“I absolutely love the quality of my Leo Bikini Bottoms.”</p>",
+            "author": "Jane Doe, 2022",
+            "link_url": "/"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

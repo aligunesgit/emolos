@@ -1,0 +1,46 @@
+{%- comment -%}
+  Usage:
+  {% render 'promotional-media-renderer',
+    image: block.settings.image,
+    video: block.settings.video,
+    video_external: block.settings.video_external,
+    video_controls: true,
+    image_size: '1440x',
+    wrapper_class: 'section-promotional-banner__media',
+    show_overlay: false,
+    viewport: 'mobile', 'desktop', 'both' (default: 'both')
+  %}
+{%- endcomment -%}
+
+{%- liquid
+  assign has_media = false
+  if image != blank or video != blank or video_external != blank
+    assign has_media = true
+  endif
+
+  assign viewport = viewport | default: 'both'
+
+  assign media_classes = 'section-promotional-banner__media media' | append: ' ' | append: wrapper_class
+
+  assign media_classes = media_classes | append: ' show-on--' | append: viewport
+
+  if video_controls
+    assign media_classes = media_classes | append: ' media--with-controls'
+  endif
+
+  if show_overlay
+    assign media_classes = media_classes | append: ' media--overlay'
+  endif
+-%}
+
+{%- if has_media -%}
+  <div class="{{ media_classes }}">
+    {%- if video_external != blank -%}
+      {%- render 'external-video', video: video_external, controls: video_controls -%}
+    {%- elsif video != blank -%}
+      {{ video | video_tag: image_size: image_size, loop: true, autoplay: true, muted: true, controls: video_controls }}
+    {%- elsif image -%}
+      {%- render 'image', image: image, section_index: section_index, alt: image.alt -%}
+    {%- endif -%}
+  </div>
+{%- endif -%}

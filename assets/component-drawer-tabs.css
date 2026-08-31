@@ -1,0 +1,94 @@
+/* Drawer Tabs Navigation Styles */
+.drawer-tabs {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  border-bottom: 0.1rem solid var(--color-border-elements);
+  margin-bottom: 1.6rem;
+  gap: 1.5rem;
+}
+
+.drawer-tab {
+  text-align: center;
+  padding: 1rem 0;
+  cursor: pointer;
+  font-weight: normal;
+  color: var(--color-body-text);
+  position: relative;
+  transition: color var(--duration-default);
+}
+
+.drawer-tab.active {
+  font-weight: bold;
+  color: var(--color-text-primary);
+}
+
+.drawer-tab.active:after {
+  content: '';
+  position: absolute;
+  bottom: -0.1rem;
+  left: 0;
+  width: 100%;
+  height: 0.2rem;
+  background-color: var(--color-text-primary);
+}
+
+.drawer-tab-content {
+  display: none;
+}
+
+.drawer-tab-content.active {
+  display: block;
+}
+
+.drawer-tab-cards {
+  margin-bottom: 2.4rem;
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.drawer-tab-cards::-webkit-scrollbar {
+  display: none;
+}
+
+.drawer__grid.drawer-tab-grid {
+  margin-top: 0;
+}
+
+.card.drawer-tab-card {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  /* overflow: hidden; */
+  width: 100%;
+}
+
+.card.drawer-tab-card > * {
+  height: 100%;
+  width: 30rem;
+}
+
+.drawer-tab-cards .drawer__grid {
+  display: flex;
+  gap: .5rem;
+}
+
+.drawer-tab-card .media {
+  height: 100%;
+  padding-block-end: 100%;
+}
+
+.drawer-tab-card .card__content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 0.8rem;
+}
+
+.drawer-tab-card .card__title {
+  color: #ffffff;
+  margin: 0;
+  font-size: var(--font-size-small);
+}

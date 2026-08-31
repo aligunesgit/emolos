@@ -1,0 +1,200 @@
+{% comment %}
+    Renders facets
+    Accepts:
+    - results: {Object} Collection or Search object
+    - section: {Object} Section
+    Usage:
+    {%- render 'facets', results: collection, section: section -%}
+{% endcomment %}
+
+{%- liquid
+  assign enable_filtering = enable_filtering | default: false
+  assign sort_by = results.sort_by | default: results.default_sort_by
+  assign total_active_values = 0
+  if results.url
+    assign results_url = results.url
+  else
+    assign terms = results.terms | escape
+    assign results_url = '?q=' | append: terms | append: '&options%5Bprefix%5D=last&sort_by=' | append: sort_by
+  endif
+  assign results_sort_url = results.url | append: '?sort_by=' | append: sort_by
+-%}
+
+{%- if section.settings.enable_sorting -%}
+  {{- 'component-custom-select.css' | asset_url | stylesheet_tag -}}
+
+  <script src="{{- 'custom-select.js' | asset_url -}}" defer="defer"></script>
+{%- endif -%}
+
+<facet-filters-form class="collection-facets {% if search.results_count == 0 %} collection-facets__no-result{% endif %}" data-section-id="{{- section.id -}}">
+  <div class="container max-w-{{ section.settings.section_width }}">
+    <div class="collection-facets__inner">
+      {%- if search.results_count != 0 and enable_filtering or section.settings.enable_sorting -%}
+        <div class="collection-facets__item">
+          <div class="facets">
+            <form id="FacetFiltersForm" class="facets__form">
+              {%- if results.terms -%}
+                <input type="hidden" name="q" value="{{- results.terms | escape -}}">
+                <input name="options[prefix]" type="hidden" value="last">
+              {%- endif -%}
+
+              {%- if results.current_vendor or results.current_type -%}
+                <input type="hidden" name="q" value="{{- results.current_vendor -}}{{- results.current_type -}}">
+              {%- endif -%}
+
+              <ul class="facets__actions-list list-unstyled">
+                {%- if enable_filtering and results.filters != empty -%}
+                  <li class="facets__actions-item {% if filters_style == 'sidebar' %}collection__aside-filters-actions-item{% endif %}">
+                    <menu-drawer class="drawer drawer--start drawer--sm facets__drawer">
+                      <details id="Filters-drawer-{{- section.id -}}" class="drawer__container">
+                        <summary
+                          class="drawer__button facets__actions-button svg-color-inherit focus-inset"
+                          id="Filters-drawer-button-{{- section.id -}}"
+                          aria-label="{{- 'collection.facets.filters' | t -}}"
+                          tabindex="0"
+                        >
+                          <span>
+                            {{- 'collection.facets.filters_button' | t -}}
+                          </span>
+
+                          <noscript>
+                            {% render 'icon', icon_name: 'theme-arrow-close' %}
+                          </noscript>
+                        </summary>
+
+                        <div
+                          class="drawer__content js-drawer color-scheme-1 gradient"
+                          id="Filters-menu-drawer-{{- section.id -}}"
+                          tabindex="-1"
+                        >
+                          <button
+                            class="drawer__button-close svg-color-inherit button-reset no-js-hidden js-btn-close-drawer"
+                            aria-label="{{- 'actions.close' | t -}}"
+                            aria-controls="Filters-menu-drawer-{{- section.id -}}"
+                            aria-expanded="false"
+                          >
+                            {% render 'icon', icon_name: 'theme-arrow-close' %}
+                          </button>
+
+                          <h2 class="drawer__title drawer__title--mb-lg heading-static">
+                            {{- 'collection.facets.filters_title' | t -}}
+                          </h2>
+
+                          <div class="drawer__row drawer__row--mb-lg">
+                            <accordion-default class="accordion facets__accordion">
+                              {%- for filter in results.filters -%}
+                                {%- render 'facet', index: forloop.index, section_id: section.id, filter: filter -%}
+                              {%- endfor -%}
+                            </accordion-default>
+                          </div>
+
+                          <div class="drawer__row drawer__row--buttons">
+                            {%- assign clear_text = 'collection.facets.clear_all' | t | escape -%}
+                            <facet-remove>
+                              {%- render 'button', type: 'link', class: 'button button--full facets__clear-button', button_style: 'button--outlined', value: clear_text, href: results_sort_url -%}
+                            </facet-remove>
+                            {%- assign show_results_button_value = 'collection.facets.filters_submit' | t | escape -%}
+                            {%- render 'button', type: 'button', class: 'button button--full js-btn-close-drawer no-js-hidden', button_style: 'button--filled', value: show_results_button_value -%}
+                          </div>
+                        </div>
+                      </details>
+                    </menu-drawer>
+                  </li>
+                {%- endif -%}
+
+                {%- if section.settings.enable_sorting -%}
+                  <li class="facets__actions-item js-filter" data-index="sort-by">
+                    {%- assign sort_by = results.sort_by | default: results.default_sort_by -%}
+
+                    <custom-select
+                      class="custom-select facets__custom-select"
+                      data-dropdown-id="SortByDropdown"
+                      data-sort-label="{{- 'collection.facets.sort_by_label' | t -}}"
+                    >
+                      <div class="facets__sort no-js">
+                        <label for="SortBy" class="select-input__label visually-hidden">{{- 'collection.facets.sort_by_label' | t -}}:</label>
+
+                        <select
+                          name="sort_by"
+                          class="facets__sort-input facets__actions-button focus-inset"
+                          id="SortBy"
+                          aria-describedby="a11y-refresh-page-message"
+                        >
+                          {%- for option in results.sort_options -%}
+                            <option value="{{- option.value | escape -}}"{% if option.value == sort_by %} selected="selected"{% endif %}>
+                              {{- option.name | escape -}}
+                            </option>
+                          {%- endfor -%}
+                        </select>
+                      </div>
+                    </custom-select>
+                  </li>
+                {%- endif -%}
+
+                <li class="facets__actions-item no-js">
+                  <button type="submit" class="button button--filled button--full button--full-height button--border-none">
+                    {{- 'collection.facets.apply' | t -}}
+                  </button>
+                </li>
+              </ul>
+            </form>
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.enable_products_count -%}
+        <div class="collection-facets__item">
+          <div class="collection-facets__status" role="status">
+            <span id="ProductCount">
+              {%- if results.results_count -%}
+                {{ 'search.results_with_count_and_term' | t: terms: results.terms, count: results.results_count }}
+              {%- elsif results.products_count == results.all_products_count -%}
+                {{ 'collection.facets.product_count_simple' | t: count: results.products_count }}
+              {%- else -%}
+                {{ 'collection.facets.product_count' | t: product_count: results.products_count, count: results.all_products_count }}
+              {%- endif -%}
+            </span>
+          </div>
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.products_per_row_ui -%}
+        <div
+          class="collection-facets__item collection-facets__item--view small-hide medium-hide no-js-hidden{% if results.products_count == 0 %} hidden{% endif %}"
+          aria-hidden="true"
+        >
+          <script src="{{- 'collection-view.js' | asset_url -}}" defer="defer"></script>
+
+          <collection-view class="collection-facets__view">
+            <ul class="collection-facets__view-items list-unstyled">
+              {%- for index in (3..4) -%}
+                {%- capture index_string -%}
+                  {{- index -}}
+                {%- endcapture -%}
+
+                <li class="collection-facets__view-item">
+                  <button
+                    type="button"
+                    class="collection-facets__view-button button-reset js-btn"
+                    data-cols="{{- index -}}"
+                    {% if section.settings.products_per_row_default == index_string %}disabled{% endif %}
+                  >
+                    <span class="collection-facets__view-rectangle"></span>
+
+                    <span class="collection-facets__view-rectangle"></span>
+
+                    <span class="collection-facets__view-rectangle"></span>
+
+                    {%- if forloop.last -%}
+                      <span class="collection-facets__view-rectangle"></span>
+                    {%- endif -%}
+                  </button>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </collection-view>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</facet-filters-form>

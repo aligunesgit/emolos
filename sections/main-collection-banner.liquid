@@ -1,0 +1,150 @@
+{{- 'component-collection-hero.css' | asset_url | stylesheet_tag -}}
+{%- render 'section-common-styles', section: section -%}
+
+{% style %}
+  #shopify-section-{{ section.id }} {
+    --main-collection-banner-section-height: {{ section.settings.section_height | default: '40' | append: 'vh' }};
+  }
+{% endstyle %}
+
+{%- liquid
+  assign image_mobile = collection.metafields.mobile.image
+  assign section_additional_classes = ''
+
+  assign has_media = false
+  assign has_media_mobile = false
+  if collection.image != blank
+    assign has_media = true
+    assign section_additional_classes = section_additional_classes | append: ' has-desktop-image has-mobile-image '
+  elsif image_mobile != blank
+    assign has_media = true
+    assign has_media_mobile = true
+    assign section_additional_classes = section_additional_classes | append: ' has-mobile-image '
+  endif
+
+  if collection.image != blank
+    assign banner_layout = section.settings.banner_layout
+  else
+    assign banner_layout = 'banner--full'
+  endif
+
+  # set heading tag based on section index
+  if section.index == 1
+    assign heading_tag = 'h1'
+  else
+    assign heading_tag = 'h2'
+  endif
+
+  assign enable_transparent_header = section.settings.enable_transparent_header
+  if has_media and section.settings.enable_transparent_header
+    assign enable_transparent_header = true
+  elsif has_media_mobile and section.settings.enable_transparent_header
+    assign enable_transparent_header = true
+  else
+    assign enable_transparent_header = false
+  endif
+-%}
+
+{%- if section.settings.enable_transparent_header -%}
+  {% style %}
+    .collection-hero.has-desktop-image.banner--full:before {
+      content: '';
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline-start: 0;
+      width: 100%;
+      height: 100%;
+      background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 100%);
+      z-index: 2;
+    }
+  {% endstyle %}
+{%- endif -%}
+
+<div class="collection-hero section-{{ section.id }} {{ banner_layout }} {{ section_additional_classes }}{% if enable_transparent_header %} header-is-transparent{% endif %} color-{{ section.settings.color_scheme }}">
+  {%- if collection.image != blank -%}
+    <div class="media media--overlay media--overlay-horizontal collection-hero__media{% if image_mobile != blank %} small-hide{% endif %}">
+      {%- render 'image', image: collection.image, section_index: section.index, media_index: 1, image_url_width: 2160 -%}
+    </div>
+  {%- endif -%}
+
+  {%- if image_mobile != blank -%}
+    <div class="media media--overlay media--overlay-horizontal collection-hero__media small-up-hide">
+      {%- render 'image', image: image_mobile, section_index: section.index, media_index: 1, image_for_mobile: true -%}
+    </div>
+  {%- endif -%}
+
+  {%- if settings.enable_breadcrumbs_on_other_pages -%}
+    {%- render 'breadcrumbs', alignment: settings.breadcrumbs_alignment, class: 'small-hide' -%}
+  {%- endif -%}
+
+  <div class="collection-hero__content {{ section.settings.color_scheme_background }}">
+    <{{ heading_tag }} class="collection-hero__title">
+      <span class="visually-hidden">{{- 'collection.title' | t -}}: </span>
+      {{- collection.title | escape -}}
+    </{{ heading_tag }}>
+
+    {%- if collection.description != blank -%}
+      <div class="collection-hero__entry">
+        {{- collection.description -}}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.collection-hero.name",
+  "tag": "section",
+  "class": "section-main-collection-banner",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable_transparent_header",
+      "label": "t:sections.global.settings.enable_transparent_header.label",
+      "info": "t:sections.global.settings.enable_transparent_header.info",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "section_height",
+      "label": "t:sections.global.settings.section_height.label",
+      "info": "t:sections.global.settings.section_height.info",
+      "min": 30,
+      "max": 100,
+      "step": 10,
+      "unit": "vh",
+      "default": 40
+    },
+    {
+      "type": "select",
+      "id": "banner_layout",
+      "label": "t:sections.global.settings.banner_layout.label",
+      "options": [
+        {
+          "value": "banner--full",
+          "label": "t:sections.global.settings.banner_layout.options.layout_full.label"
+        },
+        {
+          "value": "banner--70-30",
+          "label": "70/30"
+        },
+        {
+          "value": "banner--30-70",
+          "label": "30/70"
+        },
+        {
+          "value": "banner--split",
+          "label": "t:sections.global.settings.banner_layout.options.layout_split.label"
+        }
+      ],
+      "default": "banner--full"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    }
+  ]
+}
+{% endschema %}

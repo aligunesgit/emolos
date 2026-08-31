@@ -1,0 +1,46 @@
+{% comment %}
+    Renders shipping bar
+    Accepts:
+    - class {String} Additional classes
+    Usage:
+    {%- render 'shipping-bar', class: 'additional_classes' -%}
+{% endcomment %}
+
+{%-
+  liquid
+  assign threshold = settings.shipping_notification_threshold | times: 100
+  assign threshold_percentage = cart.total_price | times: 100.0 | divided_by: threshold
+
+  if threshold_percentage < 0
+    assign threshold_percentage = 0
+  elsif threshold_percentage > 100
+    assign threshold_percentage = 100
+  endif
+-%}
+
+{%- if settings.enable_shipping_notification and threshold > 0 and cart != empty -%}
+  <shipping-bar
+    data-cart-total="{{ cart.total_price }}"
+    data-shipping-threshold="{{ threshold }}"
+    data-progress="calc({{ threshold_percentage }}% + 2px)"
+    class="shipping-bar progress-bar {{ class }}"
+  >
+    <p class="progress-bar__text h6">
+      {%- liquid
+        if cart.total_price >= threshold
+          echo 'cart.shipping_bar.success' | t
+        else
+          assign remaining_amount = threshold | minus: cart.total_price
+          assign remaining_amount_money = remaining_amount | money
+          if settings.show_currency_codes
+            assign remaining_amount_money = remaining_amount | money_with_currency
+          endif
+          echo 'cart.shipping_bar.progress_html' | t: amount: remaining_amount_money
+        endif
+      -%}
+      </p>
+      <div class="progress-bar__progress">
+        <span class="progress-bar__progress-inner" data-progress-line style="width: 0%"></span>
+      </div>
+  </shipping-bar>
+{%- endif -%}

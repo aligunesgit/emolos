@@ -1,0 +1,37 @@
+{% assign size_guide_page = pages['size-guide'] %}
+
+{% if size_guide_page %}
+  <div id="size-guide-modal" class="size-guide-modal">
+    <div class="size-guide-content">
+      <span class="close-size-guide" onclick="document.getElementById('size-guide-modal').style.display='none'">&times;</span>
+      
+      <div class="size-guide-grid"> 
+        <!-- Sol tarafta ürün/model bilgisi -->
+        <div class="size-guide-media">
+          <img src="https://cdn.shopify.com/s/files/1/your_product_image.jpg" alt="Model" class="model-image">
+          <div class="model-info">
+            <strong>Model Information</strong><br>
+            Brandan is 6ft1 with a 32-inch chest/32-inch waist and is wearing a size medium/32R
+          </div>
+        </div>
+
+        <!-- Sağ tarafta sekmeli tablo -->
+        <div class="size-guide-tabs">
+          <div class="tab-menu">
+            <button class="tab-link active" onclick="openSizeTab(event, 'fit')">Size & Fit</button>
+            <button class="tab-link" onclick="openSizeTab(event, 'howto')">How To Measure</button>
+          </div>
+
+          <div id="fit" class="tab-content" style="display: block;">
+            {{ size_guide_page.content }}
+          </div>
+
+          <div id="howto" class="tab-content">
+            <p>Measure around the fullest part of your chest. For garment length, measure from the top of the shoulder down.</p>
+            <img src="https://cdn.shopify.com/s/files/1/how_to_measure_image.jpg" alt="How to measure" style="width: 100%; margin-top: 10px;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}

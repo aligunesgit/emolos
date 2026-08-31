@@ -1,0 +1,401 @@
+{{- 'section-compare-slider.css' | asset_url | stylesheet_tag -}}
+{%- render 'section-common-styles', section: section -%}
+<script src="{{- 'compare-slider.js' | asset_url -}}" defer="defer"></script>
+
+{%- capture section_additional_classes -%}
+  {{ section.settings.layout }}
+{%- endcapture -%}
+
+<compare-slider id="section-compare-slider-{{- section.id -}}" data-id="{{- section.id -}}" class="color-{{ section.settings.color_scheme }} gradient isolate overflow-hidden js-animation-fade-in {{ section_additional_classes | strip }}">
+  <div class="container max-w-{{ section.settings.section_width }}">
+    <div class="compare-slider-grid">
+      <div class="compare-slider-grid-col-text-content">
+        <div class="compare-slider-grid-col-text-content-text-container">
+          {%- if section.settings.heading != blank -%}
+            <h2 class="section__title section-compare-slider__title heading-static {{ section.settings.heading_size }}">
+              {{- section.settings.heading -}}
+            </h2>
+          {%- endif -%}
+          {%- if section.settings.text != blank -%}
+            <div class="compare-slider__text">
+              {{- section.settings.text -}}
+            </div>
+          {%- endif -%}
+        </div>
+        <div class="compare-slider-grid-col-text-content-button-container">
+          {%- if section.settings.button_text != blank and section.settings.button_url != blank -%}
+            <div>
+            {%- render 'button', type: 'link', class: 'button',
+              button_style: section.settings.button_style,
+              value: section.settings.button_text,
+              href: section.settings.button_url -%}
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+      <div class="compare-slider-grid-col-slider">
+        <div class="ims-container">
+          <div class="ims-images-wrapper">
+            {% for block in section.blocks reversed %}
+              {% if block.type == 'image-before-slide' or block.type == 'image-after-slide' %}
+                <div class="color-{{ block.settings.color_scheme }} gradient isolate ims-image {% if forloop.index == 2 %}ims-image-after{% endif %}{% if forloop.index == 1 %}ims-image-before{% endif %}">
+                  {%- liquid
+                    if block.settings.image
+                      assign image_alt = block.settings.image.alt | default: block.settings.title
+                      render 'image', image: block.settings.image, alt: image_alt
+                    else
+                      echo 'lifestyle-1' | placeholder_svg_tag: 'ims-placeholder-svg'
+                    endif
+                  -%}
+                  <span class="color-{{ block.settings.color_scheme }} ims-label {% if forloop.index == 1 %} ims-label-after{% endif %}{% if forloop.index == 2 %} ims-label-before{% endif %} heading-static {{ block.settings.label_size }}">
+                    {{ block.settings.title }}
+                  </span>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <div class="ims-slider">
+            <div class="ims-handle-line">
+              <div class="ims-handle-circle"></div>
+            </div>
+            <input class="compare-slider-input" max="100" min="0" type="range" value="50" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</compare-slider>
+
+{% schema %}
+{
+  "name": "t:sections.compare_slider.name",
+  "tag": "section",
+  "class": "section-compare-slider",
+  "settings": [
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        {
+          "value": "section_slider_layout--full",
+          "label": "Full"
+        },
+        {
+          "value": "section_slider_layout--shrink",
+          "label": "Shrink"
+        }
+      ],
+      "default": "section_slider_layout--shrink"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "t:sections.compare_slider.settings.heading.label",
+      "default": "Before / After"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:sections.global.element.heading_size.label",
+      "options": [
+        {
+          "value": "h6",
+          "label": "XS"
+        },
+        {
+          "value": "h5",
+          "label": "S"
+        },
+        {
+          "value": "h4",
+          "label": "M"
+        },
+        {
+          "value": "h3",
+          "label": "L"
+        },
+        {
+          "value": "h2",
+          "label": "XL"
+        }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "t:sections.compare_slider.settings.text.label",
+      "default": "<p>Before and after images are a great way to showcase the transformation or improvement in a particular subject.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "t:sections.compare_slider.settings.button_label.label",
+      "default": "Shop now"
+    },
+    {
+      "type": "url",
+      "id": "button_url",
+      "label": "t:sections.compare_slider.settings.button_link.label",
+      "default": "/"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "t:sections.global.settings.button_style.label",
+      "options": [
+        {
+          "value": "button--filled",
+          "label": "t:sections.global.settings.button_style.options.filled.label"
+        },
+        {
+          "value": "button--outlined",
+          "label": "t:sections.global.settings.button_style.options.outlined.label"
+        },
+        {
+          "value": "button--text",
+          "label": "t:sections.global.settings.button_style.options.text.label"
+        }
+      ],
+      "info": "t:sections.global.settings.button_style.info",
+      "default": "button--filled"
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:global.settings.section.width.label",
+      "options": [
+        {
+          "value": "page",
+          "label": "t:global.settings.section.width.options.page.label"
+        },
+        {
+          "value": "fluid",
+          "label": "t:global.settings.section.width.options.fluid.label"
+        },
+        {
+          "value": "full",
+          "label": "t:global.settings.section.width.options.full.label"
+        }
+      ],
+      "default": "page"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top",
+      "label": "t:global.settings.spacing.top.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom",
+      "label": "t:global.settings.spacing.bottom.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "section_border",
+      "label": "t:global.settings.section.border.label",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:global.settings.section.border.options.none.label"
+        },
+        {
+          "value": "top",
+          "label": "t:global.settings.section.border.options.top.label"
+        },
+        {
+          "value": "bottom",
+          "label": "t:global.settings.section.border.options.bottom.label"
+        },
+        {
+          "value": "both",
+          "label": "t:global.settings.section.border.options.both.label"
+        }
+      ],
+      "default": "none"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "image-before-slide",
+      "limit": 1,
+      "name": "t:sections.compare_slider.blocks.image-before-slide.settings.image-before.label",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "t:sections.compare_slider.blocks.image-before-slide.settings.image.content"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "t:sections.compare_slider.blocks.image-before-slide.settings.title.label"
+        },
+        {
+          "type": "select",
+          "id": "label_size",
+          "label": "t:sections.compare_slider.settings.label_size.label",
+          "options": [
+            {
+              "value": "h6",
+              "label": "XS"
+            },
+            {
+              "value": "h5",
+              "label": "S"
+            },
+            {
+              "value": "h4",
+              "label": "M"
+            },
+            {
+              "value": "h3",
+              "label": "L"
+            },
+            {
+              "value": "h2",
+              "label": "XL"
+            }
+          ],
+          "default": "h4"
+        },
+        {
+          "type": "color_scheme",
+          "id": "color_scheme",
+          "label": "t:global.settings.color_scheme.for__label.label",
+          "default": "scheme-1"
+        }
+      ]
+    },
+    {
+      "type": "image-after-slide",
+      "limit": 1,
+      "name": "t:sections.compare_slider.blocks.image-before-slide.settings.image-after.label",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "t:sections.compare_slider.blocks.image-after-slide.settings.image.content"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "t:sections.compare_slider.blocks.image-after-slide.settings.text.label"
+        },
+        {
+          "type": "select",
+          "id": "label_size",
+          "label": "t:sections.compare_slider.settings.label_size.label",
+          "options": [
+            {
+              "value": "h6",
+              "label": "XS"
+            },
+            {
+              "value": "h5",
+              "label": "S"
+            },
+            {
+              "value": "h4",
+              "label": "M"
+            },
+            {
+              "value": "h3",
+              "label": "L"
+            },
+            {
+              "value": "h2",
+              "label": "XL"
+            }
+          ],
+          "default": "h4"
+        },
+        {
+          "type": "color_scheme",
+          "id": "color_scheme",
+          "label": "t:global.settings.color_scheme.for__label.label",
+          "default": "scheme-1"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.compare_slider.name",
+      "category": "t:categories.cards.name",
+      "blocks": [
+        {
+          "type": "image-before-slide",
+          "settings": {
+            "title": "Image before"
+          }
+        },
+        {
+          "type": "image-after-slide",
+          "settings": {
+            "title": "Image after"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

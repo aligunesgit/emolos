@@ -1,0 +1,26 @@
+{%- comment -%}
+  Accepts:
+
+  - class {String} - Card class
+  - title {String} - Card title
+  - button_text {String} - Button text
+  - button_url {String} - Button URL
+{%- endcomment -%}
+
+{%- assign button_style = button_style | default: 'button--outlined' -%}
+
+{%- if title or button_text and button_url -%}
+  <div class="card-text {{ class }}">
+    <div class="card-text__content">
+      {%- if title -%}
+        <h2 class="card-text__title {% if button_text == blank %} card-text__title--single{% endif %}">
+          {{- title -}}
+        </h2>
+      {%- endif -%}
+      {%- assign button_class = 'button ' | append: button_style -%}
+      {%- if button_text and button_url -%}
+        {%- render 'button', type: 'link', class: button_class, button_style: button_style, value: button_text, href: button_url -%}
+      {%- endif -%}
+    </div>
+  </div>
+{%- endif -%}

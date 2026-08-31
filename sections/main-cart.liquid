@@ -1,0 +1,254 @@
+{{- 'component-cart.css' | asset_url | stylesheet_tag -}}
+{{- 'component-cart-items.css' | asset_url | stylesheet_tag -}}
+{{- 'component-cart-recommendations.css' | asset_url | stylesheet_tag -}}
+{%- render 'section-common-styles', section: section -%}
+
+<cart-items class="cart color-{{ section.settings.color_scheme }} gradient isolate" id="{{- section.id -}}">
+  <div class="container max-w-{{ section.settings.section_width }}">
+    <div class="cart__head center">
+      <h1 class="cart__title h2">
+        {{- 'cart.title' | t -}}
+      </h1>
+
+      {%- if cart != empty -%}
+        {%- if settings.enable_shipping_notification -%}
+          {%- render 'shipping-bar', class: 'cart__bar' -%}
+        {%- endif -%}
+      {%- else -%}
+        <h2 class="cart__subtitle h4">{{- 'cart.empty' | t -}}</h2>
+      {%- endif -%}
+
+      <a href="{{- routes.all_products_collection_url -}}" class="link" role="button">
+        {{- 'cart.continue_shopping' | t -}}
+      </a>
+    </div>
+
+    {%- if cart != empty -%}
+      <div class="cart__body">
+        <div class="cart-drawer__spinner">
+          {%- render 'loading-spinner' -%}
+        </div>
+
+        {% form 'cart', cart, id: 'cart', class: 'cart__contents' %}
+          <div class="cart__summary" id="cart-summary">
+            <h4 class="cart__summary-total h4">
+              <span>{{- 'cart.subtotal' | t -}}:</span>
+              <span>{{- cart.total_price | money -}}</span>
+            </h4>
+
+            {{ form | payment_terms }}
+
+            <p class="cart__summary-tax">
+              {%- if cart.taxes_included and shop.shipping_policy.body != blank -%}
+                {{ 'cart.taxes_included_and_shipping_policy_html' | t: link: shop.shipping_policy.url }}
+              {%- elsif cart.taxes_included -%}
+                {{ 'cart.taxes_included_but_shipping_at_checkout' | t }}
+              {%- elsif shop.shipping_policy.body != blank -%}
+                {{ 'cart.taxes_and_shipping_policy_at_checkout_html' | t: link: shop.shipping_policy.url }}
+              {%- else -%}
+                {{ 'cart.taxes_and_shipping_at_checkout' | t }}
+              {%- endif -%}
+            </p>
+
+            {%- if cart.cart_level_discount_applications.size > 0 -%}
+              <ul class="cart__summary-discounts list-unstyled" role="list" aria-label="{{- 'customer.order.discount' | t -}}">
+                {%- for discount in cart.cart_level_discount_applications -%}
+                  <li>
+                    {% render 'icon', icon_name: 'option-price_tag' %}
+                    <span>
+                      {{ discount.title }}
+                      (-{{ discount.total_allocated_amount | money }})
+                    </span>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+
+            <div class="cart__summary-actions">
+              {%- if settings.enable_cart_terms -%}
+                {%- assign terms_text = settings.cart_terms | replace: '<p>', '' | replace: '</p>', '' -%}
+                <div class="cart__terms">
+                  <div class="checkbox checkbox--plain">
+                    <input type="checkbox" name="terms" required id="Terms-Conditions">
+
+                    <label for="Terms-Conditions">
+                      {{- terms_text -}}
+                    </label>
+                  </div>
+                </div>
+              {%- endif -%}
+
+              {%-
+                liquid
+                assign value = 'cart.checkout' | t
+                render 'button', type: 'submit', name: 'checkout', value: value, class: 'button cart__summary-button', fullwidth: true, style: 'solid'
+                assign value = nil
+              -%}
+              {%- if settings.enable_dynamic_checkout and additional_checkout_buttons -%}
+                <div class="cart__dynamic-checkout additional-checkout-buttons">
+                  {{- content_for_additional_checkout_buttons -}}
+                </div>
+              {%- endif -%}
+            </div>
+
+            {%- if settings.enable_cart_note -%}
+              <div class="cart__summary-note">
+                <accordion-default class="accordion" data-hide-multiple>
+                  <details class="accordion__section" id="Details-{{- section.id -}}" open>
+                    <summary class="accordion__button h5" id="Details-Summary-{{- section.id -}}">
+                      {{- 'cart.note.title' | t -}}
+                      <div class="accordion__icon svg-color-inherit">
+                        {% render 'icon', icon_name: 'theme-chevron-down' %}
+                      </div>
+                    </summary>
+                    <div class="accordion__body" id="Details-Content-{{- section.id -}}">
+                      <div class="accordion__body-inner">
+                        {% liquid
+                          assign name = 'note'
+                          render 'textarea-input', id: 'cart-note', name: name
+                        %}
+                      </div>
+                    </div>
+                  </details>
+                </accordion-default>
+              </div>
+            {%- endif -%}
+
+
+            {%- if settings.enable_cart_upsell -%}
+              {%- render 'cart-recommendations', class: 'cart__recommendations' -%}
+            {%- endif -%}
+          </div>
+
+          <div class="cart__main" id="main-cart-items" data-id="{{- section.id -}}">
+            <div class="cart__items">
+              {%- for line_item in cart.items -%}
+                {%- render 'line-item', line_item: line_item -%}
+              {%- endfor -%}
+            </div>
+          </div>
+        {% endform %}
+      </div>
+    {%- endif -%}
+  </div>
+</cart-items>
+
+{% schema %}
+{
+  "name": "t:sections.main-cart.name",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:global.settings.section.width.label",
+      "options": [
+        {
+          "value": "narrow",
+          "label": "t:global.settings.section.width.options.narrow.label"
+        },
+        {
+          "value": "page",
+          "label": "t:global.settings.section.width.options.page.label"
+        },
+        {
+          "value": "fluid",
+          "label": "t:global.settings.section.width.options.fluid.label"
+        }
+      ],
+      "default": "narrow"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top",
+      "label": "t:global.settings.spacing.top.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom",
+      "label": "t:global.settings.spacing.bottom.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "section_border",
+      "label": "t:global.settings.section.border.label",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:global.settings.section.border.options.none.label"
+        },
+        {
+          "value": "top",
+          "label": "t:global.settings.section.border.options.top.label"
+        },
+        {
+          "value": "bottom",
+          "label": "t:global.settings.section.border.options.bottom.label"
+        },
+        {
+          "value": "both",
+          "label": "t:global.settings.section.border.options.both.label"
+        }
+      ],
+      "default": "none"
+    }
+  ]
+}
+{% endschema %}

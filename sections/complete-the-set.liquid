@@ -1,0 +1,439 @@
+{%- liquid
+  assign product_id = product.id | default: section.settings.default_product.id
+  assign url = routes.product_recommendations_url | append: '?section_id=' | append: section.id | append: '&product_id=' | append: product_id | append: '&limit=10&intent=complementary'
+  assign show_products = true
+  if section.settings.content_type == 'image'
+    assign show_products = false
+  endif
+
+  assign section_style_classes = ''
+  if section.settings.flip_desktop
+    assign section_style_classes = section_style_classes | append: 'section-complete-the-set--flipped-desktop '
+  endif
+  if section.settings.flip_mobile
+    assign section_style_classes = section_style_classes | append: 'section-complete-the-set--flipped-mobile '
+  endif
+
+-%}
+
+{{- 'section-complete-the-set.css' | asset_url | stylesheet_tag -}}
+{%- render 'section-common-styles', section: section -%}
+
+{%- if show_products -%}
+  {{- 'component-card-product-slider.css' | asset_url | stylesheet_tag -}}
+  {{- 'component-card-product.css' | asset_url | stylesheet_tag -}}
+
+  <script src="{{- 'card-product-slider.js' | asset_url -}}" defer="defer"></script>
+  <script src="{{- 'complementary-products.js' | asset_url -}}" defer="defer"></script>
+  <script src="{{- 'card-product.js' | asset_url -}}" defer="defer"></script>
+  <script src="{{- 'collapsible-button.js' | asset_url -}}" defer="defer"></script>
+{%- endif -%}
+
+{%- unless show_products == false and section.blocks.size == 0 -%}
+  <div
+    class="color-{{ section.settings.color_scheme }} gradient section section-new js-animation-fade-in {{ section_style_classes }}"
+    data-section-id="{{- section.id -}}"
+  >
+    <div class="container section__container max-w-{{ section.settings.section_width }}">
+      <div class="grid section__grid {% if section.blocks.size > 0  or section.blocks.size > 0 and show_products == true %} grid--2 {% else %} section__grid--centered {% endif %}">
+          <div class="grid__item {% if show_products or section.settings.featured_image == blank and section.settings.content_type == 'image'%} hidden {% endif %} overflow-hidden">
+            <header class="section__head flex flex--center flex--justify">
+              {%- if section.settings.title != blank -%}
+                <h3 class="section__title">
+                  {{- section.settings.title -}}
+                </h3>
+              {%- endif -%}
+
+              {% if show_products %}
+                <div class="swiper-buttons small-hide svg-color-inherit section__slider-buttons no-js-hidden">
+                  <button class="swiper-button swiper-button--prev">
+                    {% render 'icon', icon_name: 'theme-arrow' %}
+                  </button>
+                  <button class="swiper-button swiper-button--next">
+                    {% render 'icon', icon_name: 'theme-arrow' %}
+                  </button>
+                </div>
+              {% endif %}
+            </header>
+
+            {%- if show_products -%}
+
+              {% liquid
+                assign slides_per_view_desktop = 2
+                if section.blocks.size < 1
+                  assign slides_per_view_desktop = 4
+                endif
+              %}
+
+              <complementary-products
+                class="swiper section__slider card-product-slider card-product-slider--secondary"
+                data-swiper-options='{"slidesPerViewDesktop": {{ slides_per_view_desktop | default: '2' }}}'
+                {% if show_products %} data-url="{{- url -}}" {% endif %}
+              >
+                <div class="swiper-wrapper card-product-slider__wrapper">
+                  {%- if recommendations.performed and recommendations.products_count > 0 -%}
+                    {%- for recommendation in recommendations.products -%}
+                      <div class="swiper-slide card-product-slider__slide">
+                        {%- render 'card-product', product_ref: recommendation, section_id: section.id, card_index: forloop.index, card_product_layout: settings.card_product_layout -%}
+                      </div>
+                    {%- endfor -%}
+                  {%- endif -%}
+                </div>
+              </complementary-products>
+            {%- elsif section.settings.featured_image != blank -%}
+              <div class="section__media media">
+                {%- assign image_alt = section.settings.featured_image.alt | default: section.settings.title -%}
+                {%- render 'image', image: section.settings.featured_image, image_per_view: 2, alt: image_alt -%}
+              </div>
+            {%- endif -%}
+          </div>
+        <div class="grid__item section__buttons">
+          {%- for block in section.blocks -%}
+            {%- if block.settings.button_type == 'link' and block.settings.button_text != blank and block.settings.button_url != blank -%}
+            <div class="section__drawer-button-wrapper">
+              <a href="{{- block.settings.button_url -}}" role="button" class="link svg-color-inherit" {{ block.shopify_attributes }}>
+                <div class="section__drawer-button">
+                {{ block.settings.button_text }}
+                {% render 'icon', icon_name: 'theme-chevron' %}
+              </div>
+              </a>
+            </div>
+            {%- elsif block.settings.button_type == 'drawer' and block.settings.drawer_page != blank or block.settings.drawer_richtext != blank -%}
+              <menu-drawer class="section__drawer" {{ block.shopify_attributes }}>
+                <details id="Complementary-{{ forloop.index0 }}-drawer" class="drawer__container">
+                  <summary class="drawer__button drawer__button--text section__drawer-button link svg-color-inherit" tabindex="0">
+                    <span class="drawer__button-text" role="button">
+                      {{- block.settings.button_text -}}
+                    </span>
+                    {% render 'icon', icon_name: 'theme-chevron' %}
+                  </summary>
+
+                  <div class="drawer__content js-drawer" id="Complementary-{{ forloop.index0 }}-menu-drawer" tabindex="-1">
+                    <button
+                      class="drawer__button-close button-reset no-js-hidden js-btn-close-drawer svg-color-inherit"
+                      aria-label="{{- 'actions.close' | t -}}"
+                      aria-controls="Complementary-{{ forloop.index0 }}-menu-drawer"
+                      aria-expanded="false"
+                    >
+                      {% render 'icon', icon_name: 'theme-arrow-close' %}
+                    </button>
+
+                    <div class="drawer__row drawer__row--gutter-sm">
+                      <h2 class="drawer__title heading-static">
+                        {%- if block.settings.drawer_page != blank -%}
+                          {{- block.settings.drawer_page.title -}}
+                        {%- else -%}
+                          {{- block.settings.button_text -}}
+                        {%- endif -%}
+                      </h2>
+
+                      <div class="rte">
+                        {%- if block.settings.drawer_page != blank -%}
+                          {{- block.settings.drawer_page.content -}}
+                        {%- elsif block.settings.drawer_richtext contains '[description]' -%}
+                          {{- product.description -}}
+                        {%- elsif block.settings.drawer_richtext != blank -%}
+                          {{- block.settings.drawer_richtext -}}
+                        {%- endif -%}
+                      </div>
+                    </div>
+                  </div>
+                </details>
+              </menu-drawer>
+
+            {%- elsif block.settings.button_type == 'collapsible' and block.settings.drawer_page != blank or block.settings.drawer_richtext != blank -%}
+
+              <div class="section__drawer" {{ block.shopify_attributes }}>
+                <div id="Complementary-{{ forloop.index0 }}-collapsible" class="drawer__container">
+                  <div class="drawer__button drawer__button--text section__drawer-button link svg-color-inherit collapsible__button" tabindex="0">
+                    <span class="drawer__button-text" role="button">
+                      {{- block.settings.button_text -}}
+                    </span>
+                    {% render 'icon', icon_name: 'theme-chevron' %}
+                  </div>
+                  <div class="collapsible__content">
+                    <div class="drawer__row drawer__row--gutter-sm">
+                      <div class="rte">
+                        {%- if block.settings.drawer_page != blank -%}
+                          {{- block.settings.drawer_page.content -}}
+                        {%- elsif block.settings.drawer_richtext contains '[description]' -%}
+                          {{- product.description -}}
+                        {%- elsif block.settings.drawer_richtext != blank -%}
+                          {{- block.settings.drawer_richtext -}}
+                        {%- endif -%}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    </div>
+  </div>
+{%- endunless -%}
+
+{% schema %}
+{
+  "name": "t:sections.complete-the-set.name",
+  "tag": "section",
+  "class": "section-complete-the-set",
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.complete-the-set.settings.header_content.content"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:sections.complete-the-set.settings.title.label",
+      "default": "Complete the set"
+    },
+    {
+      "type": "select",
+      "id": "content_type",
+      "label": "t:sections.complete-the-set.settings.content_type.label",
+      "info": "t:sections.complete-the-set.settings.content_type.info",
+      "options": [
+        {
+          "value": "image",
+          "label": "t:sections.complete-the-set.settings.content_type.options.option_1.label"
+        },
+        {
+          "value": "products",
+          "label": "t:sections.complete-the-set.settings.content_type.options.option_2.label"
+        }
+      ],
+      "default": "products"
+    },
+    {
+      "type": "image_picker",
+      "id": "featured_image",
+      "label": "t:sections.complete-the-set.settings.featured_image.label"
+    },
+    {
+      "type": "product",
+      "id": "default_product",
+      "label": "t:sections.complete-the-set.settings.default_product.label",
+      "info": "t:sections.complete-the-set.settings.default_product.info"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.complete-the-set.settings.header_layout.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "flip_desktop",
+      "label": "t:sections.complete-the-set.settings.flip_content_position.label",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "flip_mobile",
+      "label": "t:sections.complete-the-set.settings.flip_mobile_positions.label",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:global.settings.section.width.label",
+      "options": [
+        {
+          "value": "page",
+          "label": "t:global.settings.section.width.options.page.label"
+        },
+        {
+          "value": "fluid",
+          "label": "t:global.settings.section.width.options.fluid.label"
+        }
+      ],
+      "default": "page"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top",
+      "label": "t:global.settings.spacing.top.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom",
+      "label": "t:global.settings.spacing.bottom.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "section_border",
+      "label": "t:global.settings.section.border.label",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:global.settings.section.border.options.none.label"
+        },
+        {
+          "value": "top",
+          "label": "t:global.settings.section.border.options.top.label"
+        },
+        {
+          "value": "bottom",
+          "label": "t:global.settings.section.border.options.bottom.label"
+        },
+        {
+          "value": "both",
+          "label": "t:global.settings.section.border.options.both.label"
+        }
+      ],
+      "default": "none"
+    },
+
+  ],
+  "blocks": [
+    {
+      "type": "popup-drawer",
+      "name": "t:sections.complete-the-set.blocks.popup-drawer.name",
+      "settings": [
+        {
+          "type": "header",
+          "content": "t:sections.complete-the-set.blocks.popup-drawer.settings.header_button.content"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "t:sections.complete-the-set.blocks.popup-drawer.settings.button_text.label"
+        },
+        {
+          "type": "select",
+          "id": "button_type",
+          "label": "t:sections.complete-the-set.blocks.popup-drawer.settings.button_type.label",
+          "options": [
+            {
+              "value": "link",
+              "label": "t:sections.complete-the-set.blocks.popup-drawer.settings.button_type.options.option_1.label"
+            },
+            {
+              "value": "drawer",
+              "label": "t:sections.complete-the-set.blocks.popup-drawer.settings.button_type.options.option_2.label"
+            },
+            {
+              "value": "collapsible",
+              "label": "t:sections.complete-the-set.blocks.popup-drawer.settings.button_type.options.option_3.label"
+            }
+          ],
+          "default": "drawer"
+        },
+        {
+          "type": "url",
+          "id": "button_url",
+          "label": "t:sections.complete-the-set.blocks.popup-drawer.settings.button_url.label"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.complete-the-set.blocks.popup-drawer.settings.header_drawer.content"
+        },
+        {
+          "type": "richtext",
+          "id": "drawer_richtext",
+          "label": "t:sections.complete-the-set.blocks.popup-drawer.settings.drawer_richtext.label",
+          "info": "t:sections.complete-the-set.blocks.popup-drawer.settings.drawer_richtext.info"
+        },
+        {
+          "type": "page",
+          "id": "drawer_page",
+          "label": "t:sections.complete-the-set.blocks.popup-drawer.settings.drawer_page.label",
+          "info": "t:sections.complete-the-set.blocks.popup-drawer.settings.drawer_page.info"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.complete-the-set.name",
+      "category": "t:categories.collections.name",
+      "settings": {
+        "title": "Complete The Set",
+        "content_type": "image"
+      },
+      "blocks": [
+        {
+          "type": "popup-drawer",
+          "settings": {
+            "button_text": "Details",
+            "drawer_richtext": "<p>[details]</p>"
+          }
+        },
+        {
+          "type": "popup-drawer",
+          "settings": {
+            "button_text": "Description",
+            "drawer_richtext": "<p>[description]</p>"
+          }
+        },
+        {
+          "type": "popup-drawer",
+          "settings": {
+            "button_text": "Contact us",
+            "button_type": "link",
+            "button_url": "/pages/contact"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

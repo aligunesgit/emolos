@@ -1,0 +1,231 @@
+{% comment %}
+    Renders a product feed
+
+    Accepts:
+    - section: {Object} Section object used for default, title and button settings
+    - section_classes: {String} Classes to be added to the section element
+    - element?: {String} Custom element, default is 'card-product-slider'
+    - attr?: {String} Data attributes
+    - products_array: {Array[Objects]} Product objects array
+    - url: {String} URL, if there are recommendations
+
+    Usage:
+    {%- render 'products-feed', products_array: collection.products -%}
+{% endcomment %}
+
+{%- liquid
+  assign element = element | default: 'card-product-slider'
+  assign products_array = products_array | default: nil
+  assign attr = attr | default: ''
+  assign url = url | default: nil
+  assign products_limit = section.settings.max_products | default: 50
+  assign section_name = section_name | default: 'products-feed'
+  assign section_blocks = section_blocks | default: nil
+  assign product_list = section.settings.products
+-%}
+
+{%- if products_array != nil or url or product_list != nil -%}
+
+  {{- 'component-card-product-slider.css' | asset_url | stylesheet_tag -}}
+  {{- 'component-card-product.css' | asset_url | stylesheet_tag -}}
+  {%- render 'section-common-styles', section: section -%}
+
+  <script src="{{- 'card-product-slider.js' | asset_url -}}" defer="defer"></script>
+  <script src="{{- 'card-product.js' | asset_url -}}" defer="defer"></script>
+
+  {%- if element == 'recently-viewed-products' -%}
+    <script src="{{- 'recently-viewed-products.js' | asset_url -}}" defer="defer"></script>
+  {%- endif -%}
+  {%- if section_name == 'featured-products' -%}
+    <script src="{{- 'tab-manager.js' | asset_url -}}" defer="defer"></script>
+  {%- endif -%}
+
+  {% style %}
+    #shopify-section-{{ section.id }} > * {
+      padding-block-start: calc(var(--padding-block-start, 0));
+      padding-block-end: calc(var(--padding-block-end, 0));
+    }
+  {% endstyle %}
+
+  {%- capture section_additional_classes -%}
+    {{ section.settings.layout }}
+    {{ section_classes }}
+  {%- endcapture -%}
+
+  {%- if url and recommendations.performed and recommendations.products_count > 0 -%}
+    {%- assign products_array = recommendations.products -%}
+    {%- assign section_additional_classes = section_additional_classes | append: ' hidden' -%}
+  {%- endif -%}
+
+  {%- assign section_button = blank -%}
+  {%- assign section_button_style = section.settings.button_style | default: 'default' -%}
+
+  {%- if section.settings.button_text != blank and section.settings.button_url != blank -%}
+    {%- capture section_button -%}
+      {%- render 'button',
+        type: 'link',
+        class: 'button button--auto custom_class',
+        button_style: section_button_style,
+        value: section.settings.button_text,
+        href: section.settings.button_url
+      -%}
+    {%- endcapture -%}
+  {%- endif -%}
+
+  <div class="section section-new color-{{ section.settings.color_scheme }} gradient isoloate overflow-hidden js-animation-fade-in {{ section_additional_classes | strip }}" data-section-id="{{- section.id -}}">
+    <div class="container max-w-{{ section.settings.section_width }}">
+
+      {%- if section.settings.heading != blank or section_button != blank -%}
+        <div class="section__head">
+          {%- if section.settings.heading != blank -%}
+            <h2 class="section__title heading-static {{ section.settings.heading_size }}">
+              {{- section.settings.heading -}}
+            </h2>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      <div class="section__body">
+
+        {%- if section_name == 'featured-products' -%}
+
+          {% liquid
+            assign total_tab_count = 0
+            for block in section_blocks
+              if block.settings.collection != blank or block.settings.products != blank
+                assign total_tab_count = total_tab_count | plus: 1
+              endif
+            endfor
+          %}
+
+          <div class="products-feed__tab {% if total_tab_count < 2 %}hidden{% endif %}">
+            {%- assign tab_counter = 0 -%}
+            {%- for block in section_blocks -%}
+
+              {% liquid
+                assign products_array = false
+                if block.settings.collection != blank or block.settings.products != blank
+                  assign products_array = true
+                  assign tab_counter = tab_counter | plus: 1
+                endif
+              %}
+
+              {% if products_array %}
+                <button class="products-feed__tablinks--{{- section.id -}}" onclick="openTabFeed(event, '{{- section.id -}}', '{{- block.id -}}')" {%- if tab_counter == 1 -%}data-default-open{%- endif -%}>
+                  {{- block.settings.title | default: block.settings.collection | default: tab_counter -}}
+                </button>
+              {% endif %}
+
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {%- if section_name == 'featured-products' -%}
+          {%- for block in section_blocks -%}
+
+              {% liquid
+                assign products_array = false
+                if block.settings.collection != blank
+                  assign products_array = collections[block.settings.collection.handle].products
+                elsif block.settings.products != blank
+                  assign products_array = block.settings.products
+                endif
+
+                assign section_block_id = section.id | append: '-' | append: block.id
+              %}
+
+              <div id="{{- block.id -}}" {% if section_blocks.size > 1 %}class="products-feed__tabcontent--{{- section.id -}}"{% endif %}>
+                <div>
+                  <{{ element }}
+                    class="swiper card-product-slider"
+                    data-section-id="{{- section.id -}}"
+                    {% if url %}data-url="{{- url -}}"{% endif %}
+                    {{ attr }}
+                    data-swiper-options='{
+                      "spaceBetweenDesktop": {{ settings.spacing_desktop | times: 10 | round: 0 }},
+                      "spaceBetweenMobile": {{ settings.spacing_mobile | times: 10 | round: 0 }}
+                    }'
+                  >
+
+                    <div class="swiper-wrapper card-product-slider__wrapper">
+                      {%- if products_array -%}
+
+                        {%- unless block.settings.show_unavailable_products -%}
+                          {%- assign products_array = products_array | where: 'available' -%}
+                        {%- endunless -%}
+
+                        {%- for product in products_array limit: section.settings.max_products -%}
+                          <div class="swiper-slide card-product-slider__slide">
+                            {%- render 'card-product', product_ref: product, section_id: section_block_id, card_index: forloop.index, card_product_layout: settings.card_product_layout, image_per_view: 4 -%}
+                          </div>
+                        {%- endfor -%}
+                      {%- endif -%}
+                    </div>
+
+                    <div class="swiper-buttons small-hide svg-color-inherit card-product-slider__buttons {{ section_button_style }} no-js-hidden">
+                      <button class="swiper-button swiper-button--prev">
+                        {% render 'icon', icon_name: 'theme-arrow' %}
+                      </button>
+
+                      <button class="swiper-button swiper-button--next">
+                        {% render 'icon', icon_name: 'theme-arrow' %}
+                      </button>
+                    </div>
+                  </{{ element }}>
+                </div>
+              </div>
+
+          {%- endfor -%}
+        {%- else -%}
+          {% if cart == empty and product_list != nil %}
+            {% assign products_array = product_list %}
+          {% endif %}
+          <div>
+            <{{ element }}
+              class="swiper card-product-slider"
+              data-section-id="{{- section.id -}}"
+              {% if url and cart != empty and product_list %}data-url="{{- url -}}"{% endif %}
+              {{ attr }}
+              data-swiper-options='{
+                "spaceBetweenDesktop": {{ settings.spacing_desktop | times: 10 | round: 0 }},
+                "spaceBetweenMobile": {{ settings.spacing_mobile | times: 10 | round: 0 }}
+              }'
+            >
+
+              <div class="swiper-wrapper card-product-slider__wrapper">
+                {%- if products_array -%}
+                  {%- unless section.settings.show_unavailable_products -%}
+                    {%- assign products_array = products_array | where: 'available' -%}
+                  {%- endunless -%}
+
+                  {%- for product in products_array limit: products_limit -%}
+                    <div class="swiper-slide card-product-slider__slide">
+                      {%- render 'card-product', product_ref: product, section_id: section.id, card_index: forloop.index, card_product_layout: settings.card_product_layout, image_per_view: 4 -%}
+                    </div>
+                  {%- endfor -%}
+                {%- endif -%}
+              </div>
+
+              <div class="swiper-buttons small-hide svg-color-inherit card-product-slider__buttons no-js-hidden">
+                <button class="swiper-button swiper-button--prev">
+                  {% render 'icon', icon_name: 'theme-arrow' %}
+                </button>
+
+                <button class="swiper-button swiper-button--next">
+                  {% render 'icon', icon_name: 'theme-arrow' %}
+                </button>
+              </div>
+            </{{ element }}>
+          </div>
+        {%- endif -%}
+
+      </div>
+
+      {%- if section_button != blank -%}
+        <div class="section__foot">
+          {{ section_button | replace_first: 'custom_class' }}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+{%- endif -%}

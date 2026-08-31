@@ -1,0 +1,163 @@
+{% schema %}
+{
+  "name": "Denim Promo Banner",
+  "tag": "section",
+  "class": "denim-promo-section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background Image (Desktop)"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_background_image",
+      "label": "Background Image (Mobile)"
+    },
+    {
+      "type": "text",
+      "id": "banner_height",
+      "label": "Banner Height (e.g. 200px or 60vh)",
+      "default": "200px"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Main Heading",
+      "default": "HERACLOTHING"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "BUY DENIM JEANS\nGET A T-SHIRT\nHALF PRICE"
+    },
+    {
+      "type": "text",
+      "id": "heading_font_size",
+      "label": "Heading Font Size",
+      "default": "36px"
+    },
+    {
+      "type": "text",
+      "id": "subheading_font_size",
+      "label": "Subheading Font Size",
+      "default": "16px"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text",
+      "default": "SHOP NOW"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button Link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Denim Promo Banner"
+    }
+  ]
+}
+{% endschema %}
+
+<section
+  class="denim-promo-banner"
+  style="
+    background-image: url({% if request.device_type == 'mobile' and section.settings.mobile_background_image != blank %}{{ section.settings.mobile_background_image | image_url }}{% else %}{{ section.settings.background_image | image_url }}{% endif %});
+    background-size: cover;
+    background-position: center;
+    height: {{ section.settings.banner_height }};
+    padding: 40px 20px;
+    position: relative;
+  "
+>
+  <style>
+    .denim-promo-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4); /* overlay görünürlük için */
+      z-index: 0;
+    }
+
+    .denim-promo-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1400px;
+      margin: auto;
+      height: 100%;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+    }
+
+    .denim-promo-banner .text-content {
+      color: white;
+    }
+
+    .denim-promo-banner h1 {
+      font-size: {{ section.settings.heading_font_size }};
+      margin: 0;
+    }
+
+    .denim-promo-banner p {
+      white-space: pre-line;
+      font-size: {{ section.settings.subheading_font_size }};
+      margin-top: 10px;
+    }
+
+    .denim-promo-banner .denim-promo-button {
+      display: inline-block;
+      background-color: black;
+      color: white;
+      font-weight: bold;
+      padding: 10px 18px;
+      font-size: 13px;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    @media screen and (max-width: 767px) {
+      .denim-promo-banner {
+        padding: 20px 16px;
+      }
+
+      .denim-promo-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+      }
+
+      .denim-promo-banner h1 {
+        font-size: 24px;
+      }
+
+      .denim-promo-banner p {
+        font-size: 14px;
+      }
+
+      .denim-promo-banner .denim-promo-button {
+        font-size: 14px;
+        padding: 12px 20px;
+      }
+    }
+  </style>
+
+  <div class="denim-promo-content">
+    <div class="text-content">
+      <h1>{{ section.settings.heading }}</h1>
+      <p>{{ section.settings.subheading }}</p>
+    </div>
+    <div>
+      <a href="{{ section.settings.button_link }}" class="denim-promo-button">
+        {{ section.settings.button_text }}
+      </a>
+    </div>
+  </div>
+</section>

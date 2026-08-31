@@ -1,0 +1,206 @@
+<div class="quick-cart-product-modal">
+  {%- liquid
+    assign product_images = product.media | where: 'media_type', 'image'
+    assign product_models = product.media | where: 'media_type', 'model'
+    assign product_media = product_images | concat: product_models  | sort: 'position'
+  -%}
+
+  {% liquid
+    assign adaptive_ratio_setting = section.settings.adaptive_ratio_and_auto_height | default: 'default'
+    assign product_media_layout_setting = section.settings.product_media_layout | default: 'product__media-layout--slider'
+    assign media_aspect_ratio_setting = section.settings.media_aspect_ratio | default: 'default'
+
+    case adaptive_ratio_setting
+      when 'slider_auto_height'
+        assign adaptive_ratio = true
+        assign slider_auto_height = true
+      when 'adaptive_ratio'
+        assign adaptive_ratio = true
+        assign slider_auto_height = false
+      else
+        assign adaptive_ratio = false
+        assign slider_auto_height = false
+    endcase
+  %}
+    <button
+    type="button"
+    class="button--close small-up-hide"
+    aria-expanded="false"
+    aria-controls="quick-cart-modal"
+    tabindex="0"
+  >
+    {% render 'icon', icon_name: 'theme-arrow-close' %}
+  </button>
+  {%- if product.media.size > 0 -%}
+    <div class="grid__item product__grid__item product__grid__item--media">
+      <product-media
+        class="product__media {{ product_media_layout_setting }} {% if adaptive_ratio_setting == "default" %} product__media--fit{% endif %}"
+        data-auto-height="{{ slider_auto_height }}"
+        data-layout="{{- product_media_layout_setting -}}"
+      >
+        {%- liquid
+          assign slides_html = ''
+          assign addition_swiper_class = 'swiper'
+          if product_media.size == 1
+            assign addition_swiper_class = addition_swiper_class | append: ' one-slide'
+          endif
+          if product_media.size > 0
+            for media in product_media
+              capture slides_html
+                echo slides_html
+                render 'product-media', media: media, output_type: 'slider-slide', media_index: forloop.index0, preserve_aspect_ratio: adaptive_ratio, section_index: 0, media_aspect_ratio: media_aspect_ratio_setting
+              endcapture
+            endfor
+          endif
+        -%}
+
+        {% liquid
+          assign swiper_options = '{'
+          assign swiper_options = swiper_options | append: '"slidesPerView": 1.2'
+          assign swiper_options = swiper_options | append: ', "slidesPerViewDesktop": 1.3'
+          assign swiper_options = swiper_options | append: ', "direction": "horizontal"'
+          assign swiper_options = swiper_options | append: ', "directionDesktop": "vertical"'
+          assign swiper_options = swiper_options | append: ', "disablePagination": false'
+          assign swiper_options = swiper_options | append: ', "spaceBetween": 2'
+          assign swiper_options = swiper_options | append: ', "resistanceRatio": 0'
+          assign swiper_options = swiper_options | append: ', "centerInsufficientSlides": false'
+          assign swiper_options = swiper_options | append: '}'
+        %}
+
+        <div class="product__media-slider relative {{ product_media_layout_setting }}">
+          <div
+            class="{{- addition_swiper_class -}}"
+            data-slider
+            data-swiper-options='{{- swiper_options -}}'
+            id="product-media-gallery"
+          >
+            <div class="swiper-wrapper">
+              {{- slides_html -}}
+            </div>
+          </div>
+
+          <div class="swiper-pagination  small-up-hide"></div>
+
+          <div class="swiper-buttons small-hide medium-hide hidden no-js-hidden">
+            <button class="swiper-button swiper-button--prev">
+              {% render 'icon', icon_name: 'theme-arrow' %}
+            </button>
+
+            <button class="swiper-button swiper-button--next">
+              {% render 'icon', icon_name: 'theme-arrow' %}
+            </button>
+          </div>
+        </div>
+
+        <div class="hidden" data-close-icon>{% render 'icon', icon_name: 'theme-close' %}</div>
+        <div class="hidden" data-prev-icon>{% render 'icon', icon_name: 'theme-arrow' %}</div>
+        <div class="hidden" data-next-icon>{% render 'icon', icon_name: 'theme-arrow' %}</div>
+      </product-media>
+    </div>
+  {%- endif -%}
+
+  <div class="product__content">
+    <button
+      type="button"
+      class="button--close small-hide"
+      aria-expanded="false"
+      aria-controls="quick-cart-modal"
+      tabindex="0"
+    >
+      {% render 'icon', icon_name: 'theme-arrow-close' %}
+    </button>
+
+    <div>
+      <div>
+        <div class="product__title-wrapper h2 product__title">
+          {{- product.title | escape  -}}
+        </div>
+
+        <div class="product__price">
+          {%- render 'price', product_ref: product, use_variant: true, show_sale_badge: true -%}
+        </div>
+      </div>
+
+      <product-card
+        class="product-card product-card__quick-cart-modal"
+        {% if product.metafields.theme.preorder.value %}
+          data-has-pre-order
+        {% endif %}
+      >
+        {% if settings.show_product_groups_on_product_card %}
+          {% render 'product-groups', product: product, on: 'page' %}
+        {% endif %}
+
+        <div class="product-card__variants">
+          {%- liquid
+            assign modal_context_id = 'quick-cart-modal-' | append: product.id
+            assign modal_form_id = 'product-form-' | append: product.id | append: '-modal'
+          -%}
+
+          {%- render 'main-product__variant-picker',
+            product: product,
+            context_id: modal_context_id,
+            context_type: 'modal',
+            form_id: modal_form_id,
+            show_size_guide: false
+          -%}
+
+          <script
+            data-product-variants-json
+            type="application/json"
+          >
+            {{- product.variants | json -}}
+          </script>
+        </div>
+
+        {%- liquid
+          assign product_preorder = false
+          if product.metafields.theme.preorder.value
+            assign product_preorder = true
+          endif
+        -%}
+
+        {%- liquid
+          assign modal_form_id = 'product-form-' | append: product.id | append: '-modal'
+        -%}
+
+        {%- form 'product',
+          product,
+          class: 'product-card__add-to-cart--form product__form product__form--inline',
+          novalidate: 'novalidate',
+          id: modal_form_id
+        -%}
+          <input type="hidden" name="id" value="{{- product.first_available_variant.id -}}">
+          <div class="product-selector__quantity">
+            {%- render 'quantity-input', product_ref: product, hide_label: true -%}
+          </div>
+          <button
+            type="submit"
+            class="button button--filled button--uppercase"
+            {% unless product.available %}
+              disabled
+            {% endunless %}
+          >
+            <span>
+              {%- if product_preorder -%}
+                {{ 'products.product.preorder.title' | t }}
+              {%- else -%}
+                {{ 'products.product.add_to_cart' | t }}
+              {%- endif -%}
+            </span>
+          </button>
+          {% if product_preorder == false %}
+            {{- form | payment_button -}}
+          {% endif %}
+          <div class="product-form__error-message-wrapper" role="alert" hidden>
+            <span class="product-form__error-message"></span>
+          </div>
+        {%- endform -%}
+
+        <a href="{{- product.url -}}" class="quick-cart-product-modal__product-link" role="button">
+          {{- 'products.card-product.view_full_product' | t -}}
+        </a>
+      </product-card>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,30 @@
+.back-to-top {
+  position: fixed;
+  z-index: var(--z-fab);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5em;
+  height: 3.125em;
+  min-height: 3.125em;
+  width: 3.125em;
+  min-width: 3.125em;
+  text-decoration: none;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+.button--outlined {
+  box-shadow: none;
+}
+.back-to-top svg {
+  height: 2.125em;
+  width: 2.125em;
+  transform: rotate(-90deg);
+}
+.back-to-top svg path {
+  stroke: currentColor;
+}
+
+back-to-top.hide {
+  display: none;
+}

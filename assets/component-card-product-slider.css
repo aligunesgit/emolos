@@ -1,0 +1,125 @@
+card-product-slider,
+recently-viewed-products,
+complementary-products {
+  display: block;
+}
+
+html .card-product-slider {
+  overflow: visible;
+}
+
+.card-product-slider__buttons {
+  position: static;
+  padding: 0;
+  transform: none;
+  justify-content: flex-end;
+}
+
+.card-product-slider .card-product-slider__slide {
+  width: calc(100% - 16.666%);
+}
+
+html.no-js .card-product-slider__wrapper {
+  overflow-x: auto;
+  margin: 0 calc(0rem - var(--page-gutter));
+  padding: 0 var(--page-gutter) 2rem;
+}
+
+html.no-js .card-product-slider__slide + .card-product-slider__slide {
+  margin-inline-start: .2rem;
+}
+
+@media screen and (min-width: 480px) {
+  .card-product-slider .card-product-slider__slide {
+    width: calc((100% - 50%) - .2rem);
+  }
+}
+
+@media screen and (min-width: 575px) {
+  .card-product-slider .card-product-slider__slide {
+    width: calc((100% - 56%) - .2rem);
+  }
+}
+
+@media screen and (min-width: 750px) {
+  html.js .card-product-slider {
+    overflow: hidden;
+  }
+
+  .card-product-slider__buttons > :not(.swiper-button-lock) {
+    margin-block-start: 3.2rem;
+  }
+
+  .card-product-slider .card-product-slider__slide {
+    width: 100%;
+  }
+
+  html.no-js .card-product-slider .card-product-slider__slide {
+    width: calc(100% / 3 - .2rem);
+  }
+}
+
+@media screen and (min-width: 1100px) {
+  html.no-js .card-product-slider .card-product-slider__slide {
+    width: calc(25% - .2rem);
+  }
+}
+
+/* Card product slider - secondary */
+
+.card-product-slider--secondary {
+  /* width: 72.5%; */
+  margin-inline-start: 0;
+}
+
+@media screen and (min-width: 750px) {
+
+  html.js .card-product-slider--secondary,
+  html.no-js .card-product-slider--secondary {
+    overflow: visible;
+  }
+}
+
+@media screen and (min-width: 990px) {
+  .card-product-slider--secondary {
+    width: 100%;
+  }
+}
+
+.products-feed__tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-block-end: 2.4rem;
+}
+.products-feed__tab button {
+  padding: .4rem 1.2rem;
+  outline: none;
+  cursor: pointer;
+  border-radius: 9rem;
+  border: none;
+  transition: 0.3s;
+  margin: 0 .8rem;
+  color: rgb(var(--color-foreground));
+  font-size: var(--font-size-static-xxs);
+  line-height: 1.3rem;
+  letter-spacing: .2rem;
+  text-transform: uppercase;
+}
+.products-feed__tab button:hover {
+  background-color: rgb(var(--color-secondary-text));
+  color: rgb(var(--color-filled-button-label));
+}
+.products-feed__tab button.active {
+  background-color: rgb(var(--color-secondary-text));
+  color: rgb(var(--color-filled-button-label));
+}
+
+.products-feed__tabcontent {
+  display: none;
+  animation: fadeEffect 1s; /* Fading effect takes 1 second */
+}
+@keyframes fadeEffect {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}

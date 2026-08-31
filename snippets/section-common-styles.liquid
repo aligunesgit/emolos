@@ -1,0 +1,41 @@
+{% capture section_common_style %}
+  {%- style -%}
+
+
+    #shopify-section-{{ section.id }} > * {
+      --padding-block-start: var(--section-spacing-unit-size) * {{ section.settings.spacing_top }};
+      --padding-block-end: var(--section-spacing-unit-size) * {{ section.settings.spacing_bottom }};
+    }
+    {% if section.settings.spacing_top_mobile or section.settings.spacing_bottom_mobile%}
+      @media screen and (max-width: 749px) {
+        #shopify-section-{{ section.id }} > * {
+          --padding-block-start: var(--section-spacing-unit-size) * {{ section.settings.spacing_top_mobile }};
+          --padding-block-end: var(--section-spacing-unit-size) * {{ section.settings.spacing_bottom_mobile }};
+        }
+      }
+   {% endif %}
+    #shopify-section-{{ section.id }} > * {
+      {% if section.settings.section_height %}
+        --section-height: {{ section.settings.section_height | append: 'vh' }};
+      {% endif %}
+      {% if section.settings.section_border %}
+        {% case section.settings.section_border %}
+          {% when 'top' %}
+            border-block-start: 0.1rem solid rgba(var(--color-border), var(--buttons-border-opacity));
+          {% when 'bottom' %}
+            border-block-end: 0.1rem solid rgba(var(--color-border), var(--buttons-border-opacity));
+          {% when 'both' %}
+            border-block: 0.1rem solid rgba(var(--color-border), var(--buttons-border-opacity));
+        {% endcase %}
+      {% endif %}
+    }
+    {%- if section.settings.section_height_mobile -%}
+      @media screen and (max-width: 749px) {
+        #shopify-section-{{ section.id }} > * {
+          --section-height: {{ section.settings.section_height_mobile | append: 'vh' }};
+        }
+      }
+    {%- endif -%}
+  {%- endstyle -%}
+{% endcapture %}
+{{ section_common_style | strip_newlines | replace: '  ', '' }}

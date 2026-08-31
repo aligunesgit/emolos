@@ -1,0 +1,173 @@
+{%- liquid
+  if context_type == blank
+    assign context_type = 'product'
+  endif
+-%}
+
+{%- assign current_variant = product.selected_or_first_available_variant -%}
+{%- assign show_size_guide = show_size_guide | default: true -%}
+{%- assign variant_picker_layout = block.settings.variant_picker_layout | default: 'buttons' -%}
+
+{%- if product.has_only_default_variant == false -%}
+  <product-selector id="ProductSelector-{{- section.id -}}"
+    class="product-selector{% if variant_picker_layout == 'stacked' %} product-selector--{{ variant_picker_layout }} product-selector--dropdowns{% else %} product-selector--{{ variant_picker_layout }}{% endif %}"
+    data-url="{%- if collection -%}{{- collection.url -}}{%- endif -%}{{- product.url -}}"
+    data-section-id="{{- section.id -}}"
+    data-installments-form-id="#{{- product_form_installments_id -}}"
+    {% if product.requires_selling_plan %}data-product-requires-selling-plan{% endif %}
+    {% if context_type == 'modal' %}data-context="modal"{% endif %}
+    {{ block.shopify_attributes }}
+  >
+    <input type="hidden" name="id" value="{{- current_variant.id -}}" {% if form_id %}form="{{ form_id }}"{% elsif product_form_id %}form="{{ product_form_id }}"{% endif %}>
+    {%- liquid
+      assign variants_available_arr = product.variants | map: 'available'
+      assign variants_option_one_arr = product.variants | map: 'option1'
+    -%}
+    {% unless settings.input_border_radius == 0 %}
+      {% style %}
+        .product-options__value-list .slim-scrollbar {
+          scrollbar-width: none;
+        }
+      {% endstyle %}
+    {% endunless %}
+    {% capture size_guide %}
+      <menu-drawer class="product__size-guide">
+        <details id="Size-Guide-drawer" class="drawer__container">
+          <summary class="drawer__button drawer__button--text svg-color-inherit" tabindex="0">
+            <span class="drawer__button-text underlined-link caption caption--small" role="button">
+              {{- 'products.product.size_guide' | t -}}
+            </span>
+          </summary>
+
+          <div
+            class="drawer__content js-drawer"
+            id="Size-Guide-menu-drawer"
+            tabindex="-1">
+            <button
+              class="drawer__button-close button-reset no-js-hidden js-btn-close-drawer svg-color-inherit"
+              aria-label="{{- 'actions.close' | t -}}"
+              aria-controls="Size-Guide-menu-drawer"
+              aria-expanded="false">
+              {% render 'icon', icon_name: 'theme-arrow-close' %}
+            </button>
+
+            <div class="drawer__row drawer__row--gutter-sm">
+              <h2 class="drawer__title heading-static">
+                {{- block.settings.size_guide_page.title -}}
+              </h2>
+
+              <div class="rte">
+                <div class="size-guide-container">
+                  <div class="size-guide-table-wrapper">
+                    {{- block.settings.size_guide_page.content -}}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </menu-drawer>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          const tableWrapper = document.querySelector('.size-guide-table-wrapper');
+          tableWrapper.addEventListener('scroll', function () {
+            if (tableWrapper.scrollLeft > 0) {
+              tableWrapper.classList.add('with-shadow');
+            } else {
+              tableWrapper.classList.remove('with-shadow');
+            }
+          });
+        });
+      </script>
+    {% endcapture %}
+    {%- for option in product.options_with_values -%}
+      {%- if context_type != 'modal' and option.name == settings.sizes_option and block.settings.size_guide_page != '' and variant_picker_layout == 'stacked' -%}
+        {{ size_guide }}
+      {%- endif -%}
+      {%- liquid
+        assign product_option_handle = option.name | handle
+        assign product_option_href = 'product-option--' | append: product_option_handle | append: '-' | append: section.id
+      -%}
+
+      <fieldset class="product-options{% if product.has_only_default_variant %} hidden{% endif %}" data-input-wrapper id="{{ product_option_href -}}">
+        <legend class="product-selector__label">
+          {{- option.name -}}
+          {%- if context_type != 'modal' and option.name == settings.sizes_option and block.settings.size_guide_page != '' and variant_picker_layout != 'stacked' -%}
+            {{ size_guide }}
+          {%- endif -%}
+        </legend>
+        {%- capture options_html -%}
+          {%- for value in option.values -%}
+            {%- liquid
+              assign option_disabled = value.available
+              assign id = 'Bar-option-' | append: section.id | append: '-' | append: option.name | append: '-' | append: forloop.index0
+              assign name = 'options[' | append: option.name | append: ']'
+
+              for option1_name in variants_option_one_arr
+                unless option.position != 1
+                  if variants_option_one_arr[forloop.index0] == value and variants_available_arr[forloop.index0]
+                    assign option_disabled = false
+                  endif
+                endunless
+              endfor
+            -%}
+            <li>
+              {%- liquid
+                assign attr = ''
+                assign class = ''
+                assign show_label = true
+
+                if option.selected_value == value
+                  assign class = class | append: ' is-active'
+                  assign attr = 'checked'
+                endif
+                unless value.available
+                  assign option_disabled = true
+                else
+                  assign option_disabled = false
+                endunless
+                unless back_in_stock
+                  if option_disabled
+                    assign attr = attr | append: ' disabled'
+                  endif
+                endunless
+                if variant_picker_layout != 'buttons'
+                  assign show_label = true
+                endif
+                assign name = 'options[' | append: option.name | append: ']'
+
+                if option_disabled
+                  assign class = class | append: ' product-options__item--disabled'
+                endif
+
+                render 'product-option', value: value, class: class, id: id, name: name, attr: attr, show_label: show_label, back_in_stock: back_in_stock, option_value_id: value.id, where: 'product'
+              -%}
+            </li>
+          {%- endfor -%}
+          {%- unless back_in_stock -%}
+            {%- style -%}
+              .product-options__item.product-options__item--disabled {
+                pointer-events: none;
+              }
+            {%- endstyle -%}
+          {%- endunless -%}
+        {%- endcapture -%}
+
+        <div class="product-options__value-list js-product-options-value-list" data-open="false">
+          <ul class="slim-scrollbar">
+            {{- options_html -}}
+          </ul>
+          {% render 'icon', icon_name: 'theme-chevron-down' %}
+        </div>
+        {%- liquid
+          assign id = nil
+          assign name = nil
+        -%}
+      </fieldset>
+    {%- endfor -%}
+
+    <script type="application/json">
+      {{- product.variants | json -}}
+    </script>
+  </product-selector>
+{%- endif -%}

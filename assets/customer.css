@@ -1,0 +1,95 @@
+#recover {
+  display: none;
+}
+
+#recover:target {
+  display: block;
+}
+
+#recover:target ~ #login {
+  display: none;
+}
+
+.account {
+  color: rgb(var(--color-foreground));
+  background-color: rgb(var(--color-background));
+}
+
+.form-customer--login,
+.form-customer--recover,
+.form-customer--register,
+.form-customer--reset,
+.form-customer--activate {
+  padding-block-start: 4rem;
+}
+.form-customer--login .form-customer__title {
+  text-align: center;
+}
+.form-customer--recover > div:not(.container), .form-customer--register > div:not(.container) {
+  padding-inline: var(--page-gutter);
+  padding-block: 0;
+  margin: 0 auto;
+  max-width: calc(var(--page-width)* .533);
+}
+
+.account .form-customer.form-customer--activate,
+.account .form-customer.form-customer--reset {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.account .form-customer.form-customer--activate .field__label,
+.account .form-customer.form-customer--reset .field__label {
+  text-align: start;
+}
+
+.form-customer--recover {
+  padding-block-end: 6.4rem;
+}
+
+.form-customer__title {
+  margin: 0;
+}
+
+.form-customer__head {
+  margin-block-end: 2.4rem;
+}
+
+.form-customer .form-row + .form-row {
+  margin-block-start: 2.4rem;
+}
+
+.form-customer__callout {
+  margin-block-start: 4.2rem;
+  padding: 4rem 0 6.4rem;
+  border-block-start: 0.1rem solid rgba(var(--color-border), var(--alpha-border));
+}
+
+.form-customer__callout-title {
+  margin: 0 0 2.4rem;
+}
+
+@media screen and (min-width: 990px) {
+  .form-customer--login,
+  .form-customer--recover,
+  .form-customer--register {
+    padding-block-start: 6.4rem;
+  }
+
+  .account {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .account__col {
+    min-width: 50%;
+    flex: 1;
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  .account .form-customer {
+    max-width: calc(43.2rem + calc(var(--page-gutter) * 2));
+    margin-inline-start: calc(12rem - var(--page-gutter));
+  }
+}

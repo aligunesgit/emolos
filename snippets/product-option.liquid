@@ -1,0 +1,66 @@
+{%- comment -%}
+  Renders a product color swatch
+
+  Accepts:
+   - class {String}: Additional css classes for js or styling
+   - input_class {String}: Additional css classes on the input element for js or styling
+   - attr {String}: Additional HTML Attributes for accessability or js
+   - id {String}: Input id
+   - show_label {Bool}: Show input label
+   - input_type: {String}: Input element type
+   - value: {String}: Input element value
+{%- endcomment -%}
+{%- liquid
+  assign option_value_handle = value | handle
+  assign class = class | default: ''
+  assign input_class = input_class | default: ''
+  assign attr = attr | default: ''
+  assign id = id | default: option_value_handle
+  assign input_type = input_type | default: 'radio'
+  assign name = name | default: 'Swatch'
+  assign visually_hidden = visually_hidden | default: true
+
+  assign swatch_focal_point = null
+  if value.swatch.image
+    assign image_url = value.swatch.image | image_url: width: 50
+    assign swatch_value = 'url(' | append: image_url | append: ')'
+    assign swatch_focal_point = value.swatch.image.presentation.focal_point
+  elsif value.swatch.color
+    assign swatch_value = 'rgba(' | append: value.swatch.color.rgb | append: ' / var(--swatch-alpha, 1))'
+  else
+    assign swatch_value = null
+  endif
+
+  assign product_option_value = value
+  if where == 'facets'
+    assign product_option_value = value.value
+  endif
+
+  if swatch_value
+    assign visually_hidden = 'false'
+  endif
+-%}
+
+<div class="product-options__item{% if swatch_value %} product-options__item--swatch swatch--{{ settings.swatch_shape }}{% endif %}{% if class != '' %} {{ class }}{% endif %}"{% if swatch_value %} style="--swatch-background: {{ swatch_value }};{% if swatch_focal_point %} --swatch-focal-point: {{ swatch_focal_point }};{% endif %}"{% endif %}>
+  <input
+    id="{{- id -}}"
+    type="{{- input_type -}}"
+    name="{{- name -}}"
+    class="product-options__input{% if input_class != '' %} {{ input_class }}{% endif %}{% unless visually_hidden == 'false' %} visually-hidden{% endunless %}"
+    value="{{- product_option_value -}}"
+    title="{{- product_option_value -}}"
+    data-color="{{- product_option_value -}}"
+    data-color-handle="{{- option_value_handle -}}"
+    aria-label="{{- product_option_value -}}"
+    {% if back_in_stock %}data-stock="back-in-stock"{% endif %}
+    {% if variant_id %}data-variant="{{variant_id}}"{% endif %}
+    {% if option_value_id %}data-option-value="{{ option_value_id }}"{% endif %}
+    {{ attr }}
+  />
+
+  <span class="product-options__sizing-text" aria-hidden="true">{{- value.label | default: value.name | escape -}}</span>
+
+  <label for="{{- id -}}" title="{{- value -}}" class="product-options__label">
+    <span>{{- value.label | default: value.name | escape -}}</span>
+  </label>
+</div>

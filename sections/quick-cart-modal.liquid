@@ -1,0 +1,48 @@
+{{- 'component-card-product.css' | asset_url | stylesheet_tag -}}
+{{- 'component-quick-cart-modal.css' | asset_url | stylesheet_tag -}}
+{{- 'swiper-bundle.min.css' | asset_url | stylesheet_tag -}}
+
+<link rel="stylesheet" href="{{- 'photoswipe.css' | asset_url -}}" media="print" onload="this.media='all'">
+
+<script src="{{- 'product-form.js' | asset_url -}}" defer="defer"></script>
+<script src="{{- 'product-selector.js' | asset_url -}}" defer="defer"></script>
+<script src="{{- 'swiper-bundle.min.js' | asset_url -}}" defer="defer"></script>
+<script src="{{- 'photoswipe-lightbox.umd.min.js' | asset_url -}}" defer="defer"></script>
+<script src="{{- 'photoswipe.umd.min.js' | asset_url -}}" defer="defer"></script>
+<script src="{{- 'product-media.js' | asset_url -}}" defer="defer"></script>
+<script src="{{- 'quick-cart-modal.js' | asset_url -}}" defer="defer"></script>
+
+{%- style -%}
+  quick-cart-modal {
+    --product-media-aspect-ratio: {{ settings.product_card_media_aspect_ratio }};
+  }
+{%- endstyle -%}
+
+<quick-cart-modal>
+  <div class="quick-cart-modal__content slim-scrollbar color-{{ section.settings.color_scheme }}" tabindex="-1">
+    <div class="quick-cart-modal__main">
+      <div class="quick-cart-modal__main--empty">
+        <p class="h2">cart empty</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="quick-cart-modal__backdrop"></div>
+</quick-cart-modal>
+{% schema %}
+{
+  "name": "t:sections.quick_cart_modal.name",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:sections.quick_cart_modal.info"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-3"
+    }
+  ]
+}
+{% endschema %}

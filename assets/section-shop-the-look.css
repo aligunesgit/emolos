@@ -1,0 +1,192 @@
+shop-the-look-slider {
+  display: block;
+}
+
+.section-shop-the-look > * {
+  padding: 0;
+  text-align: center;
+  overflow: hidden;
+}
+
+.section-shop-the-look__slider {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-shop-the-look__item--media {
+  position: relative;
+  order: -1;
+  margin-block-end: 2.4rem;
+}
+
+.section-shop-the-look__dots {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  background-color: transparent;
+}
+
+.section-shop-the-look__dots li {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+}
+[dir='rtl'] .section-shop-the-look__dots li {
+  transform: translate(50%, -50%);
+}
+
+.section-shop-the-look__media img,
+.section-shop-the-look__media svg {
+  position: unset;
+  aspect-ratio: var(--media-aspect-ratio);
+}
+
+.section-shop-the-look__title {
+  margin: 0 auto 2.4rem;
+  max-width: 45rem;
+  color: rgb(var(--color-foreground));
+}
+
+.section-shop-the-look__item .card-product__title,
+.section-shop-the-look__item .price {
+  color: rgb(var(--color-foreground));
+}
+
+/* Slider */
+
+.section-shop-the-look__swiper {
+  overflow: visible;
+}
+
+.section-shop-the-look__swiper .swiper-slide:not(.single-product-slide) {
+  width: calc(100% - 16.666%);
+}
+
+html.no-js .section-shop-the-look__swiper .swiper-wrapper {
+  overflow-x: auto;
+  margin: 0 calc(0rem - var(--page-gutter));
+  padding: 0 var(--page-gutter) 2rem;
+}
+
+html.no-js .section-shop-the-look__swiper .swiper-slide + .swiper-slide {
+  margin-inline-start: 0.2rem;
+}
+
+.max-w-full .shoppable__header--compact {
+  padding-inline: var(--page-gutter);
+}
+
+@media screen and (min-width: 480px) {
+  .section-shop-the-look__swiper .swiper-slide:not(.single-product-slide) {
+    width: calc(50% - 0.2rem);
+  }
+}
+
+@media screen and (min-width: 575px) {
+  .section-shop-the-look__swiper .swiper-slide:not(.single-product-slide) {
+    width: calc(44% - 0.2rem);
+  }
+
+  .section-shop-the-look__swiper--2 .swiper-slide:not(.single-product-slide) {
+    width: calc(50% - 0.2rem);
+  }
+}
+
+@media screen and (min-width: 750px) {
+  .section-shop-the-look__slider {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .section-shop-the-look__item {
+    flex: 1;
+  }
+
+  .section-shop-the-look__item--media {
+    order: 0;
+    margin-block-end: 0;
+  }
+
+  .section-shop-the-look__item--slider {
+    overflow: hidden;
+  }
+
+  .section-shop-the-look__title {
+    max-width: none;
+    margin-block-end: 3.2rem;
+  }
+
+  .section-shop-the-look .card-product__content {
+    padding-block-start: 1.5rem;
+  }
+
+  .section-shop-the-look .card-product__title {
+    margin-block-end: 0.8rem;
+  }
+
+  .section-shop-the-look__title {
+    padding: 0 1.6rem;
+  }
+
+  .section-shop-the-look__swiper {
+    padding: 0 7.2rem;
+  }
+
+  .section-shop-the-look__swiper .swiper-slide:not(.single-product-slide) {
+    width: 100%;
+  }
+
+  html.no-js .section-shop-the-look__swiper .swiper-slide {
+    margin-inline-end: 34px;
+  }
+
+  html.no-js .section-shop-the-look__swiper .swiper-slide:last-child {
+    margin-inline-end: 0;
+  }
+
+  .section-shop-the-look__swiper .swiper-buttons {
+    padding: 0 16px;
+  }
+}
+
+@media screen and (min-width: 990px) {
+  .section-shop-the-look__title {
+    padding: 0 2.4rem;
+  }
+
+  html.no-js .section-shop-the-look__swiper .swiper-slide {
+    margin-inline-end: 3.9rem;
+  }
+
+  .section-shop-the-look__swiper .swiper-buttons {
+    padding: 0 4rem;
+  }
+}
+
+@media screen and (min-width: 1100px) {
+  .section-shop-the-look__title {
+    padding: 0 3.2rem;
+  }
+
+  html.no-js .section-shop-the-look__swiper .swiper-slide {
+    margin-inline-end: 5.4rem;
+  }
+
+  .section-shop-the-look__swiper .swiper-buttons {
+    padding: 0 6.4rem;
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  .section-shop-the-look__title {
+    padding: 0 4rem;
+  }
+
+  .section-shop-the-look__swiper .swiper-buttons {
+    padding: 0 6.8rem;
+  }
+}

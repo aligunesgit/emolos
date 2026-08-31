@@ -1,0 +1,68 @@
+{%- comment -%}
+  Accepts:
+
+  - product_ref: {Object} - Product from which the tags will be used
+  - class: {String} - Class to be applied to the tags container
+{%- endcomment -%}
+
+{%- assign tags = product_ref.metafields.tags.list.value -%}
+
+{%- capture badges -%}
+  {%- if product_ref and product_ref != empty -%}
+    {%- if product_ref.available == false -%}
+        {{- 'products.product.badges.sold_out' | t -}}
+    {%- elsif product_ref.compare_at_price > product_ref.price -%}
+        {{- 'products.product.badges.sale' | t -}}
+    {%- else -%}
+      {%- for tag in product_ref.tags -%}
+        {%- unless tag contains 'badge:' -%}
+          {%- continue -%}
+        {%- endunless -%}
+          {{- tag | remove: 'badge:' | strip -}}
+        {%- break -%}
+      {%- endfor -%}
+    {%- endif -%}
+    {%- if product_ref.metafields.theme.preorder.value -%}
+      {{- 'products.product.preorder.badge' | t -}}
+    {%- endif -%}
+  {%- endif -%}
+{%- endcapture -%}
+{%- assign badges = badges | split: ',' -%}
+
+{%- if badges.size > 0 -%}
+  {%- assign tags = tags | concat: badges -%}
+{%- endif -%}
+
+{%- if tags.size > 0 -%}
+  {{- 'component-marquee-tags.css' | asset_url | stylesheet_tag -}}
+
+  <div class="marquee-tags {{ class }}">
+    {%- if tags.size == 1 -%}
+      <span class="badge {{ settings.product_badge_style }}">
+        {{- tags | first | escape -}}
+      </span>
+    {%- else -%}
+      {%- capture tags_html -%}
+        <ul class="marquee-tags__items list-unstyled" aria-hidden="true">
+          {%- for tag in tags -%}
+            <li class="marquee-tags__item">
+              <span class="badge {{ settings.product_badge_style }}">
+                {{- tag | escape -}}
+              </span>
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endcapture -%}
+
+      {%- for index in (1..2) -%}
+        {%- if forloop.first -%}
+          {{ tags_html | remove_first: 'aria-hidden="true"' }}
+
+          {%- continue -%}
+        {%- endif -%}
+
+        {{ tags_html }}
+      {%- endfor -%}
+    {%- endif -%}
+  </div>
+{%- endif -%}

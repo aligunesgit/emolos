@@ -1,0 +1,294 @@
+{%- if search.performed -%}
+  {{- 'section-collection.css' | asset_url | stylesheet_tag -}}
+  {{- 'component-card-product.css' | asset_url | stylesheet_tag -}}
+  {{- 'component-card-result.css' | asset_url | stylesheet_tag -}}
+  {%- render 'section-common-styles', section: section -%}
+
+  {% style %}
+    .collection__grid {
+      column-gap: {{ settings.spacing_mobile }}rem;
+    }
+    @media screen and (min-width: 990px) {
+      .collection__grid {
+        column-gap: {{ settings.spacing_desktop }}rem;
+      }
+    }
+  {% endstyle %}
+
+  <script src="{{- 'card-product.js' | asset_url -}}" defer="defer"></script>
+  <script src="{{- 'collection-load-more.js' | asset_url -}}" defer="defer"></script>
+  <script src="{{- 'collection-load-previous.js' | asset_url -}}" defer="defer"></script>
+
+  {%- if section.settings.enable_filters or section.settings.enable_sorting -%}
+    <script src="{{- 'facets.js' | asset_url -}}" defer="defer"></script>
+  {%- endif -%}
+
+  {%- liquid
+    assign collection_additional_classes = ''
+
+    if section.settings.enable_filters or section.settings.enable_sorting
+      echo 'component-facets.css' | asset_url | stylesheet_tag
+
+      capture facets_html
+        render 'facets', results: search, enable_filtering: section.settings.enable_filters, enable_sorting: section.settings.enable_sorting, section_id: section.id
+      endcapture
+    else
+      assign collection_additional_classes = 'collection--no-utils'
+    endif
+  -%}
+
+  <div class="collection js-animation-fade-in color-{{ section.settings.color_scheme }} gradient {{ collection_additional_classes }}">
+    {{ facets_html }}
+
+    <div class="container max-w-{{ section.settings.section_width }}">
+      <div class="collection__inner">
+        {%- paginate search.results by section.settings.products_per_page -%}
+          {%- if search.results_count == 0 -%}
+            <div class="collection-grid-container collection-grid-container--empty text-center" id="ProductGridContainer">
+              <h3>
+                {%- if search.terms -%}
+                  {{- 'search.empty_with_terms' | t: terms: search.terms -}}<br>
+                {%- else -%}
+                  {{- 'search.empty' | t -}}<br>
+                {%- endif -%}
+                {{- 'search.change_search_terms' | t -}}
+              </h3>
+            </div>
+          {%- else -%}
+            <div class="collection-grid-container" id="ProductGridContainer">
+              {%- if paginate.previous -%}
+                <collection-load-previous class="collection__actions text-center no-js-hidden{% unless paginate.previous %} hidden{% endunless %}" data-current-page="{{- paginate.current_page -}}">
+                  {%- liquid
+                    assign load_previous_button_data_href = 'data-href="' | append: paginate.previous.url | append: '"'
+                    assign load_previous_value = 'collection.load_previous' | t
+
+                    render 'button', class: 'button js-btn-load-previous', button_style: section.settings.button_style, attr: load_previous_button_data_href, value: load_previous_value, loading_spinner: true
+                  -%}
+                </collection-load-previous>
+              {%- endif -%}
+              <div
+                class="collection__grid"
+                role="list"
+                id="product-grid"
+                data-id="{{- section.id -}}"
+                data-cols="4"
+              >
+                {%- liquid
+                  for result in search.results
+                    case result.object_type
+                      when 'product'
+                        render 'card-product', product_ref: result, section_id: section.id, card_index: forloop.index, card_product_layout: settings.card_product_layout
+                      else
+                        assign class = 'align-self-start '
+
+                        if result.object_type == 'article'
+                          assign class = class | append: 'color-' | append: section.settings.color_scheme_card_article
+                        else
+                          assign class = class | append: 'color-' | append: section.settings.color_scheme_card_page
+                        endif
+
+                        assign class = class | strip
+
+                        render 'card-result', result: result, class: class
+                    endcase
+                  endfor
+                -%}
+              </div>
+              {%- if paginate.pages > 1 -%}
+                {% if section.settings.pagination_style == 'load_more' %}
+                  <collection-load-more class="collection__actions text-center no-js-hidden{% unless paginate.next %} hidden{% endunless %}" data-current-page="{{- paginate.current_page -}}">
+                    {%- liquid
+                      assign load_more_button_data_href = 'data-href="' | append: paginate.next.url | append: '"'
+                      assign load_more_value = 'collection.ajax_button' | t
+
+                      render 'button', class: 'button js-btn-load-more', button_style: 'button--outlined', attr: load_more_button_data_href, value: load_more_value, loading_spinner: true
+                    -%}
+                  </collection-load-more>
+                {% else %}
+                  <div class="collection__actions">
+                    {%- render 'pagination', paginate: paginate, anchor: '' -%}
+                  </div>
+                {%- endif -%}
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        {%- endpaginate -%}
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:sections.main-search.name",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.main-search.settings.header_general.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filters",
+      "label": "t:sections.main-search.settings.enable_filters.label",
+      "info": "t:sections.main-search.settings.enable_filters.info",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "label": "t:sections.main-search.settings.enable_sorting.label",
+      "info": "t:sections.main-search.settings.enable_sorting.info",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:sections.main-search.settings.header_products_grid.content"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "min": 8,
+      "max": 28,
+      "step": 4,
+      "label": "t:sections.main-search.settings.products_per_page.label",
+      "default": 16
+    },
+    {
+      "type": "select",
+      "id": "pagination_style",
+      "label": "t:sections.global.settings.pagination.style.label",
+      "options": [
+        {
+          "value": "default",
+          "label": "t:sections.global.settings.pagination.style.options.default.label"
+        },
+        {
+          "value": "load_more",
+          "label": "t:sections.global.settings.pagination.style.options.load_more.label"
+        }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme_card_article",
+      "label": "t:sections.main-search.settings.color_scheme_for_card_article.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme_card_page",
+      "label": "t:sections.main-search.settings.color_scheme_for_card_page.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:global.settings.section.width.label",
+      "options": [
+        {
+          "value": "page",
+          "label": "t:global.settings.section.width.options.page.label"
+        },
+        {
+          "value": "fluid",
+          "label": "t:global.settings.section.width.options.fluid.label"
+        }
+      ],
+      "default": "page"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top",
+      "label": "t:global.settings.spacing.top.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "0"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom",
+      "label": "t:global.settings.spacing.bottom.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "section_border",
+      "label": "t:global.settings.section.border.label",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:global.settings.section.border.options.none.label"
+        },
+        {
+          "value": "top",
+          "label": "t:global.settings.section.border.options.top.label"
+        },
+        {
+          "value": "bottom",
+          "label": "t:global.settings.section.border.options.bottom.label"
+        },
+        {
+          "value": "both",
+          "label": "t:global.settings.section.border.options.both.label"
+        }
+      ],
+      "default": "none"
+    }
+  ]
+}
+{% endschema %}

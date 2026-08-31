@@ -1,0 +1,42 @@
+.countdown-timer {
+  display: block;
+}
+
+.countdown-timer__columns {
+  display: flex;
+}
+
+.countdown-timer__column {
+  flex: auto;
+}
+
+.countdown-timer__column > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.countdown-timer__column--col > div {
+  flex-direction: column;
+}
+
+.countdown-timer__column--row > div {
+  flex-direction: row;
+}
+
+.countdown-timer__column:first-child .countdown-timer__column-number:before {
+  display: none;
+}
+
+.countdown-timer__column-text {
+  text-transform: uppercase;
+}
+
+@media screen and (min-width: 750px) {
+  .countdown-timer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

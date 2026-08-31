@@ -1,0 +1,85 @@
+{% comment %}
+    Renders quantity input field with controls
+    Accepts:
+    - product_ref {Object} Liquid product object
+    - value {Integer} Quantity value. Defaults to 1
+    - name {String} Input name. Accepts 'quantity' or 'updates[]'
+    - min {Integer} Minimum value. Defaults to 1
+    - max {Integer} Minimum value. Defaults to variant inventory quantity
+    - index {Integer} Index of the cart line_item
+    - hide_label {Boolean} Hide label
+    - compact {Boolean} Use compact mode
+    - context {String} Context that the input belongs to
+    - disable_btn_on_max {Boolean} Disable button on max quantity
+    - line_item_variant {Object} Liquid line item variant object. This is for the cart usage only!
+    - allow_zero {Boolean} Allow quantity to be 0 (used for bulk add)
+    Usage:
+    {% render 'quantity-input', product_ref: product %}
+{% endcomment %}
+{% style %}
+.quantity__button.is-disabled svg path {
+  stroke: var(--lt-color-gray-400) !important;
+}
+{% endstyle %}
+{%- liquid
+  assign product_variant = product_ref.selected_or_first_available_variant
+  if line_item_variant != null
+    assign product_variant = product_ref.variants | where: 'id', line_item_variant.id | first
+  endif
+
+  assign product_uses_inventory = true
+
+  # check inventory is active
+  if product_variant.inventory_management == null
+    assign product_uses_inventory = false
+  endif
+
+  # check sell on sold out is active
+  if product_variant.inventory_management != null and product_variant.inventory_quantity == 0 and product_variant.available == true
+    assign product_uses_inventory = false
+  endif
+
+  # continue selling when sold out
+  if product_variant.inventory_management == 'shopify' and product_variant.inventory_policy == 'continue'
+    assign product_uses_inventory = false
+  endif
+
+  if product_uses_inventory == true
+    assign max = product_variant.inventory_quantity
+  else
+    assign max = ''
+  endif
+-%}
+
+<quantity-input class="quantity{% if compact %} quantity--compact{% endif %} field"{% if allow_zero %} data-allow-zero{% endif %}>
+  <label for="ProductQuantity-{{- index | default: product_ref.id -}}-{{- context -}}" class="{% if hide_label %}visually-hidden{% else %}field__label{% endif %}">
+    {{- 'products.product.quantity.label' | t -}}:
+  </label>
+
+  <div class="quantity__wrapper">
+    <button class="quantity__button" name="decrement" type="button">
+      <span class="visually-hidden">{{- 'products.product.quantity.decrease' | t: product: product_ref.title | escape -}}</span>
+      {% render 'icon', icon_name: 'theme-quantity-minus' %}
+    </button>
+
+    <input
+      class="quantity__input"
+      type="number"
+      name="{{- name | default: 'quantity' -}}"
+      id="ProductQuantity-{{- index | default: product_ref.id -}}-{{- context -}}"
+      min="{{- min | default: 1 -}}"
+      max="{{- max -}}"
+      value="{{- value | default: 1 -}}"
+      {% if index %}data-index="{{- index -}}"{% endif %}
+    >
+
+    <button class="quantity__button" name="increment" type="button"{% if value == max %} disabled{% endif %}>
+      <span class="visually-hidden">{{- 'products.product.quantity.increase' | t: product: product_ref.title | escape -}}</span>
+      {% render 'icon', icon_name: 'theme-quantity-plus' %}
+    </button>
+  </div>
+</quantity-input>
+
+<script>
+
+</script>

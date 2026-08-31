@@ -1,0 +1,34 @@
+{% comment %}
+    Renders product modal video and models media
+
+    Accepts:
+    - media: {Object} Liquid media object
+
+    Usage:
+    {% render 'product-media', media: product.media %}
+{% endcomment %}
+
+<div class="product__gallery-wrapper swiper-slide">
+  {% liquid
+    assign html_tag = 'product-model'
+    if media.media_type == 'video' or media.media_type == 'external_video'
+      assign html_tag = 'deferred-media'
+    endif
+  %}
+  <{{ html_tag }} class="deferred-media media" data-media-id="{{- media.id -}}">
+    {%- render 'image', image: media.preview_image, image_url_width: 550, alt: media.alt -%}
+    <template>
+      <div class="deferred-media__wrapper">
+        {%- case media.media_type -%}
+          {%- when 'external_video' -%}
+            {%- assign video_class = 'js-' | append: media.host -%}
+            {{- media | external_video_url: autoplay: true, loop: true | external_video_tag: class: video_class, loading: 'lazy' -}}
+          {%- when 'video' -%}
+            {{- media | media_tag: image_size: '2160x', autoplay: true, loop: true, controls: true, preload: 'none' -}}
+          {%- else -%}
+            {{- media | media_tag: image_size: '2160x', toggleable: true -}}
+        {%- endcase -%}
+      </div>
+    </template>
+  </{{ html_tag }}>
+</div>

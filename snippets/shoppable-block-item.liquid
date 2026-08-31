@@ -1,0 +1,219 @@
+{% comment %}
+  Renders a block for shoppable social section
+
+  Accepts:
+    - block: {Object} Product Liquid object
+    - block_index: {Number} Index of the block
+    - shopify_attributes: {Any} OPTIONAL Shopify HTML attributes for the block
+
+  Usage:
+    {%- render 'block-shoppable', block: block.settings, block_index: block_index, shopify_attributes: block.shopify_attributes -%}
+
+  Block object types:
+    - social_avatar: image
+    - social_username: text
+
+    - social_post_content: richtext
+    - social_post_image: image
+    - social_post_url: url
+
+    - product_{01,02,03,04}: product
+    - product_{01,02,03,04}_dot_x: number
+    - product_{01,02,03,04}_dot_y: number
+{% endcomment %}
+
+{%- if section.settings.follow_button_label == blank
+  and section.settings.social_username == blank
+  and section.settings.header_title == blank
+-%}
+  {% style %}
+    #shopify-section-{{ section.id }}  .shoppable__layout--grid:first-of-type {
+      --shoppable-grid-padding-block-start: 0;
+    }
+    #shopify-section-{{ section.id }}  .shoppable__layout--carousel {
+      --shoppable-carousel-padding-block-start: 0;
+    }
+    #shopify-section-{{ section.id }}  .shoppable__layout--tags {
+      --shoppable-tags-padding-block-start: 0;
+    }
+    #shopify-section-{{ section.id }}  .shoppable-layout__slider--wrapper {
+      --shoppable-slider-padding-block-start: 0;
+    }
+  {% endstyle %}
+{%- endif -%}
+<div
+  class="shoppable-block"
+  data-block-id="{{ block.id }}"
+  data-section-id="{{ section.id }}"
+  {% if shopify_attributes %}
+    {{- shopify_attributes -}}
+  {% endif %}
+>
+  {% style %}
+    .shoppable-block__social-account.{{block.id}} .shoppable-block__social-account--avatar img {
+      object-fit: {{ block.settings.social_avatar_object_fit }}
+    }
+    .shoppable-block__social-account.{{id}} .shoppable-block__social-account--avatar img {
+      object-fit: {{ block.social_avatar_object_fit }}
+    }
+  {% endstyle %}
+  <div class="shoppable-block__social-account {{id}}">
+    <div class="shoppable-block__social-account--avatar">
+      <div class="shoppable-block__social-account--avatar-image">
+        {%- liquid
+          if section.settings.social_avatar != blank and block.social_avatar == blank
+            render 'image', image: section.settings.social_avatar
+          elsif block.social_avatar != blank
+            render 'image', image: block.social_avatar
+          else
+            echo 'product-6' | placeholder_svg_tag
+          endif
+        -%}
+      </div>
+    </div>
+    <div class="shoppable-block__social-account--name">
+      {%- if section.settings.social_username != blank and block.social_username == blank -%}
+        {{- section.settings.social_username -}}
+      {%- elsif block.social_username != blank -%}
+        {{- block.social_username -}}
+      {%- endif -%}
+    </div>
+  </div>
+
+  <div class="shoppable-block__content">
+    <div>
+      {%- if section.settings.source_of_slide == 'metaobject' -%}
+        {{- block.social_post_content | metafield_tag -}}
+      {%- else -%}
+        {{- block.social_post_content -}}
+      {%- endif -%}
+    </div>
+
+    {%- liquid
+      if block.social_post_url != blank
+        assign social_post_url = block.social_post_url
+      else
+        assign social_post_url = '#'
+      endif
+    -%}
+    {%- assign social_post_button_classes = 'button ' | append: settings.button_primary_style | append: ' ' | append: settings.button_secondary_style -%}
+    <a href="{{- social_post_url -}}" class="{{ social_post_button_classes }} button--shoppable-block__view-on-social" target="_blank" role="button">
+      {% render 'icon', icon_name: 'icon-instagram' %}
+      <span>{{ 'socials.view_on_social' | t }}</span>
+    </a>
+  </div>
+
+  <div class="shoppable-block__media">
+    {%- liquid
+      if block.social_post_image != blank
+        render 'image', image: block.social_post_image
+      else
+        echo 'collection-1' | placeholder_svg_tag: 'placeholder-svg'
+      endif
+    -%}
+    {%- if section.settings.show_dots -%}
+      <ul class="shoppable__lookbook-dots js-slider-dots list-unstyled js-dots-list no-js-hidden">
+        {%- for product_card in (1..4) -%}
+          {%- liquid
+            assign block_item_id = 'product_0' | append: forloop.index
+            assign dot_x = block_item_id | append: '_dot_x'
+            assign dot_y = block_item_id | append: '_dot_y'
+          -%}
+          {%- capture dot_id -%}shoppable__dot-{{- block_index -}}-{{- forloop.index -}}-{{- section.id -}}{%- endcapture -%}
+          {%- if block[block_item_id] != '' and block[block_item_id] != null -%}
+            {% style %}
+                {% if block[dot_x] > 5 %}
+                  @media screen and (min-width: 1300px) {
+                    #{{- dot_id -}} {
+                      inset-inline-start: calc({{ block[dot_x] }}% - 6%);
+                    }
+                  }
+                  @media screen and (min-width: 990px) and (max-width: 1299px) {
+                    #{{- dot_id -}} {
+                      inset-inline-start: calc({{ block[dot_x] }}% - 7%);
+                    }
+                  }
+                  @media screen and (max-width: 989px) {
+                    #{{- dot_id -}} {
+                      inset-inline-start: calc({{ block[dot_x] }}% - 4%);
+                    }
+                  }
+                {% endif %}
+                {% if block[dot_y] > 5 %}
+                  @media screen and (min-width: 1300px) {
+                    #{{- dot_id -}} {
+                      inset-block-start: calc({{ block[dot_y] }}% - 6%);
+                    }
+                  }
+                  @media screen and (min-width: 990px) and (max-width: 1299px) {
+                    #{{- dot_id -}} {
+                      inset-block-start: calc({{ block[dot_y] }}% - 7%);
+                    }
+                  }
+                  @media screen and (max-width: 989px) {
+                    #{{- dot_id -}} {
+                      inset-block-start: calc({{ block[dot_y] }}% - 4%);
+                    }
+                  }
+                {% endif %}
+              {% if block[dot_y] < 5 %}
+                #{{- dot_id -}} {
+                  inset-block-start: calc({{ block[dot_y] }}%);
+                }
+              {% endif %}
+              {% if block[dot_x] < 5 %}
+                #{{- dot_id -}} {
+                  inset-inline-start: calc({{ block[dot_x] }}%);
+                }
+              {% endif %}
+            {% endstyle %}
+            <li id="{{- dot_id -}}">
+              <button
+                type="button"
+                class="button-reset"
+                onclick='document.querySelector(`shoppable-product-card-thumb[data-card-id="{{- block_index -}}-{{- forloop.index -}}-{{- section.id -}}"]`).toggle(event)'
+                aria-expanded="false"
+                aria-controls="shoppable-product-card-thumb"
+                aria-label="Open product card for selected item"
+              >
+                {% render 'icon', icon_name: 'theme-plus' %}
+                {% render 'icon', icon_name: 'theme-minus' %}
+              </button>
+            </li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+
+  <div class="swiper__buttons shoppable-block__swiper__buttons">
+    <button class="swiper__button--prev-{{ section.id }}">
+      {% render 'icon', icon_name: 'theme-arrow' %}
+      <span>{{ 'general.pagination.previous' | t }}</span>
+    </button>
+    <button class="swiper__button--next-{{ section.id }}">
+      <span>{{ 'general.pagination.next' | t }}</span>
+      {% render 'icon', icon_name: 'theme-arrow' %}
+    </button>
+  </div>
+
+  <div class="shoppable-block__products">
+    <div class="shoppable-block__product--holder"></div>
+    {%- liquid
+      for product_card in (1..4)
+        assign block_item_id = 'product_0' | append: forloop.index
+        if section.settings.source_of_slide == 'metaobject'
+          assign product_ref = block[block_item_id].value
+        else
+          assign product_ref = block[block_item_id]
+        endif
+        if product_ref != '' and product_ref != null
+          render 'shoppable-product-card__thumb', product_ref: product_ref, block_index: block_index, index: forloop.index
+        endif
+      endfor
+      if block.product_01 == '' and block.product_02 == '' and block.product_03 == '' and block.product_04 == ''
+        render 'shoppable-product-card__thumb', block_index: block_index, index: 0
+      endif
+    -%}
+  </div>
+</div>

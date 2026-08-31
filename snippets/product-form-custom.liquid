@@ -1,0 +1,16 @@
+{% assign first_variant = product.variants.first %}
+
+<form method="post" action="/cart/add">
+  <input type="hidden" name="form_type" value="product">
+  <input type="hidden" name="utf8" value="✓">
+
+  <select name="id">
+    {% for variant in product.variants %}
+      <option value="{{ variant.id }}">
+        {{ variant.title }} {% unless variant.available %} - (Tükendi) {% endunless %}
+      </option>
+    {% endfor %}
+  </select>
+
+  <button type="submit">Sepete Ekle</button>
+</form>

@@ -1,0 +1,238 @@
+<script src="{{- 'purchase-options.js' | asset_url -}}" defer="defer"></script>
+
+<div id="Product-Purchase-Options-{{- section.id -}}" class="no-js-hidden" {{ block.shopify_attributes -}}>
+  {%- assign current_variant = product.selected_or_first_available_variant | default: product.variants.first -%}
+  {%- if product.selling_plan_groups.size != 0 and current_variant.selling_plan_allocations.size != 0 and current_variant.available -%}
+    {%- assign current_variant_selling_plan_allocations_group_ids = current_variant.selling_plan_allocations | map: 'selling_plan_group_id' | uniq -%}
+
+    <purchase-options class="product__purchase-options">
+      {%- capture selling_plan_options_html -%}
+        <option
+          value="one-time"
+          data-id="Product-Purchase-Option-One-Time"
+          {% if current_variant.requires_selling_plan == false and current_variant.selected_selling_plan_allocation == nil %}
+            selected="selected"
+          {% endif %}
+          {% unless current_variant.requires_selling_plan == false %}
+            disabled
+          {% endunless %}
+        >{{- 'products.product.selling_plan_groups.one_time_purchase' | t -}}</option>
+      {%- endcapture -%}
+      {%-
+        liquid
+        assign selling_plan_group_selected = false
+        assign selling_plan_selected = false
+      -%}
+
+      {%- for selling_plan_group in product.selling_plan_groups -%}
+        {%- unless current_variant_selling_plan_allocations_group_ids contains selling_plan_group.id -%}
+          {%- continue -%}
+        {%- endunless -%}
+
+        {%- capture selling_plan_options_html -%}
+          {%-
+            liquid
+            echo selling_plan_options_html
+
+            assign is_selected = false
+            if current_variant.selected_selling_plan_allocation.selling_plan_group_id == selling_plan_group.id
+              assign is_selected = true
+              assign selling_plan_group_selected = true
+            elsif current_variant.requires_selling_plan and current_variant.selected_selling_plan_allocation == nil and selling_plan_group_selected == false
+              assign is_selected = true
+              assign selling_plan_group_selected = true
+            endif
+          -%}
+
+          <option
+            value="{{- selling_plan_group.id -}}"
+            data-id="Product-Purchase-Option-{{- selling_plan_group.id -}}"
+            {% if is_selected %}
+              selected="selected"
+            {% endif %}
+          >{{- selling_plan_group.name | escape -}}</option>
+        {%- endcapture -%}
+
+        {%- capture selling_plan_groups_html -%}
+          {{- selling_plan_groups_html -}}
+
+          <div class="product__purchase-group-selects {% unless is_selected %} is-hidden {% endunless %}" data-id="Product-Purchase-Option-{{- selling_plan_group.id -}}">
+            {%- for selling_plan_group_option in selling_plan_group.options -%}
+              {%- liquid
+                assign option_select_label = 'products.product.subscription_frequency' | t
+                assign option_select_attr = 'data-selling-plan-selector form="' | append: product_form_id | append: '"'
+              -%}
+
+              {%- capture option_select_options_html -%}
+                <option
+                  value=""
+                  disabled
+                  {% if current_variant.requires_selling_plan == false and current_variant.selected_selling_plan_allocation == nil %}
+                    selected="selected"
+                  {% endif %}
+                >Select option</option>
+                {%- for selling_plan in selling_plan_group.selling_plans -%}
+                  {%- liquid
+                    assign option_select_id = 'Product-Selling-Plan-' | append: selling_plan.id
+                    # assign current_variant_selling_plan_allocation = current_variant.selling_plan_allocations | where: 'selling_plan', selling_plan | first
+                    assign option_is_selected = false
+                    if current_variant.selected_selling_plan_allocation.selling_plan.id == selling_plan.id
+                      assign option_is_selected = true
+                    elsif selling_plan.group_id == selling_plan_group.id and forloop.first and selling_plan_selected == false and curent_variant.requires_selling_plan
+                      assign option_is_selected = true
+                      assign selling_plan_selected = true
+                    endif
+                  -%}
+
+                  <option value="{{- selling_plan.id -}}" {% if option_is_selected %} selected="selected" {% endif %}>{{- selling_plan.name -}}</option>
+                {%- endfor -%}
+              {%- endcapture -%}
+
+              {%- render 'select-input',
+                  label: option_select_label,
+                  id: option_select_id,
+                  name: 'selling_plan',
+                  options: option_select_options_html,
+                  class: 'product__purchase-options',
+                  attr: option_select_attr,
+                  custom: true
+              -%}
+            {%- endfor -%}
+          </div>
+        {%- endcapture -%}
+      {%- endfor -%}
+
+      {%- assign selling_plan_groups_label = 'products.product.selling_plan_groups.title' | t -%}
+      {%- render 'select-input',
+          label: selling_plan_groups_label,
+          id: 'Product-Purchase-Options',
+          name: 'selling_plan_group',
+          options: selling_plan_options_html,
+          class: 'product__purchase-options',
+          attr: 'data-selling-plan-group-selector',
+          custom: true
+      -%}
+
+      <div class="product__purchase-options-body {% if current_variant.requires_selling_plan == false and current_variant.selected_selling_plan_allocation == nil %} is-hidden{% endif %}" data-selling-plans-wrapper>
+        {{- selling_plan_groups_html -}}
+      </div>
+    </purchase-options>
+
+    <div class="product__purchase-options-foot">
+      <div class="product__purchase-options-description" data-selling-plan-description>
+        {%-
+          liquid
+          assign current_selling_plan_allocation = current_variant.selected_selling_plan_allocation
+          if current_selling_plan_allocation == nil and current_variant.requires_selling_plan
+            assign current_selling_plan_allocation = current_variant.selling_plan_allocations | first
+          endif
+        -%}
+        {%- if
+          current_selling_plan_allocation.price_adjustments[0].price !=
+          current_selling_plan_allocation.price_adjustments[1].price and
+          current_selling_plan_allocation.price_adjustments[1].price != nil
+        -%}
+          <p class="product__purchase-options-description-title">
+            {%- if current_selling_plan_allocation.selling_plan.price_adjustments[0].order_count == 1 -%}
+              First payment
+
+              {% if settings.show_currency_codes %}
+                {{ current_selling_plan_allocation.price_adjustments[0].price | money_with_currency }}
+              {% else %}
+                {{ current_selling_plan_allocation.price_adjustments[0].price | money }}
+              {% endif %}
+              then
+
+              {% if settings.show_currency_codes %}
+                {{ current_selling_plan_allocation.price_adjustments[1].price | money_with_currency }}
+              {% else %}
+                {{ current_selling_plan_allocation.price_adjustments[1].price | money }}
+              {% endif %}
+            {%- else -%}
+              First {{ current_selling_plan_allocation.selling_plan.price_adjustments[0].order_count }} payments
+
+              {% if settings.show_currency_codes %}
+                {{ current_selling_plan_allocation.price_adjustments[0].price | money_with_currency }} then
+              {% else %}
+                {{ current_selling_plan_allocation.price_adjustments[0].price | money }} then
+              {% endif %}
+
+              {% if settings.show_currency_codes %}
+                {{ current_selling_plan_allocation.price_adjustments[1].price | money_with_currency }}
+              {% else %}
+                {{ current_selling_plan_allocation.price_adjustments[1].price | money }}
+              {% endif %}
+            {%- endif -%}
+          </p>
+        {%- endif -%}
+
+        {%- if shop.subscription_policy != blank -%}
+          <menu-drawer class="product__subscription-policy">
+            <details id="Subscription-Policy-drawer" class="drawer__container">
+              <summary class="drawer__button drawer__button--text svg-color-inherit" tabindex="0">
+                <span class="drawer__button-text underlined-link caption caption--small" role="button">
+                  {{- 'products.product.subscription_policy' | t -}}
+                </span>
+              </summary>
+
+              <div class="drawer__content js-drawer" id="Subscription-Policy-menu-drawer" tabindex="-1">
+                <button
+                  class="drawer__button-close button-reset no-js-hidden js-btn-close-drawer svg-color-inherit"
+                  aria-label="{{- 'actions.close' | t -}}"
+                  aria-controls="Subscription-Policy-menu-drawer"
+                  aria-expanded="false"
+                >
+                  {% render 'icon', icon_name: 'theme-arrow-close' %}
+                </button>
+                <div class="drawer__row drawer__row--gutter-sm">
+                  <h2 class="drawer__title heading-static">
+                    {{- shop.subscription_policy.title -}}
+                  </h2>
+                  <div class="rte">
+                    {{- shop.subscription_policy -}}
+                  </div>
+                </div>
+              </div>
+            </details>
+          </menu-drawer>
+        {%- endif -%}
+
+        {%- if current_selling_plan_allocation.selling_plan.description -%}
+          <div class="product__subscription-description">
+            <p>{{- current_selling_plan_allocation.selling_plan.description | newline_to_br -}}</p>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+</div>
+
+{%- if product.selling_plan_groups.size > 0 -%}
+  <noscript>
+    <div class="product__selling-plan">
+      {%- liquid
+        # assign label = 'products.product.selling_plan_groups.title' | t
+        assign id = 'Product-Purchase-Options'
+        assign name = 'selling_plan'
+      -%}
+
+      {%- capture selling_plan_options -%}
+        {%- unless product.requires_selling_plan -%}
+          <option value="">One-time purchase</option>
+        {%- endunless -%}
+
+        {%- for selling_plan_group in product.selling_plan_groups -%}
+          <optgroup label="{{- selling_plan_group.name -}}">
+            {%- for selling_plan in selling_plan_group.selling_plans -%}
+              <option value="{{- selling_plan.id -}}"{% if selling_plan.selected %} selected{% endif %}>
+                {{- selling_plan.options[0].value -}}
+              </option>
+            {%- endfor -%}
+          </optgroup>
+        {%- endfor -%}
+      {%- endcapture -%}
+
+      {%- render 'select-input', id: id, name: name, options: selling_plan_options, class: 'product__selling-plan-dropdown' -%}
+    </div>
+  </noscript>
+{%- endif -%}

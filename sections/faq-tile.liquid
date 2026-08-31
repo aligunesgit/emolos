@@ -1,0 +1,367 @@
+{{ 'section-faq-tile.css' | asset_url | stylesheet_tag }}
+{%- render 'section-common-styles', section: section -%}
+<script src="{{- 'faq-tile.js' | asset_url -}}" defer="defer"></script>
+
+<div class="faq-tile faq-tile-wrapper" data-container-class="{{ section.settings.section_width }}">
+  <div class="faq-tile__content" data-url-handle="{{ section.settings.title | handle }}">
+    {%- if section.settings.image != blank -%}
+      <div class="faq-tile__content--media">
+        {%- render 'image', image: section.settings.image -%}
+      </div>
+    {%- endif -%}
+
+    <div class="faq-tile__content--title heading-static {{ section.settings.heading_size }} color-{{ section.settings.color_scheme }}">
+      {{ section.settings.title }}
+    </div>
+    <div class="faq-tile__content--subtitle hidden">
+      <div>
+        {%- for block in section.blocks -%}
+          <div class="heading-static {{ block.settings.heading_size }}">
+            {{ block.settings.title }}
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+    <div class="faq-tile__content--subtitle-content hidden">
+      <div>
+        {%- for block in section.blocks -%}
+          <div>{{ block.settings.content }}</div>
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+  <div class="faq-tile__list" style="display: none;">
+    <div>
+      <div class="faq-tile__list--sidebar">
+
+      </div>
+      <div class="faq-tile__list--sidebar-button">
+        {%- if section.settings.button_text != blank and section.settings.button_text != blank -%}
+          <div class="faq__button">
+            {%- render 'button',
+              type: 'link',
+              class: 'button',
+              button_style: section.settings.button_style,
+              value: section.settings.button_text,
+              href: section.settings.button_url
+            -%}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+    <div class="faq-tile__list--content-wrapper">
+      <button type='button' class='button faq-tile__list--back-button'>
+        {% render 'icon', icon_name: 'theme-chevron-start' %}
+        <span>Back</span>
+      </button>
+      <div class="faq-tile__list--content"></div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.faq_tile.name",
+  "tag": "section",
+  "class": "section-faq-tile",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "title",
+      "label": "t:sections.faq_tile.blocks.content.settings.title.label"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:sections.global.element.heading_size.label",
+      "options": [
+        {
+          "value": "h6",
+          "label": "XS"
+        },
+        {
+          "value": "h5",
+          "label": "S"
+        },
+        {
+          "value": "h4",
+          "label": "M"
+        },
+        {
+          "value": "h3",
+          "label": "L"
+        },
+        {
+          "value": "h2",
+          "label": "XL"
+        }
+      ],
+      "default": "h5"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:sections.faq_tile.settings.image.label"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "t:sections.faq_button.settings.button_text.label",
+      "info": "t:sections.faq_button.info",
+      "default": "Contact Us"
+    },
+    {
+      "type": "url",
+      "id": "button_url",
+      "label": "t:sections.faq_button.settings.button_url.label",
+      "default": "/"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "t:sections.global.settings.button_style.label",
+      "options": [
+        {
+          "value": "button--filled",
+          "label": "t:sections.global.settings.button_style.options.filled.label"
+        },
+        {
+          "value": "button--outlined",
+          "label": "t:sections.global.settings.button_style.options.outlined.label"
+        },
+        {
+          "value": "default",
+          "label": "t:sections.global.settings.button_style.options.default.label"
+        }
+      ],
+      "info": "t:sections.global.settings.button_style.info",
+      "default": "button--filled"
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:global.settings.section.width.label",
+      "options": [
+        {
+          "value": "narrow",
+          "label": "t:global.settings.section.width.options.narrow.label"
+        },
+        {
+          "value": "page",
+          "label": "t:global.settings.section.width.options.page.label"
+        },
+        {
+          "value": "fluid",
+          "label": "t:global.settings.section.width.options.fluid.label"
+        }
+      ],
+      "default": "page"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top",
+      "label": "t:global.settings.spacing.top.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom",
+      "label": "t:global.settings.spacing.bottom.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_top_mobile",
+      "label": "t:global.settings.spacing.top_mobile.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "spacing_bottom_mobile",
+      "label": "t:global.settings.spacing.bottom_mobile.label",
+      "options": [
+        {
+          "value": "0",
+          "label": "t:global.settings.spacing.options.none.label"
+        },
+        {
+          "value": "1",
+          "label": "S"
+        },
+        {
+          "value": "2",
+          "label": "M"
+        },
+        {
+          "value": "4",
+          "label": "L"
+        },
+        {
+          "value": "6",
+          "label": "XL"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "section_border",
+      "label": "t:global.settings.section.border.label",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:global.settings.section.border.options.none.label"
+        },
+        {
+          "value": "top",
+          "label": "t:global.settings.section.border.options.top.label"
+        },
+        {
+          "value": "bottom",
+          "label": "t:global.settings.section.border.options.bottom.label"
+        },
+        {
+          "value": "both",
+          "label": "t:global.settings.section.border.options.both.label"
+        }
+      ],
+      "default": "none"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "content",
+      "name": "t:sections.faq_tile.blocks.content.name",
+      "settings": [
+        {
+          "type": "inline_richtext",
+          "id": "title",
+          "label": "t:sections.faq_tile.blocks.content.settings.title.label"
+        },
+        {
+          "type": "select",
+          "id": "heading_size",
+          "label": "t:sections.global.element.heading_size.label",
+          "options": [
+            {
+              "value": "h6",
+              "label": "XS"
+            },
+            {
+              "value": "h5",
+              "label": "S"
+            },
+            {
+              "value": "h4",
+              "label": "M"
+            },
+            {
+              "value": "h3",
+              "label": "L"
+            },
+            {
+              "value": "h2",
+              "label": "XL"
+            }
+          ],
+          "default": "h4"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "t:sections.faq_tile.blocks.content.settings.content.label"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.faq_tile.name",
+      "settings": {
+        "title": "Faq Tile Heading",
+        "color_scheme": "scheme-5"
+      }
+    }
+  ],
+  "enabled_on": {
+    "templates": ["page"]
+  }
+}
+{% endschema %}

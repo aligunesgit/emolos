@@ -1,0 +1,110 @@
+.predictive-search__results {
+  margin-block-start: 3.2rem;
+}
+
+.predictive-search__message {
+  text-align: center;
+}
+
+.predictive-search__message p {
+  font-size: var(--font-size-static-sm);
+}
+
+.predictive-search__row {
+  margin-block-end: 3.2rem;
+}
+
+.predictive-search__row:last-child {
+  margin-block-end: 0;
+}
+
+.predictive-search__title {
+  font-family: var(--font-heading-family);
+  color: rgb(var(--color-foreground));
+  font-size: var(--font-size-static-xs);
+  line-height: var(--line-height-static-sm);
+  letter-spacing: var(--letter-spacing-md);
+  text-transform: uppercase;
+  margin: 0 0 1.6rem;
+}
+
+.predictive-search__links {
+  width: max-content;
+  color: rgb(var(--color-heading-text));
+  font-size: var(--font-size-static-xs);
+  line-height: var(--line-height-static-sm);
+  letter-spacing: var(--letter-spacing-md);
+  text-transform: uppercase;
+}
+
+.predictive-search__links-item + .predictive-search__links-item {
+  margin-block-start: 1.6rem;
+}
+
+.predictive-search__links-link {
+  display: block;
+  transition: color var(--duration-default);
+}
+.predictive-search__links-link mark {
+  color: rgb(var(--color-heading-text));
+  background-color: rgb(var(--color-background));
+}
+
+.predictive-search__grid {
+  display: grid;
+  align-items: flex-start;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2.4rem .2rem;
+}
+
+.predictive-search__card-product .card-product__content {
+  padding-block-start: 0.8rem;
+}
+
+.predictive-search__card-product .card-product__title {
+  font-size: calc(var(--font-heading-scale) * 1.2rem);
+}
+
+.predictive-search__link {
+  display: block;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+@media (hover: hover) {
+  .predictive-search__links-link:hover {
+    color: rgb(var(--color-foreground));
+  }
+
+  .predictive-search__card-product:hover .card-product__media {
+    opacity: 1;
+  }
+}
+
+@media screen and (min-width: 750px) {
+  .predictive-search__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media screen and (min-width: 990px) {
+  .predictive-search__results {
+    margin-block-start: 4rem;
+  }
+
+  .predictive-search__row {
+    margin-block-end: 4rem;
+  }
+
+  .predictive-search__grid {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 1.6rem;
+  }
+
+  .predictive-search__links {
+    font-family: var(--font-heading-family);
+    line-height: 1.15;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+}

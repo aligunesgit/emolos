@@ -1,0 +1,131 @@
+{{ 'section-newsletter-popup.css' | asset_url | stylesheet_tag }}
+<script src="{{- 'cookies.js' | asset_url -}}" defer="defer"></script>
+<script src="{{- 'newsletter-popup.js' | asset_url -}}" defer="defer"></script>
+
+<newsletter-popup id="NewsletterModal-{{- section.id -}}" class="newsletter-popup"
+  {% if request.design_mode and section.settings.customizer_visible %} data-open-in-design-mode="true"{% endif %}
+  data-delay="{{- section.settings.delay -}}"
+>
+  <div class="newsletter-popup__wrapper color-{{ section.settings.color_scheme }} gradient isoloate" aria-modal="true" role="dialog"
+    aria-labelledby="Newsletter Modal" tabindex="-1">
+    {%- if section.settings.image != blank -%}
+      <div class="media media--small newsletter-popup__media">
+        {%- render 'image', image: section.settings.image, image_url_width: 550, section_index: section.index -%}
+      </div>
+    {%- endif -%}
+
+    <div class="newsletter-popup__content">
+      {%- if section.settings.heading != blank -%}
+        <h6 class="newsletter-popup__title heading-static {{ section.settings.heading_size }}">
+          {{- section.settings.heading -}}
+        </h6>
+      {%- endif -%}
+
+      {%- if section.settings.text != blank -%}
+        <div class="newsletter-popup__entry">
+          {{- section.settings.text -}}
+        </div>
+      {%- endif -%}
+
+      <div class="newsletter-popup__form">
+        {%- assign submit_button_text = 'actions.subscribe' | t -%}
+        {%- render 'newsletter-form', namespace: section.id, js_class: 'js-form', submit_button_text: submit_button_text -%}
+      </div>
+      <button id="ModalClose-{{- section.id -}}" type="button" class="link">
+        {{- section.settings.button_close_text -}}
+      </button>
+    </div>
+  </div>
+</newsletter-popup>
+
+{% schema %}
+{
+  "name": "t:sections.newsletter-popup.name",
+  "tag": "section",
+  "class": "section-newsletter-popup",
+  "settings": [
+    {
+      "type": "range",
+      "id": "delay",
+      "label": "t:sections.newsletter-popup.settings.delay.label",
+      "unit": "s",
+      "min": 4,
+      "max": 30,
+      "step": 1,
+      "default": 10
+    },
+    {
+      "type": "header",
+      "content": "t:sections.newsletter-popup.settings.content.label"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:sections.newsletter-popup.settings.image.label"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "t:sections.newsletter-popup.settings.heading.label",
+      "default": "Newsletter heading here"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:sections.global.element.heading_size.label",
+      "options": [
+        {
+          "value": "h6",
+          "label": "XS"
+        },
+        {
+          "value": "h5",
+          "label": "S"
+        },
+        {
+          "value": "h4",
+          "label": "M"
+        },
+        {
+          "value": "h3",
+          "label": "L"
+        },
+        {
+          "value": "h2",
+          "label": "XL"
+        }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "t:sections.newsletter-popup.settings.text.label",
+      "default": "<p>An example subheading for new subscribers.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_close_text",
+      "label": "t:sections.newsletter-popup.settings.button_close_text.label",
+      "default": "No thanks"
+    },
+    {
+      "type": "checkbox",
+      "id": "customizer_visible",
+      "label": "t:sections.newsletter-popup.settings.customizer_visible.label",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    }
+  ]
+}
+{% endschema %}

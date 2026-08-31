@@ -1,0 +1,57 @@
+{%- liquid
+  assign block_first = section.blocks.first
+  assign dropdown_card_count = 0
+  assign card_item_htmls = ""
+-%}
+
+{% for i in (1..3) %}
+  {%- liquid
+    assign title = "card_item_" | append: i | append: "__title"
+    assign content = "card_item_" | append: i | append: "__content"
+    assign button_text = "card_item_" | append: i | append: "__button_text"
+    assign button_link = "card_item_" | append: i | append: "__button_url"
+
+    assign card_title = block_first.settings[title]
+    assign card_content = block_first.settings[content]
+    assign card_button_text = block_first.settings[button_text]
+    assign card_button_link = block_first.settings[button_link]
+  -%}
+
+  {%- if card_title != blank or card_content != blank %}
+    {%- assign dropdown_card_count = dropdown_card_count | plus: 1 -%}
+    {%- capture card_item_html -%}
+      <div class="bar__dropdown-menu__menu-item">
+        {%- if card_title != blank -%}
+          <h4 class="bar__dropdown-menu__menu-item__title">{{ card_title }}</h4>
+        {%- endif -%}
+        {%- if card_content != blank -%}
+          {{ card_content }}
+        {%- endif -%}
+        {%- if card_button_text != blank and card_button_link != blank -%}
+          <div class="bar__dropdown-menu__menu-item__link">
+            {%- render 'button', type: 'link', value: card_button_text, href: card_button_link, class: 'link' -%}
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endcapture -%}
+    {%- assign card_item_htmls = card_item_htmls | append: card_item_html -%}
+  {%- endif -%}
+{% endfor %}
+
+{%- if dropdown_card_count > 0 -%}
+  {% style %}
+    .bar__dropdown-menu__items-container {
+      width: calc(var(--page-width) / 3 * {{ dropdown_card_count }});
+    }
+    .bar__dropdown-menu__menu-item {
+      flex: 0 0 calc(100% / {{ dropdown_card_count }});
+    }
+  {% endstyle %}
+
+  <announcement-bar-dropdown id="AnnouncementBarDropdown" class="bar__dropdown-menu color-{{ section.blocks.first.color_scheme }} gradient isolate">
+    <button id="NavClose-AnnouncementDropdown" type="button" class="bar__dropdown-menu__button-close" aria-label="{{- 'actions.close' | t -}}">{% render 'icon', icon_name: 'theme-close' %}</button>
+    <div class="bar__dropdown-menu__items-container">
+      {{ card_item_htmls }}
+    </div>
+  </announcement-bar-dropdown>
+{%- endif -%}

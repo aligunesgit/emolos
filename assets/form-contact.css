@@ -1,0 +1,6 @@
+.form-contact {
+  color: rgb(var(--color-foreground));
+  background-color: rgb(var(--color-background));
+  padding-block-start: calc(var(--padding-block-start, 0));
+  padding-block-end: calc(var(--padding-block-end, 0));
+}

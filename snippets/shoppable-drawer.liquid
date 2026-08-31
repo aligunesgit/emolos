@@ -1,0 +1,163 @@
+{% liquid
+  assign attr = blank
+  unless layout == 'list'
+    assign attr = 'data-layout-mode="multi"'
+  else
+    assign attr = 'data-layout-mode="single"'
+  endunless
+  unless layout == 'tags'
+    assign attr = attr | append: ' data-content-mode="carousel"'
+  else
+    assign attr = attr | append: ' data-content-mode="scroll"'
+  endunless
+  if layout == 'slider'
+    assign attr = attr | append: ' data-layout-style="slider"'
+  endif
+  if layout == 'tags'
+    assign attr = attr | append: ' data-layout-style="tags"'
+  endif
+%}
+<shoppable-drawer class="shoppable-drawer shoppable-drawer--{{ section.id }} {{ class }} shoppable-drawer-layout__{{ section.settings.layout }}" {{ attr }} {{ tags }} data-content-id="{{ section.id }}">
+  {% style %}
+    .shoppable-drawer.shoppable-drawer--{{ section.id }}.is--open {
+      visibility: visible;
+      opacity: 1;
+    }
+  {% endstyle %}
+  <div class='shoppable-drawer__blocks'>
+    <div class='shoppable-drawer__blocks--inner'>
+      <button
+        type='button'
+        class='button--close'
+        aria-expanded='false'
+        aria-controls='shoppable-drawer'
+        aria-label='Close drawer for selected item'
+      >
+        {% render 'icon', icon_name: 'theme-close' %}
+      </button>
+      {%- if tags == blank -%}
+        <div class='container'>
+          <div class='swiper swiper-drawer shoppable-drawer-layout__swiper-{{ section.settings.layout }}'>
+            <div class='swiper-wrapper'>
+              {%- liquid
+                if section.settings.source_of_slide == 'metaobject'
+                  if product.metafields.theme.shoppable_socials.value
+                    assign shoppable_items = product.metafields.theme.shoppable_socials.value
+                  endif
+                else
+                  assign shoppable_items = section.blocks
+                endif
+              -%}
+              {%- for block in shoppable_items -%}
+                {%- liquid
+                  if section.settings.source_of_slide == 'manual'
+                    assign item = block.settings
+                  else
+                    assign item = block
+                  endif
+                -%}
+                {% style %}
+                  #shopify-section-{{ section.id }} .{{block.id}} .shoppable-block__social-account--avatar img {
+                    object-fit: {{ block.settings.social_avatar_object_fit }}
+                  }
+                {% endstyle %}
+                <div
+                  class='swiper-slide {{block.id}}'
+                  data-index='{{ forloop.index0 }}'
+                >
+                  {%- render 'shoppable-block-item',
+                    block: item,
+                    block_index: forloop.index,
+                    shopify_attributes: block.shopify_attributes,
+                    slider_buttons: true
+                  -%}
+                </div>
+              {%- endfor -%}
+            </div>
+            <div class='swiper__buttons'>
+              <button class='swiper__button--prev-{{ section.id }}'>
+                {% render 'icon', icon_name: 'theme-arrow' %}
+                <span>{{ 'general.pagination.previous' | t }}</span>
+              </button>
+              <button class='swiper__button--next-{{ section.id }}'>
+                <span>{{ 'general.pagination.next' | t }}</span>
+                {% render 'icon', icon_name: 'theme-arrow' %}
+              </button>
+            </div>
+          </div>
+        </div>
+      {%- else -%}
+        {%- assign count = 0 -%}
+        {%- for tag in tags -%}
+          <div
+            class='shoppable-drawer__tags'
+            id='shoppable-drawer__tags--{{- tag -}}'
+          >
+            <div class='shoppable-drawer__header'>
+              <div class='shoppable-drawer__title container'>
+                <h3>{{ tag | prepend: '#' }}</h3>
+                {%- assign posts_count = 0 -%}
+                {%- if section.settings.source_of_slide == 'metaobject' -%}
+                  {%- for block in product.metafields.theme.shoppable_socials.value -%}
+                    {%- if block.tag_story contains tag -%}
+                      {%- assign posts_count = posts_count | plus: 1 -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- else -%}
+                  {%- for block in section.blocks -%}
+                    {%- if block.settings.tag_story == tag -%}
+                      {%- assign posts_count = posts_count | plus: 1 -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- endif -%}
+                <p>{{ posts_count }} posts</p>
+              </div>
+            </div>
+            <div class='shoppable-drawer__scroll-container'>
+              <div class='container'>
+                {%- if section.settings.source_of_slide == 'metaobject' -%}
+                  {%- assign tags_in_drawer =  product.metafields.theme.shoppable_socials.value-%}
+                {%- else -%}
+                  {%- assign tags_in_drawer =  product.metafields.theme.shoppable_socials.value-%}
+                {%- endif -%}
+                {%- if section.settings.source_of_slide == 'metaobject' -%}
+                  {%- for block in product.metafields.theme.shoppable_socials.value -%}
+                    {%- assign count = count | plus: 1 -%}
+                    {%- if block.tag_story contains tag -%}
+                      {%- render 'shoppable-block-item',
+                        block: block,
+                        id: block.id,
+                        block_index: forloop.index,
+                        shopify_attributes: block.shopify_attributes,
+                        count: count
+                      -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- else -%}
+                  {%- for block in section.blocks -%}
+                    {%- assign count = count | plus: 1 -%}
+                    {%- if block.settings.tag_story == tag -%}
+                      {%- render 'shoppable-block-item',
+                        block: block.settings,
+                        id: block.id,
+                        block_index: forloop.index,
+                        shopify_attributes: block.shopify_attributes,
+                        count: count
+                      -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- endif -%}
+              </div>
+            </div>
+          </div>
+        {%- endfor -%}
+      {%- endif -%}
+    </div>
+  </div>
+
+  <div class='shoppable-drawer__product'>
+    <div class='shoppable-drawer__product--holder'></div>
+  </div>
+
+  <div class='shoppable-drawer__backdrop'></div>
+</shoppable-drawer>

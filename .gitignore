@@ -1,0 +1,12 @@
+# Local dev
+.DS_Store
+node_modules/
+*.log
+
+# Shopify theme artifacts
+config/settings_data.json
+config/*.json
+
+# Keep local secrets out
+.env
+.env.*

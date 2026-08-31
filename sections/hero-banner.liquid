@@ -1,0 +1,651 @@
+
+{{- 'section-hero-banner.css' | asset_url | stylesheet_tag -}}
+{%- render 'section-common-styles', section: section -%}
+<script src="{{- 'hero-slider.js' | asset_url -}}" defer="defer"></script>
+
+{% style %}
+  {% liquid
+    assign first_block = section.blocks[0]
+    assign default_aspect_ratio = 16 | divided_by: 9
+
+    assign aspect_ratio = first_block.settings.video_external.aspect_ratio | default: first_block.settings.video.aspect_ratio | default: first_block.settings.image.aspect_ratio | default: default_aspect_ratio | round: 2
+    assign aspect_ratio_mobile = first_block.settings.video_external_mobile.aspect_ratio | default: first_block.settings.video_mobile.aspect_ratio | default: first_block.settings.image_mobile.aspect_ratio | default: aspect_ratio | round: 2
+
+    assign section_height = section.settings.slider_height | default: '100svh'
+    assign section_height_mobile = section.settings.slider_height_mobile | default: '100svh'
+
+    if section.settings.slider_height == 'auto'
+      assign desktop_auto_height_vw = 100 | divided_by: aspect_ratio | append: 'vw'
+      assign desktop_max_height_rem = first_block.settings.image.height | divided_by: 10 | append: 'rem'
+      assign section_height = 'min(' | append: desktop_auto_height_vw | append: ', ' | append: desktop_max_height_rem | append: ')'
+    endif
+
+    if section.settings.slider_height_mobile == 'auto'
+      assign mobile_auto_height_vw = 100 | divided_by: aspect_ratio_mobile | append: 'vw'
+      assign mobile_max_height_rem = first_block.settings.image_mobile.height | divided_by: 10 | append: 'rem'
+      assign section_height_mobile = 'min(' | append: mobile_auto_height_vw | append: ', ' | append: mobile_max_height_rem | append: ')'
+    endif
+  %}
+
+  @media screen and (max-width: 749px) {
+    #shopify-section-{{ section.id }} {
+      --inner-height: max(calc({{ section_height_mobile }} - var(--announcement-bar-height, var(--default-announcement-bar-height))), 50vh);
+    }
+
+    {%- if section.settings.slider_height_mobile == 'auto' -%}
+      #shopify-section-{{ section.id }} .hero__media {
+        aspect-ratio: {{ aspect_ratio_mobile }};
+      }
+      #shopify-section-{{ section.id }} .hero__inner {
+        min-height: var(--inner-height);
+        grid-template-rows: auto;
+      }
+    {%- else -%}
+      #shopify-section-{{ section.id }} > div {
+        height: var(--inner-height);
+      }
+    {%- endif -%}
+  }
+
+  @media screen and (min-width: 750px) {
+    #shopify-section-{{ section.id }} {
+      --inner-height: max(calc({{ section_height }} - var(--announcement-bar-height, var(--default-announcement-bar-height))), 50vh);
+    }
+
+    {%- if section.settings.slider_height == 'auto' -%}
+      #shopify-section-{{ section.id }} .hero__inner {
+        aspect-ratio: {{ aspect_ratio }};
+      }
+    {%- else -%}
+      #shopify-section-{{ section.id }} .hero__inner {
+        height: var(--inner-height);
+      }
+    {%- endif -%}
+
+    {%- if section.settings.slider_height_mobile != '100svh' -%}
+      .hero__inner--vertical-line .hero__content::after {
+        --vertical-line-height: 4rem;
+      }
+    {%- endif -%}
+  }
+
+  {% if section.settings.enable_transparent_header and section.settings.enable_overlay_for_transparent_header %}
+    #shopify-section-{{ section.id }} .hero__inner::before {
+      content: "";
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline-start: 0;
+      width: 100%;
+      height: 100%;
+      background-image: linear-gradient(180deg, #00000080, #0000 20% 100%);
+      pointer-events: none;
+      z-index: 5;
+    }
+  {% endif %}
+
+  {%- if section.settings.slider_height_mobile != '100svh' -%}
+    @media screen and (max-width: 749px) and (min-height: 800px) {
+      body:has(.shopify-section:first-child .header-is-transparent):not(:has(.section-header ~ .shopify-section-group-header-group)) main > #shopify-section-{{ section.id }}.shopify-section.section-hero-banner:first-of-type .hero__content {
+        padding-block-start: var(--inner-vertical-padding) !important;
+      }
+    }
+  {%- endif -%}
+
+  {%- if section.settings.slider_height != '100svh' -%}
+    .hero__content {
+      padding: 3rem var(--page-gutter);
+    }
+    .hero-banner .hero__title {
+      font-size: 4rem;
+    }
+    .hero-banner .hero__entry {
+      font-size: 1.4rem;
+    }
+    .hero-banner--30-70 .hero__title,
+    .hero-banner--70-30 .hero__title,
+    .hero-banner--50-50 .hero__title {
+      font-size: 3.2rem;
+    }
+    .hero__button {
+      margin: 3rem 0;
+    }
+    .hero__entry {
+      margin-block-end: 2rem;
+    }
+    .hero-banner--30-70 .hero__button,
+    .hero-banner--70-30 .hero__button,
+    .hero-banner--50-50 .hero__button {
+      margin: 3rem 0;
+    }
+  {%- endif -%}
+{% endstyle %}
+
+{%- capture hero_slides -%}
+  {%- for block in section.blocks -%}
+    {%- if section.blocks.size > 1 -%}
+      <div class="swiper-slide hero__swiper-slide" {{ block.shopify_attributes }} data-index="{{- forloop.index0 -}}">
+    {%- endif -%}
+
+    {%- capture hero_inner_setting_classes -%}
+      {{ block.settings.content_position_horizontal }} {{ block.settings.content_position_vertical }}
+    {%- endcapture -%}
+
+    {% liquid
+      assign hero_enable_media_overlay = ''
+      unless block.settings.enable_media_overlay_desktop
+        assign hero_enable_media_overlay = hero_enable_media_overlay | append: ' small-up-hide-media-overlay'
+      endunless
+      unless block.settings.enable_media_overlay_mobile
+        assign hero_enable_media_overlay = hero_enable_media_overlay | append: ' small-hide-media-overlay'
+      endunless
+    %}
+
+    {%- liquid
+      assign hero_inner_setting_classes = hero_inner_setting_classes | strip
+      assign has_mobile_media = false
+
+      unless block.settings.enable_media_overlay_desktop
+        assign hero_inner_setting_classes = hero_inner_setting_classes | append: ' small-up-hide-media-overlay'
+      endunless
+
+      unless block.settings.enable_media_overlay_mobile
+        assign hero_inner_setting_classes = hero_inner_setting_classes | append: ' small-hide-media-overlay'
+      endunless
+
+      if block.settings.video_external_mobile != blank or block.settings.video_mobile != blank or block.settings.image_mobile != blank
+        assign has_mobile_media = true
+      endif
+    -%}
+
+    <div class="hero__inner color-{{ block.settings.color_scheme }} gradient isolate {{ block.settings.banner_layout }} {% if block.settings.enable_vertical_line %} hero__inner--vertical-line{% endif %} {{ hero_enable_media_overlay | strip }}" data-header-menu-text-color="{{- block.settings.header_menu_text_color -}}">
+      {% comment %} <div class="hero__background"> {% endcomment %}
+
+      {% capture media_element %}
+        {%- comment -%}Desktop media{%- endcomment -%}
+        {%- if block.settings.video_external != blank -%}
+          <div class="media media--overlay hero__media hero__media--desktop{% if has_mobile_media %} small-hide{% endif %}">
+            {% render 'external-video', video: block.settings.video_external, title: block.settings.title, youtube_container: true %}
+          </div>
+        {%- elsif block.settings.video != blank -%}
+          <div class="media media--overlay hero__media hero__media--desktop{% if has_mobile_media %} small-hide{% endif %}">
+            {{- block.settings.video | video_tag: image_size: '2160x', loop: true, autoplay: true, muted: true, controls: false -}}
+          </div>
+        {%- else -%}
+          <div class="media media--overlay hero__media svg-color-inherit{% if has_mobile_media %} small-hide{% endif %}">
+            {%- liquid
+              if block.settings.image != blank
+                assign image_alt = block.settings.image.alt | default: block.settings.title
+                render 'image', image: block.settings.image, section_index: section.index, media_index: forloop.index, image_url_width: 2160, alt: image_alt
+              else
+                echo 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg'
+              endif
+            -%}
+          </div>
+        {%- endif -%}
+
+        {%- comment -%}Mobile media{%- endcomment -%}
+        {%- if has_mobile_media -%}
+          {%- if block.settings.video_external_mobile != blank -%}
+            <div class="media hero__media small-up-hide">
+              {% render 'external-video', video: block.settings.video_external_mobile, title: block.settings.title, youtube_container: true %}
+            </div>
+          {%- elsif block.settings.video_mobile != blank -%}
+            <div class="media hero__media small-up-hide">
+              {{- block.settings.video_mobile | video_tag: image_size: '720x', loop: true, autoplay: true, muted: true, controls: false -}}
+            </div>
+          {%- else -%}
+            <div class="media media--overlay hero__media small-up-hide svg-color-inherit">
+              {%- liquid
+                if block.settings.image_mobile != blank
+                  assign image_alt = block.settings.image_mobile.alt | default: block.settings.title
+                  render 'image', image: block.settings.image_mobile, section_index: section.index, media_index: forloop.index, image_for_mobile: true, alt: image_alt
+                else
+                  echo 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg'
+                endif
+              -%}
+            </div>
+          {%- endif -%}
+        {%- endif -%}
+
+      {% endcapture %}
+
+      {%- if block.settings.title != blank or block.settings.content != blank or block.settings.button_text != blank and block.settings.button_url != blank -%}
+        {% capture content_element %}
+          <div class="hero__content {{ hero_inner_setting_classes | strip }}">
+            {%- if block.settings.subtitle != blank -%}
+              <p class="hero__subtitle">
+                {{- block.settings.subtitle -}}
+              </p>
+            {%- endif -%}
+
+            {%- if block.settings.title != blank -%}
+              <h3 class="hero__title">
+                {{- block.settings.title -}}
+              </h3>
+            {%- endif -%}
+
+            {%- if block.settings.content != blank -%}
+              <div class="hero__entry entry{% unless block.settings.content_position_horizontal contains 'left' %} entry--list-padding-none{% endunless %}">
+                {{- block.settings.content -}}
+              </div>
+            {%- endif -%}
+
+            {%- if block.settings.button_text != blank and block.settings.button_url != blank -%}
+              <div class="hero__button">
+                {%- render 'button',
+                  type: 'link',
+                  class: 'button',
+                  button_style: block.settings.button_style,
+                  value: block.settings.button_text,
+                  href: block.settings.button_url
+                -%}
+              </div>
+            {%- endif -%}
+          </div>
+        {% endcapture %}
+      {%- endif -%}
+
+      {{ media_element }}
+      {%- if block.settings.title != blank or block.settings.content != blank or block.settings.button_text != blank and block.settings.button_url != blank -%}
+        {{ content_element }}
+      {%- endif -%}
+
+    </div>
+    {%- if section.blocks.size > 1 -%}
+      </div>
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+<div class="hero-banner color-{{ section.settings.slider_color_scheme }} gradient isolate{% if section.settings.enable_transparent_header %} header-is-transparent{% endif %}">
+  {%- if section.blocks.size > 1 -%}
+    {%- liquid
+      assign slider_autoplay = true
+      if section.settings.slider_autoplay_interval == 0
+        assign slider_autoplay = false
+      endif
+    -%}
+
+    <hero-slider
+      class="swiper hero__swiper"
+      aria-label="{{- 'accessibility.hero_slider_label' | t -}}"
+      data-autoplay="{{- slider_autoplay -}}"
+      data-autoplay-interval="{{- section.settings.slider_autoplay_interval | times: 1000 -}}"
+      data-arrows="{{- section.settings.slider_arrows -}}"
+    >
+      <div class="swiper-wrapper hero__swiper-wrapper">
+        {{ hero_slides }}
+      </div>
+
+      {%- if section.settings.slider_arrows -%}
+        <div class="swiper-buttons hero__swiper-buttons small-hide svg-color-inherit no-js-hidden {{ section.settings.slider_arrows_position }}">
+          <button class="swiper-button hero__swiper-button swiper-button--prev">
+            {% render 'icon', icon_name: 'theme-arrow' %}
+          </button>
+
+          <button class="swiper-button hero__swiper-button swiper-button--next">
+            {% render 'icon', icon_name: 'theme-arrow' %}
+          </button>
+        </div>
+      {%- endif -%}
+    </hero-slider>
+  {%- else -%}
+    {{ hero_slides }}
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.hero-banner.name",
+  "tag": "section",
+  "class": "section-new section-hero-banner",
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.hero-banner.settings.header_slide.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_transparent_header",
+      "label": "t:sections.global.settings.enable_transparent_header.label",
+      "info": "t:sections.global.settings.enable_transparent_header.info",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_overlay_for_transparent_header",
+      "label": "t:sections.global.settings.enable_overlay_for_transparent_header.label",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "slider_height",
+      "label": "t:sections.page-banner.settings.section_height.label",
+      "info": "t:sections.page-banner.settings.section_height.info",
+      "options": [
+        {
+          "value": "auto",
+          "label": "t:sections.global.settings.height.options.auto.label"
+        },
+        {
+          "value": "50svh",
+          "label": "t:sections.global.settings.height.options.half.label"
+        },
+        {
+          "value": "75svh",
+          "label": "t:sections.global.settings.height.options.three_quarter.label"
+        },
+        {
+          "value": "100svh",
+          "label": "t:sections.global.settings.height.options.full.label"
+        }
+      ],
+      "default": "100svh"
+    },
+    {
+      "type": "select",
+      "id": "slider_height_mobile",
+      "label": "t:sections.hero-banner.settings.section_height_mobile.label",
+      "options": [
+        {
+          "value": "auto",
+          "label": "t:sections.global.settings.height.options.auto.label"
+        },
+        {
+          "value": "75svh",
+          "label": "t:sections.global.settings.height.options.three_quarter.label"
+        },
+        {
+          "value": "100svh",
+          "label": "t:sections.global.settings.height.options.full.label"
+        }
+      ],
+      "default": "100svh"
+    },
+    {
+      "type": "range",
+      "id": "slider_autoplay_interval",
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "unit": "t:sections.hero-banner.settings.slider_autoplay_interval.unit",
+      "label": "t:sections.hero-banner.settings.slider_autoplay_interval.label",
+      "info": "t:sections.hero-banner.settings.slider_autoplay_interval.info",
+      "default": 6
+    },
+    {
+      "type": "header",
+      "content": "t:sections.hero-banner.settings.header_slider_arrows.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "slider_arrows",
+      "label": "t:sections.hero-banner.settings.slider_arrows.label",
+      "info": "t:sections.hero-banner.settings.slider_arrows.info"
+    },
+    {
+      "type": "select",
+      "id": "slider_arrows_position",
+      "label": "t:sections.hero-banner.settings.slider_arrows_position.label",
+      "options": [
+        {
+          "value": "hero__swiper-buttons--sides",
+          "label": "t:sections.hero-banner.settings.slider_arrows_position.options.sides.label"
+        },
+        {
+          "value": "hero__swiper-buttons--left",
+          "label": "t:sections.hero-banner.settings.slider_arrows_position.options.left.label"
+        },
+        {
+          "value": "hero__swiper-buttons--center",
+          "label": "t:sections.hero-banner.settings.slider_arrows_position.options.center.label"
+        },
+        {
+          "value": "hero__swiper-buttons--right",
+          "label": "t:sections.hero-banner.settings.slider_arrows_position.options.right.label"
+        }
+      ],
+      "default": "hero__swiper-buttons--sides"
+    },
+    {
+      "type": "color_scheme",
+      "id": "slider_color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "t:sections.hero-banner.blocks.slide.name",
+      "settings": [
+        {
+          "type": "select",
+          "id": "banner_layout",
+          "label": "t:sections.global.settings.banner_layout.label",
+          "options": [
+            {
+              "value": "hero-banner--full",
+              "label": "t:sections.global.settings.banner_layout.options.layout_full.label"
+            },
+            {
+              "value": "hero-banner--70-30",
+              "label": "70/30"
+            },
+            {
+              "value": "hero-banner--50-50",
+              "label": "50/50"
+            },
+            {
+              "value": "hero-banner--30-70",
+              "label": "30/70"
+            },
+            {
+              "value": "hero-banner--split",
+              "label": "t:sections.global.settings.banner_layout.options.layout_split.label"
+            }
+          ],
+          "default": "hero-banner--full"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.global.settings.header_color_scheme.content"
+        },
+        {
+          "type": "color_scheme",
+          "id": "color_scheme",
+          "label": "t:global.settings.color_scheme.label",
+          "default": "scheme-1"
+        },
+        {
+          "type": "color",
+          "id": "header_menu_text_color",
+          "label": "Header menu color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.hero-banner.blocks.slide.settings.header_text.content"
+        },
+        {
+          "type": "select",
+          "id": "content_position_horizontal",
+          "label": "t:sections.hero-banner.blocks.slide.settings.content_position_horizontal.label",
+          "info": "t:sections.hero-banner.blocks.slide.settings.content_position_horizontal.info",
+          "options": [
+            {
+              "value": "align-start text-left",
+              "label": "t:sections.hero-banner.blocks.slide.settings.content_position_horizontal.options.left.label"
+            },
+            {
+              "value": "align-center text-center",
+              "label": "t:sections.hero-banner.blocks.slide.settings.content_position_horizontal.options.center.label"
+            },
+            {
+              "value": "align-end text-right",
+              "label": "t:sections.hero-banner.blocks.slide.settings.content_position_horizontal.options.right.label"
+            }
+          ],
+          "default": "align-center text-center"
+        },
+        {
+          "type": "select",
+          "id": "content_position_vertical",
+          "label": "t:sections.hero-banner.blocks.slide.settings.content_position_vertical.label",
+          "info": "t:sections.hero-banner.blocks.slide.settings.content_position_vertical.info",
+          "options": [
+            {
+              "value": "justify-start",
+              "label": "t:sections.hero-banner.blocks.slide.settings.content_position_vertical.options.top.label"
+            },
+            {
+              "value": "justify-center",
+              "label": "t:sections.hero-banner.blocks.slide.settings.content_position_vertical.options.center.label"
+            },
+            {
+              "value": "justify-end",
+              "label": "t:sections.hero-banner.blocks.slide.settings.content_position_vertical.options.bottom.label"
+            }
+          ],
+          "default": "justify-end"
+        },
+        {
+          "type": "inline_richtext",
+          "id": "subtitle",
+          "label": "t:sections.hero-banner.blocks.slide.settings.subtitle.label",
+          "default": "Highlight your promotion"
+        },
+        {
+          "type": "inline_richtext",
+          "id": "title",
+          "label": "t:sections.hero-banner.blocks.slide.settings.title.label",
+          "default": "Highlight an image banner"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "t:sections.hero-banner.blocks.slide.settings.content.label"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_vertical_line",
+          "label": "t:sections.hero-banner.blocks.slide.settings.enable_vertical_line.label",
+          "info": "t:sections.hero-banner.blocks.slide.settings.enable_vertical_line.info",
+          "default": true
+        },
+        {
+          "type": "header",
+          "content": "t:sections.hero-banner.blocks.slide.settings.header_button.content"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "t:sections.hero-banner.blocks.slide.settings.button_text.label",
+          "default": "View more"
+        },
+        {
+          "type": "url",
+          "id": "button_url",
+          "label": "t:sections.hero-banner.blocks.slide.settings.button_url.label",
+          "default": "/"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "t:sections.global.settings.button_style.label",
+          "options": [
+            {
+              "value": "button--filled",
+              "label": "t:sections.global.settings.button_style.options.filled.label"
+            },
+            {
+              "value": "button--outlined",
+              "label": "t:sections.global.settings.button_style.options.outlined.label"
+            },
+            {
+              "value": "button--link",
+              "label": "t:sections.global.settings.button_style.options.default.label"
+            }
+          ],
+          "default": "button--filled"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.hero-banner.blocks.slide.settings.header_media_desktop.content",
+          "info": "t:sections.hero-banner.blocks.slide.settings.header_media_desktop.info"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "t:sections.hero-banner.blocks.slide.settings.image.label"
+        },
+        {
+          "type": "video",
+          "id": "video",
+          "label": "t:sections.hero-banner.blocks.slide.settings.video.label",
+          "info": "t:sections.hero-banner.blocks.slide.settings.video.info"
+        },
+        {
+          "type": "video_url",
+          "id": "video_external",
+          "accept": [
+            "youtube",
+            "vimeo"
+          ],
+          "info": "t:sections.hero-banner.blocks.slide.settings.video_external.info",
+          "label": "t:sections.hero-banner.blocks.slide.settings.video_external.label"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_media_overlay_desktop",
+          "label": "t:sections.hero-banner.blocks.slide.settings.enable_media_overlay_desktop.label",
+          "default": true
+        },
+        {
+          "type": "header",
+          "content": "t:sections.hero-banner.blocks.slide.settings.header_media_mobile.content",
+          "info": "t:sections.hero-banner.blocks.slide.settings.header_media_mobile.info"
+        },
+        {
+          "type": "image_picker",
+          "id": "image_mobile",
+          "label": "t:sections.hero-banner.blocks.slide.settings.image_mobile.label"
+        },
+        {
+          "type": "video",
+          "id": "video_mobile",
+          "label": "t:sections.hero-banner.blocks.slide.settings.video_mobile.label",
+          "info": "t:sections.hero-banner.blocks.slide.settings.video_mobile.info"
+        },
+        {
+          "type": "video_url",
+          "id": "video_external_mobile",
+          "accept": [
+            "youtube",
+            "vimeo"
+          ],
+          "label": "t:sections.hero-banner.blocks.slide.settings.video_external_mobile.label",
+          "info": "t:sections.hero-banner.blocks.slide.settings.video_external_mobile.info"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_media_overlay_mobile",
+          "label": "t:sections.hero-banner.blocks.slide.settings.enable_media_overlay_mobile.label",
+          "default": true
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.hero-banner.name",
+      "category": "t:categories.banners.name",
+      "blocks": [
+        {
+          "type": "slide"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

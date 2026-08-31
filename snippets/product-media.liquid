@@ -1,0 +1,194 @@
+{% comment %}
+Renders a slider slide or a modal trigger
+
+Accepts:
+- media: {Object} Liquid media object
+- output_type: {String} Output type. Accepts slider-slide or modal-trigger
+- media_index: {Number} Loop index for translatables
+- modal_id: {String} Modal id
+
+Usage:
+{% render 'product-media', media: product.media, output_type: 'slider-slide' %}
+{% render 'product-media', media: product.media, output_type: 'modal-trigger' %}
+{% endcomment %}
+
+{%- liquid
+  assign media_is_active = false
+  assign current_variant_media = product.selected_or_first_available_variant.featured_media.id
+  if media.id == current_variant_media
+    assign media_is_active = true
+  elsif current_variant_media == blank and media_index == 0
+    assign media_is_active = true
+  endif
+-%}
+
+{%- if output_type == 'slider-slide' -%}
+  <div
+    class="swiper swiper-slide"
+    data-media-id="{{- media.id -}}"
+    data-media-type="{{- media.media_type -}}"
+    data-index="{{- media_index -}}"
+    {%- if media_is_active -%}
+      data-selected
+    {%- endif -%}
+  >
+
+    {% liquid
+      assign padding_bottom_minus_part = 100 | divided_by: media.preview_image.aspect_ratio
+      assign padding_bottom = 0
+
+      if media.preview_image.aspect_ratio < 1
+        assign padding_bottom = padding_bottom_minus_part | minus: 100 | round
+      elsif media.preview_image.aspect_ratio > 1
+        assign padding_bottom = 100 | minus: padding_bottom_minus_part | round
+      endif
+
+      unless preserve_aspect_ratio
+        if media_aspect_ratio == 'default'
+          assign div_class_style = 'class="media media--portrait"'
+        else
+          assign div_class_style = 'class="media" style="padding-block-end: calc(100% / (' | append: media_aspect_ratio | append: '));"'
+        endif
+      else
+        assign padding_bottom = 1 | divided_by: media.preview_image.aspect_ratio | times: 100 | round: 2
+        assign div_class_style = 'class="media" style="padding-block-end: ' | append: padding_bottom | append: '%;"'
+      endunless
+    %}
+
+    <div {{ div_class_style }}>
+      {%- case media.media_type -%}
+        {%- when 'video' -%}
+          {{- media | video_tag: image_size: '600x', muted: true, loop: true -}}
+        {%- when 'external_video' -%}
+          {% render 'external-video', video: media, video_id: media.external_id, video_type: media.host %}
+        {%- else -%}
+          {%- render 'image', image: media, section_index: section_index, media_index: media_index_for_image, alt: media.alt -%}
+      {%- endcase -%}
+    </div>
+
+  </div>
+
+
+{%- elsif output_type == 'slider-slide-thumbs' -%}
+  <div
+    class="swiper-slide swiper"
+    data-media-id="{{- media.id -}}"
+    data-media-type="{{- media.media_type -}}"
+    data-index="{{- media_index -}}"
+    {%- if media_is_active -%}
+      data-selected
+    {%- endif -%}
+  >
+
+    {% liquid
+      assign padding_bottom_minus_part = 100 | divided_by: media.preview_image.aspect_ratio
+      assign padding_bottom = 0
+
+      if media.preview_image.aspect_ratio < 1
+        assign padding_bottom = padding_bottom_minus_part | minus: 100 | round
+      elsif media.preview_image.aspect_ratio > 1
+        assign padding_bottom = 100 | minus: padding_bottom_minus_part | round
+      endif
+
+      assign preserve_aspect_ratio = true
+    %}
+
+    <div class="media media--thumb">
+
+      <div class="media__badge">
+        {%- if media.media_type == 'model' -%}
+          {% render 'icon', icon_name: 'theme-3d-model' %}
+        {%- elsif media.media_type == 'video' or media.media_type == 'external_video' -%}
+          {% render 'icon', icon_name: 'theme-video' %}
+        {%- endif -%}
+      </div>
+
+      {%- render 'image', image: media.preview_image, section_index: section.index, media_index: media_index_for_image, image_url_width: 64, alt: media.alt -%}
+    </div>
+
+  </div>
+
+
+{%- else -%}
+  <div class="product__gallery-opener {% if media_is_active %}is-active{% endif %} no-js-hidden" data-modal-opener-id="{{- media.media_type | handle -}}-{{- media.id -}}">
+    {%- if media.media_type == 'image' -%}
+      <a
+        href="{{- media.preview_image | image_url: width: media.preview_image.width -}}"
+        class="product__gallery-toggle motion-reduce"
+        type="button"
+        aria-haspopup="dialog"
+        data-media-id="{{- media.id -}}"
+        data-pswp-image
+        data-pswp-src="{{- media.preview_image | image_url: width: media.preview_image.width -}}"
+        data-pswp-srcset="{{- image_srcset -}}"
+        data-pswp-width="{{- media.preview_image.width -}}"
+        data-pswp-height="{{- media.preview_image.height -}}"
+        target="_blank"
+        role="button"
+      >
+        {% render 'icon', icon_name: 'theme-zoom' %}
+
+        <span class="visually-hidden">
+          {{- 'products.product.media.open_media' | t: index: media_index -}}
+        </span>
+      </a>
+    {%- elsif media.media_type == 'video' -%}
+      <a
+        href="#"
+        class="product__gallery-toggle motion-reduce"
+        type="button"
+        aria-haspopup="dialog"
+        data-media-id="{{- media.id -}}"
+        data-pswp-type="html"
+        data-pswp-html='{{- media | video_tag: image_size: '2160x', loop: true, autoplay: true, muted: true, controls: true -}}'
+        target="_blank"
+        role="button"
+      >
+        {% render 'icon', icon_name: 'theme-video' %}
+
+        <span class="visually-hidden">
+          {{- 'products.product.media.open_media' | t: index: media_index -}}
+        </span>
+      </a>
+    {%- elsif media.media_type == 'external_video' -%}
+      {%- capture html_external_video -%}
+        {% render 'external-video', video: media, video_id: media.external_id, video_type: media.host %}
+      {%- endcapture -%}
+      <a
+        href="#"
+        class="product__gallery-toggle motion-reduce"
+        type="button"
+        aria-haspopup="dialog"
+        data-media-id="{{- media.id -}}"
+        data-pswp-type="html"
+        data-pswp-html='{{- html_external_video -}}'
+        target="_blank"
+        role="button"
+      >
+        {% render 'icon', icon_name: 'theme-video' %}
+
+        <span class="visually-hidden">
+          {{- 'products.product.media.open_media' | t: index: media_index -}}
+        </span>
+      </a>
+    {%- elsif media.media_type == 'model' -%}
+      <a
+        href="#"
+        class="product__gallery-toggle motion-reduce"
+        type="button"
+        aria-haspopup="dialog"
+        data-media-id="{{- media.id -}}"
+        data-pswp-type="html"
+        data-pswp-html='{{- media | model_viewer_tag -}}'
+        target="_blank"
+        role="button"
+      >
+        {% render 'icon', icon_name: 'theme-3d-model' %}
+
+        <span class="visually-hidden">
+          {{- 'products.product.media.open_media' | t: index: media_index -}}
+        </span>
+      </a>
+    {%- endif -%}
+  </div>
+{%- endif -%}

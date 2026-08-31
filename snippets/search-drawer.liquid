@@ -1,0 +1,62 @@
+{%- comment -%}
+  Accepts:
+
+  - section {Section}
+  - button_class {String}
+  - append_id {String}
+{%- endcomment -%}
+
+<desktop-drawer class="drawer">
+  <details id="Search-drawer-{{- append_id -}}" class="drawer__container">
+    <summary
+      class="drawer__button svg-color-inherit{{ button_class }}"
+      id="Search-drawer-button-{{- append_id -}}"
+      aria-label="{{- 'actions.search' | t -}}"
+      tabindex="0"
+    >
+      {% render 'icon', icon_name: 'theme-search' %}
+
+      <noscript>
+        {% render 'icon', icon_name: 'theme-arrow-close' %}
+      </noscript>
+    </summary>
+
+    <div class="drawer__content js-drawer" id="Search-menu-drawer-{{- append_id -}}" tabindex="-1">
+      <button
+        class="drawer__button-close button-reset svg-color-inherit small-hide medium-hide no-js-hidden js-btn-close-drawer"
+        aria-label="{{- 'actions.close' | t -}}"
+        aria-controls="Search-menu-drawer-{{- append_id -}}"
+        aria-expanded="false"
+      >
+        {% render 'icon', icon_name: 'theme-arrow-close' %}
+      </button>
+
+      <div class="drawer__row">
+        {%- render 'search', input_id: 'desktop', input_class: ' js-drawer-focus-element' -%}
+      </div>
+    </div>
+  </details>
+</desktop-drawer>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.querySelector('input[type="search"].js-drawer-focus-element');
+
+    if (!searchInput) {
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          searchInput.focus();
+        }
+      });
+    }, {
+      root: null,
+      threshold: 0.1
+    });
+
+    observer.observe(searchInput);
+  });
+</script>

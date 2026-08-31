@@ -1,0 +1,64 @@
+{% comment %}
+  Renders a product card for shoppable socials section
+  Accepts:
+  - product_ref: {Object} Product Liquid object
+  - block_index: {Number} Index of the block
+  - index: {Number} Index of product
+  Usage:
+  {%- render 'shoppable-product-card', product_ref: product_ref, block_index: block_index, index: index -%}
+{% endcomment %}
+
+{%- liquid
+  if type == blank
+    assign type = 'default'
+  else
+    assign type = type
+  endif
+  if product_ref.handle
+    assign product_handle = product_ref.handle
+  else
+    assign product_handle = 'placeholder'
+  endif
+-%}
+<shoppable-product-card-thumb
+  data-card-type='{{- type -}}'
+  data-card-id='{{- block_index -}}-{{- index -}}-{{- section.id -}}'
+  data-product='{{- product_handle -}}'
+>
+  <div class='shoppable-product-card__container'>
+    <div class='shoppable-product-card__inner'>
+      <div class='shoppable-product-card__inner-main'>
+        <div class='shoppable-product-card__image-wrapper'>
+          {%- liquid
+            if product_ref.featured_image
+              render 'image', image: product_ref.featured_image
+            else
+              echo 'product-1' | placeholder_svg_tag
+            endif
+          -%}
+        </div>
+
+        <div class='shoppable-product-card__details'>
+          <h6 class='shoppable-product-card__title'>
+            {%- if product_ref and product_ref != empty -%}
+              {{- product_ref.title | escape -}}
+            {%- else -%}
+              {{- 'products.product.title' | t -}}
+            {%- endif -%}
+          </h6>
+
+          {%- render 'price', product_ref: product_ref, price_class: 'card-product__price' -%}
+        </div>
+      </div>
+      <button
+        type='button'
+        class='button button--filled button__shoppable-product-card'
+        aria-expanded="false"
+        aria-controls="shoppable-product-card-thumb"
+        aria-label="Open product card for selected item"
+      >
+        {% render 'icon', icon_name: 'theme-shoppable-bag' %}
+      </button>
+    </div>
+  </div>
+</shoppable-product-card-thumb>

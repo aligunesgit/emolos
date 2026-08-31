@@ -1,0 +1,62 @@
+{%- render 'cart-drawer' -%}
+
+{% schema %}
+{
+  "name": "t:sections.cart-drawer.name",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "sticky_checkout_button",
+      "default": true,
+      "label": "t:sections.cart-drawer.settings.sticky_checkout_button.label"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.cart-drawer.settings.product_cards.content"
+    },
+    {
+      "type": "select",
+      "id": "card_media_aspect_ratio",
+      "label": "t:sections.cart-drawer.settings.product_cards.media_ratio.label",
+      "options": [
+        {
+          "value": "1\/1",
+          "label": "1:1"
+        },
+        {
+          "value": "3\/4",
+          "label": "3:4"
+        },
+        {
+          "value": "5\/6",
+          "label": "5:6"
+        }
+      ],
+      "default": "3\/4"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.cart-drawer.settings.empty_cart_content.content",
+      "info": "t:sections.cart-drawer.settings.empty_cart_content.info"
+    },
+    {
+      "type": "url",
+      "id": "button_url",
+      "label": "t:sections.cart-drawer.settings.empty_cart_content.button_link.label",
+      "default": "/collections/all"
+    },
+    {
+      "type": "header",
+      "content": "t:global.header.settings.content",
+      "info": "t:global.header.settings.info"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:global.settings.color_scheme.label",
+      "default": "scheme-1"
+    }
+  ]
+}
+{% endschema %}
