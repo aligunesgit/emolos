@@ -1,3 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --font-body-family: "Manrope", "Helvetica Neue", Arial, sans-serif;
+  --font-heading-family: "Cormorant Garamond", "Times New Roman", serif;
+  --font-button-family: "Manrope", "Helvetica Neue", Arial, sans-serif;
+}
+
+html {
+  font-family: var(--font-body-family);
+}
+
+body,
+input,
+textarea,
+select,
+button,
+label,
+span,
+a,
+p,
+li {
+  font-family: var(--font-body-family);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+  font-family: var(--font-heading-family);
+  letter-spacing: -0.04em;
+  font-weight: 600;
+  line-height: 0.95;
+}
+
+button,
+button * {
+  font-family: var(--font-button-family);
+}
+
 /* Sahara Theme - v3.0.2 */
 .button--filled {
   --color-button-text: rgb(var(--color-filled-button-label));
