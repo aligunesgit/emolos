@@ -57,9 +57,20 @@ html.no-js .card-collection > a {
   z-index: 2;
 }
 
+.card-collection__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.4) 100%);
+  z-index: 1;
+}
+
 .card-collection__title {
   margin: 0;
-  color: rgb(var(--color-foreground));
+  color: rgb(var(--color-background));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 600;
 }
 
 .card-collection--normal .card-collection__title {
@@ -164,6 +175,16 @@ html.no-js .card-collection > a {
 
 .featured-collections .media--overlay:after {
   height: 100%;
+}
+
+.featured-collections .card-collection__content {
+  inset-inline: 2rem;
+  inset-block-end: 2.2rem;
+}
+
+.featured-collections .card-collection__title {
+  font-size: clamp(1.8rem, 2vw, 3rem);
+  line-height: 0.9;
 }
 
 .featured-collections__slider .card-slider__wrapper {
