@@ -29,7 +29,11 @@
 
   @media screen and (max-width: 749px) {
     #shopify-section-{{ section.id }} {
-      --inner-height: max(calc({{ section_height_mobile }} - var(--announcement-bar-height, var(--default-announcement-bar-height))), 50vh);
+      {%- if section.settings.enable_transparent_header -%}
+        --inner-height: max(calc({{ section_height_mobile }} - var(--announcement-bar-height, var(--default-announcement-bar-height, 0px))), 50vh);
+      {%- else -%}
+        --inner-height: max(calc({{ section_height_mobile }} - var(--announcement-bar-height, var(--default-announcement-bar-height, 0px)) - var(--header-height, var(--default-header-height, 0px))), 50vh);
+      {%- endif -%}
     }
 
     {%- if section.settings.slider_height_mobile == 'auto' -%}
@@ -41,8 +45,12 @@
         grid-template-rows: auto;
       }
     {%- else -%}
-      #shopify-section-{{ section.id }} > div {
+      #shopify-section-{{ section.id }} .hero-banner,
+      #shopify-section-{{ section.id }} .hero__swiper,
+      #shopify-section-{{ section.id }} .hero__swiper-slide,
+      #shopify-section-{{ section.id }} .hero__inner {
         height: var(--inner-height);
+        min-height: var(--inner-height);
       }
     {%- endif -%}
   }
