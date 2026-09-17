@@ -139,7 +139,9 @@
       "settings": {
         "description": "Discover Our New Arrivals",
         "link_label": "SHOP NEW IN",
-        "link": "shopify://collections/all-products"
+        "link": "shopify://collections/all-products",
+        "image": "shopify://shop_images/DSC0840_resized_b1563624-8d0a-4a75-95d2-6344e9003d2d.jpg",
+        "image_mobile": "shopify://shop_images/DSC0840_resized_b1563624-8d0a-4a75-95d2-6344e9003d2d.jpg"
       }
     },
     "1658994245757c7b20": {
