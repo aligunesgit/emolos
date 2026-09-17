@@ -1,0 +1,171 @@
+{{- 'section-shop-by-category.css' | asset_url | stylesheet_tag -}}
+<script src="{{ 'shop-by-category.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign slide_count = section.blocks.size
+-%}
+
+<div class="shop-by-category">
+  {%- if section.settings.eyebrow != blank or section.settings.heading != blank -%}
+    <header class="shop-by-category__header">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="shop-by-category__eyebrow">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+      {%- if section.settings.heading != blank -%}
+        <h2 class="shop-by-category__heading">{{ section.settings.heading }}</h2>
+      {%- endif -%}
+    </header>
+  {%- endif -%}
+
+  {%- if slide_count > 0 -%}
+    <div class="shop-by-category__slider-wrap">
+      <shop-by-category-slider class="swiper shop-by-category__slider">
+        <div class="swiper-wrapper">
+          {%- for block in section.blocks -%}
+            {%- liquid
+              assign card_title = block.settings.title
+              assign card_link = block.settings.link
+              if card_title == blank and block.settings.collection != blank
+                assign card_title = block.settings.collection.title
+              endif
+              if card_link == blank and block.settings.collection != blank
+                assign card_link = block.settings.collection.url
+              endif
+              assign card_image = block.settings.image
+              if card_image == blank and block.settings.collection != blank
+                assign card_image = block.settings.collection.featured_image
+              endif
+            -%}
+            <div class="swiper-slide shop-by-category__slide" {{ block.shopify_attributes }}>
+              <a
+                class="shop-by-category__card"
+                {% if card_link != blank %}href="{{ card_link }}"{% else %}role="link" aria-disabled="true"{% endif %}
+              >
+                <div class="shop-by-category__media">
+                  {%- if card_image != blank -%}
+                    {{
+                      card_image
+                      | image_url: width: 900
+                      | image_tag:
+                        loading: 'lazy',
+                        widths: '240, 360, 480, 720, 900',
+                        sizes: '(min-width: 1200px) 25vw, (min-width: 750px) 33vw, 62vw',
+                        alt: card_title,
+                        class: 'shop-by-category__img'
+                    }}
+                  {%- else -%}
+                    {{ 'collection-1' | placeholder_svg_tag: 'placeholder-svg shop-by-category__img' }}
+                  {%- endif -%}
+                </div>
+                {%- if card_title != blank -%}
+                  <p class="shop-by-category__title">{{ card_title }}</p>
+                {%- endif -%}
+              </a>
+            </div>
+          {%- endfor -%}
+        </div>
+      </shop-by-category-slider>
+
+      {%- if slide_count > 2 -%}
+        <div class="shop-by-category__nav small-hide no-js-hidden">
+          <button type="button" class="swiper-button swiper-button--prev swiper-button--prev-{{ section.id }}" aria-label="Previous">
+            {% render 'icon', icon_name: 'theme-arrow' %}
+          </button>
+          <button type="button" class="swiper-button swiper-button--next swiper-button--next-{{ section.id }}" aria-label="Next">
+            {% render 'icon', icon_name: 'theme-arrow' %}
+          </button>
+        </div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- if section.settings.button_label != blank -%}
+    <div class="shop-by-category__footer">
+      <a
+        class="shop-by-category__button"
+        href="{{ section.settings.button_link | default: routes.all_products_collection_url }}"
+      >
+        {{ section.settings.button_label }}
+      </a>
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Shop by Category",
+  "tag": "section",
+  "class": "section-shop-by-category",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "SIMPLICITY IS THE KEY"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "SHOP BY CATEGORY"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "SHOP ALL"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "category",
+      "name": "Category",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "CATEGORY"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection",
+          "info": "Used for image, title and link when those fields are empty."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Shop by Category",
+      "blocks": [
+        { "type": "category" },
+        { "type": "category" },
+        { "type": "category" },
+        { "type": "category" },
+        { "type": "category" },
+        { "type": "category" }
+      ]
+    }
+  ]
+}
+{% endschema %}
