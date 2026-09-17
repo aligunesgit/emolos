@@ -10,11 +10,11 @@
 
   assign image_alt = section.settings.heading
   if image_alt == blank
-    assign image_alt = section.settings.description | strip_html | strip
+    assign image_alt = section.settings.content | strip_html | strip
   endif
 
   assign has_text = false
-  if section.settings.eyebrow != blank or section.settings.heading != blank or section.settings.description != blank or section.settings.link_label != blank
+  if section.settings.eyebrow != blank or section.settings.heading != blank or section.settings.content != blank or section.settings.link_label != blank
     assign has_text = true
   endif
 
@@ -36,8 +36,8 @@
           <h2 class="new-in__heading">{{ section.settings.heading }}</h2>
         {%- endif -%}
 
-        {%- if section.settings.description != blank -%}
-          <div class="new-in__description">{{ section.settings.description }}</div>
+        {%- if section.settings.content != blank -%}
+          <div class="new-in__description">{{ section.settings.content }}</div>
         {%- endif -%}
 
         {%- if section.settings.link_label != blank -%}
@@ -138,7 +138,7 @@
     },
     {
       "type": "richtext",
-      "id": "description",
+      "id": "content",
       "label": "Description",
       "default": "<p>Discover Our New Arrivals</p>",
       "info": "You can bold, italicize, or mix styles in this text."
