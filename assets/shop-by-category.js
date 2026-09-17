@@ -1,74 +1,134 @@
 if (!customElements.get('shop-by-category-slider')) {
   class ShopByCategorySlider extends HTMLElement {
     connectedCallback() {
-      this.waitForSwiper(() => this.mount());
+      this.track = this.querySelector('.shop-by-category__track');
+      if (!this.track) return;
+
+      this.offset = 0;
+      this.direction = 1;
+      this.speed = 32;
+      this.paused = false;
+      this.setWidth = 0;
+      this.raf = null;
+      this.lastTime = 0;
+      this.originalCount = this.track.querySelectorAll('.shop-by-category__slide:not([data-clone])').length;
+
+      this.prepareLoop();
+      this.sizeSlides();
+      requestAnimationFrame(() => {
+        this.measure();
+        this.start();
+      });
+      this.bind();
     }
 
     disconnectedCallback() {
-      if (this.swiper) {
-        this.swiper.destroy(true, true);
-        this.swiper = null;
-      }
+      this.stop();
+      window.removeEventListener('resize', this.onResize);
     }
 
-    waitForSwiper(callback) {
-      if (typeof Swiper !== 'undefined') {
-        callback();
+    prepareLoop() {
+      this.track.querySelectorAll('[data-clone]').forEach((node) => node.remove());
+      const originals = [...this.track.querySelectorAll('.shop-by-category__slide')];
+      if (originals.length < 2) return;
+
+      originals.forEach((slide) => {
+        const clone = slide.cloneNode(true);
+        clone.setAttribute('data-clone', 'true');
+        clone.setAttribute('aria-hidden', 'true');
+        clone.querySelectorAll('a').forEach((link) => link.setAttribute('tabindex', '-1'));
+        this.track.appendChild(clone);
+      });
+    }
+
+    slideRatio() {
+      const width = window.innerWidth;
+      if (width >= 1140) return 1 / 4.15;
+      if (width >= 750) return 1 / 3.2;
+      return 0.62;
+    }
+
+    sizeSlides() {
+      const slideWidth = Math.round(this.clientWidth * this.slideRatio());
+      this.track.querySelectorAll('.shop-by-category__slide').forEach((slide) => {
+        slide.style.flex = `0 0 ${slideWidth}px`;
+        slide.style.width = `${slideWidth}px`;
+      });
+    }
+
+    measure() {
+      const originals = [...this.track.querySelectorAll('.shop-by-category__slide:not([data-clone])')];
+      if (!originals.length) {
+        this.setWidth = 0;
         return;
       }
 
-      let tries = 0;
-      const timer = setInterval(() => {
-        tries += 1;
-        if (typeof Swiper !== 'undefined' || tries > 40) {
-          clearInterval(timer);
-          if (typeof Swiper !== 'undefined') callback();
-        }
-      }, 50);
+      const first = originals[0].getBoundingClientRect();
+      const last = originals[originals.length - 1].getBoundingClientRect();
+      this.setWidth = last.right - first.left + 2;
     }
 
-    mount() {
-      if (this.swiper || typeof Swiper === 'undefined') return;
-
-      const slideCount = this.querySelectorAll('.swiper-slide').length;
+    bind() {
       const root = this.closest('.shop-by-category');
-      const canLoop = slideCount > 2;
+      const wrap = this.closest('.shop-by-category__slider-wrap');
 
-      this.swiper = new Swiper(this, {
-        slidesPerView: 1.61,
-        spaceBetween: 2,
-        centeredSlides: true,
-        speed: 650,
-        loop: canLoop,
-        grabCursor: true,
-        resistanceRatio: 0.72,
-        followFinger: true,
-        allowTouchMove: slideCount > 1,
-        watchOverflow: true,
-        autoplay: canLoop
-          ? {
-              delay: 2800,
-              disableOnInteraction: false,
-              pauseOnMouseEnter: true
-            }
-          : false,
-        navigation: {
-          nextEl: root ? root.querySelector('.shop-by-category__nav .swiper-button--next') : null,
-          prevEl: root ? root.querySelector('.shop-by-category__nav .swiper-button--prev') : null
-        },
-        breakpoints: {
-          750: {
-            slidesPerView: 3.2,
-            spaceBetween: 2,
-            centeredSlides: true
-          },
-          1140: {
-            slidesPerView: 4.15,
-            spaceBetween: 2,
-            centeredSlides: true
-          }
+      const pause = () => {
+        this.paused = true;
+      };
+      const resume = () => {
+        this.paused = false;
+        this.lastTime = 0;
+      };
+
+      wrap.addEventListener('mouseenter', pause);
+      wrap.addEventListener('mouseleave', resume);
+      wrap.addEventListener('touchstart', pause, { passive: true });
+      wrap.addEventListener('touchend', resume, { passive: true });
+      wrap.addEventListener('touchcancel', resume, { passive: true });
+
+      const prev = root && root.querySelector('.shop-by-category__nav-button--prev');
+      const next = root && root.querySelector('.shop-by-category__nav-button--next');
+      if (prev) prev.addEventListener('click', () => { this.direction = -1; });
+      if (next) next.addEventListener('click', () => { this.direction = 1; });
+
+      this.onResize = () => {
+        this.sizeSlides();
+        this.measure();
+        this.offset = this.setWidth ? this.offset % this.setWidth : 0;
+        this.render();
+      };
+      window.addEventListener('resize', this.onResize);
+    }
+
+    start() {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (this.originalCount < 2 || this.setWidth <= 0) return;
+
+      const tick = (time) => {
+        if (!this.lastTime) this.lastTime = time;
+        const delta = (time - this.lastTime) / 1000;
+        this.lastTime = time;
+
+        if (!this.paused && this.setWidth > 0) {
+          this.offset += this.speed * this.direction * delta;
+          if (this.offset >= this.setWidth) this.offset -= this.setWidth;
+          if (this.offset < 0) this.offset += this.setWidth;
+          this.render();
         }
-      });
+
+        this.raf = requestAnimationFrame(tick);
+      };
+
+      this.raf = requestAnimationFrame(tick);
+    }
+
+    render() {
+      this.track.style.transform = `translate3d(${-this.offset}px, 0, 0)`;
+    }
+
+    stop() {
+      if (this.raf) cancelAnimationFrame(this.raf);
+      this.raf = null;
     }
   }
 
