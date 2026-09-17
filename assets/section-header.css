@@ -876,34 +876,46 @@ html.js .header__drawer > .drawer__container[open] > .drawer__content {
 /* Choix-style mobile menu */
 @media screen and (max-width: 989px) {
   html.no-js .header__drawer > .drawer__container[open],
-  html.js .header__drawer > .drawer__container > .drawer__content {
-    inset-block-start: 0;
+  html.js .header__drawer.drawer--start > .drawer__container > .drawer__content,
+  html.js .header__drawer > .drawer__container > .drawer__content,
+  html.js .header__drawer > .drawer__container[open] > .drawer__content,
+  html.js .header__drawer > .drawer__container.menu-opening > .drawer__content {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    inset-block-start: 0 !important;
+    inset-block-end: 0;
     inset-inline-end: 0;
-    inset-inline-start: auto;
-    width: calc(100% - 65px);
-    max-width: none;
-    height: 100%;
-    padding: 0 18px 24px;
-    margin-block-start: 0;
+    inset-inline-start: auto !important;
+    width: calc(100% - clamp(52px, 16.7vw, 72px)) !important;
+    max-width: none !important;
+    height: 100% !important;
+    padding: 0 18px 24px !important;
+    margin-block-start: 0 !important;
     background-color: #fff;
     font-family: Oswald, sans-serif;
     overflow-y: auto;
+    z-index: 10000;
     transform: translateX(100%);
   }
 
+  html.js .header__drawer.drawer--start > .drawer__container.menu-opening > .drawer__content,
   html.js .header__drawer > .drawer__container.menu-opening > .drawer__content,
   html.no-js .header__drawer > .drawer__container[open] {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) !important;
   }
 
   .header.has-bottom-border .header__drawer > .drawer__container[open] > .drawer__content {
-    margin-block-start: 0;
+    margin-block-start: 0 !important;
   }
 
-  .header__drawer > .drawer__container > .drawer__button::after {
+  .header__drawer > .drawer__container > .drawer__button::after,
+  .header__drawer > .drawer__container.menu-opening > .drawer__button::after {
     display: block;
     background-color: rgba(54, 54, 54, 0.5);
+    z-index: 9999;
   }
 
   .header__drawer > .drawer__container.menu-opening > .drawer__button > svg:nth-child(1),
@@ -921,25 +933,37 @@ html.js .header__drawer > .drawer__container[open] > .drawer__content {
   }
 
   .header__drawer .mobile-menu__bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    display: block;
+    position: relative;
+    height: 60px;
     min-height: 60px;
-    padding-inline-end: 4px;
-    position: sticky;
-    inset-block-start: 0;
-    z-index: 3;
+    padding: 0;
     background: #fff;
+    z-index: 3;
   }
 
   .header__drawer .mobile-menu__localization {
     display: block;
+    position: absolute;
+    top: 11px;
+    left: 0;
+    right: 48px;
     min-width: 0;
-    flex: 1;
   }
 
   .header__drawer .mobile-menu__loc {
     position: relative;
+  }
+
+  .header__drawer .mobile-menu__loc-button,
+  .header__drawer .mobile-menu__loc-text {
+    font-family: Oswald, sans-serif !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    line-height: 1.65 !important;
+    letter-spacing: 0.02em !important;
+    text-transform: uppercase !important;
+    color: #000 !important;
   }
 
   .header__drawer .mobile-menu__loc-button {
@@ -948,16 +972,10 @@ html.js .header__drawer > .drawer__container[open] > .drawer__content {
     gap: 6px;
     list-style: none;
     cursor: pointer;
-    font-family: Oswald, sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 1.65;
-    letter-spacing: 0;
-    text-transform: uppercase;
-    color: #000;
     background: none;
     border: 0;
-    padding: 2px 0;
+    padding: 2px 18px 2px 0;
+    margin: 0;
   }
 
   .header__drawer .mobile-menu__loc > summary {
@@ -970,7 +988,9 @@ html.js .header__drawer > .drawer__container[open] > .drawer__content {
 
   .header__drawer .mobile-menu__loc-caret {
     flex-shrink: 0;
-    margin-inline-start: 2px;
+    width: 11px;
+    height: 7px;
+    margin-inline-start: 4px;
   }
 
   .header__drawer .mobile-menu__loc-list {
@@ -1009,12 +1029,16 @@ html.js .header__drawer > .drawer__container[open] > .drawer__content {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: absolute;
+    top: 23px;
+    right: 0;
     width: 22px;
     height: 22px;
     flex-shrink: 0;
-    margin-inline-start: auto;
+    margin: 0;
     color: #000;
     line-height: 0;
+    z-index: 4;
   }
 
   .header__drawer .mobile-menu__close svg {
