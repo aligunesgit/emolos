@@ -22,9 +22,17 @@
   if section.settings.link != blank or section.settings.link_label != blank
     assign has_link = true
   endif
+
+  assign image_position = section.settings.layout
+  if image_position == blank
+    assign image_position = section.settings.image_position
+  endif
+  if image_position == blank
+    assign image_position = 'right'
+  endif
 -%}
 
-<div class="new-in new-in--image-{{ section.settings.image_position | default: 'right' }}">
+<div class="new-in new-in--image-{{ image_position }}">
   {%- if has_text -%}
     <div class="new-in__content">
       <div class="new-in__content-inner">
@@ -125,6 +133,30 @@
   },
   "settings": [
     {
+      "type": "header",
+      "content": "Desktop layout"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Image position",
+      "options": [
+        {
+          "value": "right",
+          "label": "Right"
+        },
+        {
+          "value": "left",
+          "label": "Left"
+        }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
       "type": "text",
       "id": "eyebrow",
       "label": "Eyebrow",
@@ -155,20 +187,8 @@
       "label": "Link"
     },
     {
-      "type": "select",
-      "id": "image_position",
-      "label": "Desktop image position",
-      "options": [
-        {
-          "value": "right",
-          "label": "Right"
-        },
-        {
-          "value": "left",
-          "label": "Left"
-        }
-      ],
-      "default": "right"
+      "type": "header",
+      "content": "Image"
     },
     {
       "type": "image_picker",
@@ -184,7 +204,14 @@
   ],
   "presets": [
     {
-      "name": "New In"
+      "name": "New In",
+      "settings": {
+        "layout": "right",
+        "eyebrow": "TRENDING",
+        "heading": "NEW ARRIVALS",
+        "content": "<p>Discover Our New Arrivals</p>",
+        "link_label": "SHOP NEW IN"
+      }
     }
   ]
 }
