@@ -25,7 +25,9 @@
         {%-
           liquid
           assign label = 'search.label' | t
-          assign placeholder = 'search.placeholder' | t
+          if placeholder == blank
+            assign placeholder = 'search.placeholder' | t
+          endif
           assign id = 'search-' | append: input_id
           render 'text-input', type: 'search', label: label, placeholder: placeholder, id: id, name: 'q', hide_label: true, class: 'field--search', attr: attr, input_class: input_class
           assign label = nil
