@@ -155,8 +155,13 @@ shop-by-category-slider.shop-by-category__slider {
     padding-block-start: 4rem;
   }
 
+  .shop-by-category__header {
+    margin: 0 0 40px;
+  }
+
   .shop-by-category__heading {
-    font-size: 2.8rem;
+    font-size: 22px;
+    line-height: 36.3px;
   }
 
   .shop-by-category__media {
@@ -176,16 +181,12 @@ shop-by-category-slider.shop-by-category__slider {
     white-space: normal;
   }
 
-  .shop-by-category__header {
-    padding-block-end: 40px;
-  }
-
   .shop-by-category__nav {
     display: flex;
     position: absolute;
     right: 40px;
-    bottom: 0;
     top: auto;
+    bottom: 0;
     transform: none;
     z-index: 2;
     gap: 5px;
@@ -206,15 +207,10 @@ shop-by-category-slider.shop-by-category__slider {
   }
 
   .shop-by-category__nav-button svg {
+    display: block;
     width: 25px;
     height: 45px;
     fill: currentColor;
     stroke: none;
-  }
-}
-
-@media screen and (min-width: 1200px) {
-  .shop-by-category__heading {
-    font-size: 3.2rem;
   }
 }

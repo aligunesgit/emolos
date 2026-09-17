@@ -8,6 +8,8 @@ if (!customElements.get('shop-by-category-slider')) {
       this.direction = 1;
       this.speed = 32;
       this.paused = false;
+      this.hovering = false;
+      this.animating = false;
       this.setWidth = 0;
       this.raf = null;
       this.lastTime = 0;
@@ -73,11 +75,15 @@ if (!customElements.get('shop-by-category-slider')) {
       const wrap = this.closest('.shop-by-category__slider-wrap');
 
       const pause = () => {
+        this.hovering = true;
         this.paused = true;
       };
       const resume = () => {
-        this.paused = false;
-        this.lastTime = 0;
+        this.hovering = false;
+        if (!this.animating) {
+          this.paused = false;
+          this.lastTime = 0;
+        }
       };
 
       wrap.addEventListener('mouseenter', pause);
@@ -88,8 +94,13 @@ if (!customElements.get('shop-by-category-slider')) {
 
       const prev = root && root.querySelector('.shop-by-category__nav-button--prev');
       const next = root && root.querySelector('.shop-by-category__nav-button--next');
-      if (prev) prev.addEventListener('click', () => { this.direction = -1; });
-      if (next) next.addEventListener('click', () => { this.direction = 1; });
+      const nav = root && root.querySelector('.shop-by-category__nav');
+      if (prev) prev.addEventListener('click', () => this.slideBy(-1));
+      if (next) next.addEventListener('click', () => this.slideBy(1));
+      if (nav) {
+        nav.addEventListener('mouseenter', pause);
+        nav.addEventListener('mouseleave', resume);
+      }
 
       this.onResize = () => {
         this.sizeSlides();
@@ -109,7 +120,7 @@ if (!customElements.get('shop-by-category-slider')) {
         const delta = (time - this.lastTime) / 1000;
         this.lastTime = time;
 
-        if (!this.paused && this.setWidth > 0) {
+        if (!this.paused && !this.animating && this.setWidth > 0) {
           this.offset += this.speed * this.direction * delta;
           if (this.offset >= this.setWidth) this.offset -= this.setWidth;
           if (this.offset < 0) this.offset += this.setWidth;
@@ -120,6 +131,60 @@ if (!customElements.get('shop-by-category-slider')) {
       };
 
       this.raf = requestAnimationFrame(tick);
+    }
+
+    slideWidth() {
+      const slide = this.track.querySelector('.shop-by-category__slide');
+      if (!slide) return 0;
+      return slide.getBoundingClientRect().width + 2;
+    }
+
+    wrapOffset(value) {
+      if (!this.setWidth) return 0;
+      return ((value % this.setWidth) + this.setWidth) % this.setWidth;
+    }
+
+    slideBy(direction) {
+      if (this.animating || !this.setWidth) return;
+
+      const distance = this.slideWidth();
+      if (!distance) return;
+
+      this.animating = true;
+      this.paused = true;
+
+      let start = this.offset;
+      if (direction < 0 && start < distance) {
+        start += this.setWidth;
+        this.offset = start;
+        this.render();
+      }
+
+      const end = start + direction * distance;
+      const duration = 450;
+      const startedAt = performance.now();
+      const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+
+      const step = (now) => {
+        const progress = Math.min(1, (now - startedAt) / duration);
+        this.offset = start + (end - start) * easeOut(progress);
+        this.render();
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+          return;
+        }
+
+        this.offset = this.wrapOffset(end);
+        this.render();
+        this.animating = false;
+        if (!this.hovering) {
+          this.paused = false;
+          this.lastTime = 0;
+        }
+      };
+
+      requestAnimationFrame(step);
     }
 
     render() {
