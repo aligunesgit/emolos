@@ -97,6 +97,14 @@ html.no-js .hero__swiper-slide {
   height: 100%;
 }
 
+.hero-banner--full .hero__media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .hero-banner--split .hero__media {
   padding: 0;
   height: 100%;
@@ -219,7 +227,6 @@ html.no-js .hero__swiper-slide {
   .hero__inner {
     text-align: center;
     align-items: flex-end;
-    /* justify-content: center; */
   }
 
   .hero__inner.hero-banner--30-70,
@@ -229,6 +236,34 @@ html.no-js .hero__swiper-slide {
 
   .hero__inner.hero-banner--50-50 {
     grid-template-rows: 2fr 2fr;
+  }
+
+  .hero-banner--full .hero__content,
+  .hero-banner--full .hero__content.align-start,
+  .hero-banner--full .hero__content.align-end,
+  .hero-banner--full .hero__content.text-left,
+  .hero-banner--full .hero__content.text-right,
+  .hero-banner--full .hero__content.text-start,
+  .hero-banner--full .hero__content.text-end {
+    align-items: center;
+    text-align: center;
+  }
+
+  .hero-banner--full .hero__title,
+  .hero-banner--full .hero__subtitle,
+  .hero-banner--full .hero__entry,
+  .hero-banner--full .hero__entry p,
+  .hero-banner--full .hero__button {
+    text-align: center;
+    margin-inline: auto;
+  }
+
+  .hero-banner--full .hero__content {
+    padding-block-end: 2.4rem;
+  }
+
+  .hero-banner--full .hero__button {
+    margin-block-end: 0;
   }
 }
 
