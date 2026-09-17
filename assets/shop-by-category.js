@@ -1,44 +1,74 @@
 if (!customElements.get('shop-by-category-slider')) {
   class ShopByCategorySlider extends HTMLElement {
     connectedCallback() {
-      const start = () => {
-        if (this.swiper || typeof Swiper === 'undefined') return;
+      this.waitForSwiper(() => this.mount());
+    }
 
-        const slideCount = this.querySelectorAll('.swiper-slide').length;
-        const wrap = this.closest('.shop-by-category__slider-wrap');
-
-        this.swiper = new Swiper(this, {
-          slidesPerView: 1.61,
-          spaceBetween: 2,
-          speed: 500,
-          rewind: slideCount > 2,
-          grabCursor: true,
-          resistanceRatio: 0.72,
-          followFinger: true,
-          allowTouchMove: slideCount > 1,
-          watchOverflow: true,
-          navigation: {
-            nextEl: wrap ? wrap.querySelector('.swiper-button--next') : null,
-            prevEl: wrap ? wrap.querySelector('.swiper-button--prev') : null
-          },
-          breakpoints: {
-            750: {
-              slidesPerView: 3,
-              spaceBetween: 2
-            },
-            1200: {
-              slidesPerView: 4,
-              spaceBetween: 2
-            }
-          }
-        });
-      };
-
-      if (typeof Swiper !== 'undefined') {
-        start();
-      } else {
-        window.addEventListener('load', start, { once: true });
+    disconnectedCallback() {
+      if (this.swiper) {
+        this.swiper.destroy(true, true);
+        this.swiper = null;
       }
+    }
+
+    waitForSwiper(callback) {
+      if (typeof Swiper !== 'undefined') {
+        callback();
+        return;
+      }
+
+      let tries = 0;
+      const timer = setInterval(() => {
+        tries += 1;
+        if (typeof Swiper !== 'undefined' || tries > 40) {
+          clearInterval(timer);
+          if (typeof Swiper !== 'undefined') callback();
+        }
+      }, 50);
+    }
+
+    mount() {
+      if (this.swiper || typeof Swiper === 'undefined') return;
+
+      const slideCount = this.querySelectorAll('.swiper-slide').length;
+      const root = this.closest('.shop-by-category');
+      const canLoop = slideCount > 2;
+
+      this.swiper = new Swiper(this, {
+        slidesPerView: 1.61,
+        spaceBetween: 2,
+        centeredSlides: true,
+        speed: 650,
+        loop: canLoop,
+        grabCursor: true,
+        resistanceRatio: 0.72,
+        followFinger: true,
+        allowTouchMove: slideCount > 1,
+        watchOverflow: true,
+        autoplay: canLoop
+          ? {
+              delay: 2800,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true
+            }
+          : false,
+        navigation: {
+          nextEl: root ? root.querySelector('.shop-by-category__nav .swiper-button--next') : null,
+          prevEl: root ? root.querySelector('.shop-by-category__nav .swiper-button--prev') : null
+        },
+        breakpoints: {
+          750: {
+            slidesPerView: 3.2,
+            spaceBetween: 2,
+            centeredSlides: true
+          },
+          1140: {
+            slidesPerView: 4.15,
+            spaceBetween: 2,
+            centeredSlides: true
+          }
+        }
+      });
     }
   }
 
