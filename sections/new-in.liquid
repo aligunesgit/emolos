@@ -1,0 +1,137 @@
+{{- 'section-new-in.css' | asset_url | stylesheet_tag -}}
+
+{%- liquid
+  assign new_in_image = section.settings.image
+  if section.settings.image_mobile != blank
+    assign new_in_image_mobile = section.settings.image_mobile
+  else
+    assign new_in_image_mobile = new_in_image
+  endif
+-%}
+
+<div class="new-in">
+  {%- if section.settings.description != blank or section.settings.link_label != blank -%}
+    <div class="new-in__content">
+      {%- if section.settings.description != blank -%}
+        <p class="new-in__description">{{ section.settings.description }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.link_label != blank -%}
+        <a
+          class="new-in__link"
+          href="{{ section.settings.link | default: routes.all_products_collection_url }}"
+        >
+          {{ section.settings.link_label }}
+        </a>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- if new_in_image != blank or new_in_image_mobile != blank -%}
+    {%- if section.settings.link != blank or section.settings.link_label != blank -%}
+      <a
+        class="new-in__media"
+        href="{{ section.settings.link | default: routes.all_products_collection_url }}"
+        aria-label="{{ section.settings.link_label | default: section.settings.description | escape }}"
+      >
+    {%- else -%}
+      <div class="new-in__media">
+    {%- endif -%}
+      {%- if new_in_image != blank and new_in_image_mobile != blank and new_in_image != new_in_image_mobile -%}
+        <picture>
+          <source
+            media="(max-width: 749px)"
+            srcset="{{ new_in_image_mobile | image_url: width: 400 }} 400w, {{ new_in_image_mobile | image_url: width: 600 }} 600w, {{ new_in_image_mobile | image_url: width: 800 }} 800w, {{ new_in_image_mobile | image_url: width: 1000 }} 1000w, {{ new_in_image_mobile | image_url: width: 1200 }} 1200w"
+            sizes="100vw"
+          >
+          {{
+            new_in_image
+            | image_url: width: 2000
+            | image_tag:
+              loading: 'lazy',
+              widths: '800, 1000, 1200, 1600, 2000',
+              sizes: '100vw',
+              alt: section.settings.description,
+              class: 'new-in__img'
+          }}
+        </picture>
+      {%- elsif new_in_image_mobile != blank and new_in_image == blank -%}
+        {{
+          new_in_image_mobile
+          | image_url: width: 2000
+          | image_tag:
+            loading: 'lazy',
+            widths: '400, 600, 800, 1000, 1200, 1600, 2000',
+            sizes: '100vw',
+            alt: section.settings.description,
+            class: 'new-in__img'
+        }}
+      {%- else -%}
+        {{
+          new_in_image
+          | image_url: width: 2000
+          | image_tag:
+            loading: 'lazy',
+            widths: '400, 600, 800, 1000, 1200, 1600, 2000',
+            sizes: '100vw',
+            alt: section.settings.description,
+            class: 'new-in__img'
+        }}
+      {%- endif -%}
+    {%- if section.settings.link != blank or section.settings.link_label != blank -%}
+      </a>
+    {%- else -%}
+      </div>
+    {%- endif -%}
+  {%- else -%}
+    <div class="new-in__media">
+      {{ 'collection-1' | placeholder_svg_tag: 'placeholder-svg new-in__img' }}
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "New In",
+  "tag": "section",
+  "class": "section-new-in",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Discover Our New Arrivals"
+    },
+    {
+      "type": "text",
+      "id": "link_label",
+      "label": "Link label",
+      "default": "SHOP NEW IN"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Link"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_mobile",
+      "label": "Mobile image",
+      "info": "Optional. Desktop image is used on mobile when empty."
+    }
+  ],
+  "presets": [
+    {
+      "name": "New In"
+    }
+  ]
+}
+{% endschema %}
