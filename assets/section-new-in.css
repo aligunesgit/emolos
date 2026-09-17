@@ -1,6 +1,7 @@
 .new-in {
   background-color: #ffffff;
   color: #000000;
+  padding-block-start: 2rem;
 }
 
 .new-in__content {
@@ -8,14 +9,64 @@
   text-align: center;
 }
 
+.new-in__content-inner {
+  margin: 0 auto;
+}
+
+.new-in__eyebrow {
+  display: block;
+  margin: 0 0 1.3rem;
+  font-family: var(--font-heading-family);
+  font-size: 1.3rem;
+  font-weight: 500;
+  line-height: 1.65;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #000000;
+}
+
+.new-in__heading {
+  margin: 1.6rem 0 1.8rem;
+  font-family: var(--font-heading-family);
+  font-size: 2.2rem;
+  font-weight: 600;
+  line-height: 1.65;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: #000000;
+}
+
 .new-in__description {
-  margin: 0 0 2rem;
+  margin: 2.5rem 0 2rem;
   font-family: var(--font-body-family);
   font-size: 1.4rem;
   font-weight: 400;
   line-height: 2.31rem;
   letter-spacing: 0;
   color: #000000;
+}
+
+.new-in__description p {
+  margin: 0;
+}
+
+.new-in__description p + p {
+  margin-top: 0.8em;
+}
+
+.new-in__description strong,
+.new-in__description b {
+  font-weight: 700;
+}
+
+.new-in__description em,
+.new-in__description i {
+  font-style: italic;
+}
+
+.new-in__description a {
+  color: inherit;
+  text-decoration: underline;
 }
 
 .new-in__link {
@@ -60,7 +111,51 @@
 }
 
 @media screen and (min-width: 750px) {
+  .new-in {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+    width: 70%;
+    max-width: 70%;
+    margin-inline: auto;
+    padding-block-start: 8rem;
+  }
+
+  .new-in--image-left .new-in__media {
+    order: -1;
+  }
+
   .new-in__content {
-    padding: 5rem 4rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 5rem 4rem 5rem 5rem;
+    text-align: left;
+  }
+
+  .new-in--image-left .new-in__content {
+    padding: 5rem 5rem 5rem 4rem;
+  }
+
+  .new-in__content-inner {
+    max-width: 43rem;
+    margin: 0;
+    width: 100%;
+  }
+
+  .new-in__heading {
+    font-size: 2.2rem;
+    line-height: 3.63rem;
+  }
+}
+
+@media screen and (min-width: 1140px) {
+  .new-in--image-right .new-in__content {
+    padding-right: 10rem;
+  }
+
+  .new-in--image-left .new-in__content {
+    padding-left: 10rem;
   }
 }
