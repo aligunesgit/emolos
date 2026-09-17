@@ -14,6 +14,21 @@
       {%- if section.settings.heading != blank -%}
         <h2 class="shop-by-category__heading">{{ section.settings.heading }}</h2>
       {%- endif -%}
+
+      {%- if slide_count > 2 -%}
+        <div class="shop-by-category__nav small-hide no-js-hidden">
+          <button type="button" class="shop-by-category__nav-button shop-by-category__nav-button--prev swiper-button--prev" aria-label="Previous">
+            <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+              <path d="M 20,50 L 60,90 L 60,85 L 25,50 L 60,15 L 60,10 Z"></path>
+            </svg>
+          </button>
+          <button type="button" class="shop-by-category__nav-button shop-by-category__nav-button--next swiper-button--next" aria-label="Next">
+            <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+              <path d="M 20,50 L 60,90 L 60,85 L 25,50 L 60,15 L 60,10 Z"></path>
+            </svg>
+          </button>
+        </div>
+      {%- endif -%}
     </header>
   {%- endif -%}
 
@@ -65,17 +80,6 @@
           {%- endfor -%}
         </div>
       </shop-by-category-slider>
-
-      {%- if slide_count > 2 -%}
-        <div class="shop-by-category__nav small-hide no-js-hidden">
-          <button type="button" class="swiper-button swiper-button--prev swiper-button--prev-{{ section.id }}" aria-label="Previous">
-            {% render 'icon', icon_name: 'theme-arrow' %}
-          </button>
-          <button type="button" class="swiper-button swiper-button--next swiper-button--next-{{ section.id }}" aria-label="Next">
-            {% render 'icon', icon_name: 'theme-arrow' %}
-          </button>
-        </div>
-      {%- endif -%}
     </div>
   {%- endif -%}
 
