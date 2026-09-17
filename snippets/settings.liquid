@@ -174,7 +174,7 @@
     --grid-vertical-spacing: {{ settings.spacing_grid_vertical | times: 0.5 | round: 1 }}rem;
 
     /* typography - heading */
-    --font-heading-family: {{ settings.type_heading_font.family }}, {{ settings.type_heading_font.fallback_families }};
+    --font-heading-family: "Instrument Sans", Helvetica, Arial, sans-serif;
     --font-heading-style: {{ settings.type_heading_font.style }};
     --font-heading-weight: {{ settings.type_heading_font.weight }};
 
@@ -183,7 +183,7 @@
     --font-heading-text-transform: {{ settings.heading_text_transform }};
 
     /* typography - body */
-    --font-body-family: {{ settings.type_body_font.family }}, {{ settings.type_body_font.fallback_families }};
+    --font-body-family: Helvetica, Arial, sans-serif;
     --font-body-style: {{ settings.type_body_font.style }};
     --font-body-weight: {{ settings.type_body_font.weight }};
 
@@ -191,7 +191,7 @@
     --font-body-letter-spacing: {{ settings.body_letter_spacing }};
 
     /* typography - button */
-    --font-button-family: {{ settings.type_button_font.family }}, {{ settings.type_button_font.fallback_families }};
+    --font-button-family: Helvetica, Arial, sans-serif;
     --font-button-style: {{ settings.type_button_font.style }};
     --font-button-weight: {{ settings.type_button_font.weight }};
 
@@ -201,9 +201,9 @@
 
     /* rtl: 'arial' as a fallback font for rtl languages */
     {%- if request.locale.iso_code == 'ar' or request.locale.iso_code == 'he' -%}
-      --font-body-family: {{ settings.type_body_font.family }}, Arial, {{ settings.type_body_font.fallback_families }};
-      --font-heading-family: {{ settings.type_heading_font.family }}, Arial, {{ settings.type_heading_font.fallback_families }};
-      --font-button-family: {{ settings.type_button_font.family }}, Arial, {{ settings.type_button_font.fallback_families }};
+      --font-body-family: Helvetica, Arial, sans-serif;
+      --font-heading-family: "Instrument Sans", Helvetica, Arial, sans-serif;
+      --font-button-family: Helvetica, Arial, sans-serif;
     {%- endif -%}
 
     /* font weight */
