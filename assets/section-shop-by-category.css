@@ -9,7 +9,7 @@
   position: relative;
   text-align: center;
   padding-inline: 2.4rem;
-  margin: 0 0 4rem;
+  margin: 0;
 }
 
 .shop-by-category__eyebrow {
@@ -122,18 +122,19 @@ shop-by-category-slider.shop-by-category__slider {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: max-content;
-  min-width: 0;
+  width: 103px;
+  min-width: 103px;
+  max-width: 103px;
   min-height: 47px;
   height: 47px;
-  padding: 14px 28px;
+  padding: 14px 20px;
   background-color: #000000;
   color: #ffffff;
   border: 1px solid #000000;
   font-family: var(--font-button-family);
   font-size: 12px;
   font-weight: 500;
-  letter-spacing: normal;
+  letter-spacing: 0;
   line-height: 1;
   text-transform: uppercase;
   text-decoration: none;
@@ -175,13 +176,19 @@ shop-by-category-slider.shop-by-category__slider {
     white-space: normal;
   }
 
+  .shop-by-category__header {
+    padding-block-end: 40px;
+  }
+
   .shop-by-category__nav {
     display: flex;
     position: absolute;
-    top: -70px;
     right: 40px;
+    bottom: 0;
+    top: auto;
+    transform: none;
     z-index: 2;
-    gap: 0.4rem;
+    gap: 5px;
     align-items: center;
   }
 

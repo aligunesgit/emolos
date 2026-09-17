@@ -14,11 +14,7 @@
       {%- if section.settings.heading != blank -%}
         <h2 class="shop-by-category__heading">{{ section.settings.heading }}</h2>
       {%- endif -%}
-    </header>
-  {%- endif -%}
 
-  {%- if slide_count > 0 -%}
-    <div class="shop-by-category__slider-wrap">
       {%- if slide_count > 2 -%}
         <div class="shop-by-category__nav small-hide no-js-hidden">
           <button type="button" class="shop-by-category__nav-button shop-by-category__nav-button--prev" aria-label="Previous">
@@ -33,7 +29,11 @@
           </button>
         </div>
       {%- endif -%}
+    </header>
+  {%- endif -%}
 
+  {%- if slide_count > 0 -%}
+    <div class="shop-by-category__slider-wrap">
       <shop-by-category-slider class="shop-by-category__slider">
         <div class="shop-by-category__track">
           {%- for block in section.blocks -%}
