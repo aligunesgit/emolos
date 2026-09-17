@@ -144,6 +144,17 @@
         "image_mobile": "shopify://shop_images/DSC0840_resized_b1563624-8d0a-4a75-95d2-6344e9003d2d.jpg"
       }
     },
+    "new_in_ygQJVi": {
+      "type": "new-in",
+      "name": "New In",
+      "settings": {
+        "description": "Discover Our New Arrivals",
+        "link_label": "SHOP NEW IN",
+        "link": "",
+        "image": "shopify://shop_images/DSC0968_resized_0cf4a2c9-0872-4594-95cd-f721ecb985b7.jpg",
+        "image_mobile": "shopify://shop_images/DSC0968_resized_0cf4a2c9-0872-4594-95cd-f721ecb985b7.jpg"
+      }
+    },
     "1658994245757c7b20": {
       "type": "featured-products",
       "blocks": {
@@ -409,6 +420,7 @@
     "1658995208ad05f95f",
     "shop_by_category_main",
     "new_in_main",
+    "new_in_ygQJVi",
     "1658994245757c7b20",
     "hero_alt_bDdiTf",
     "16e24524-2040-41a4-b5ca-3a425d62879b",
