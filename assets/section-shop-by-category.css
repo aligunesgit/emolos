@@ -156,7 +156,8 @@ shop-by-category-slider.shop-by-category__slider {
   }
 
   .shop-by-category__header {
-    margin: 0 0 40px;
+    margin: 0;
+    padding-bottom: 70px;
   }
 
   .shop-by-category__heading {
@@ -186,7 +187,7 @@ shop-by-category-slider.shop-by-category__slider {
     position: absolute;
     right: 40px;
     top: auto;
-    bottom: 0;
+    bottom: 12px;
     transform: none;
     z-index: 2;
     gap: 5px;
@@ -197,7 +198,7 @@ shop-by-category-slider.shop-by-category__slider {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 25px;
+    width: 30px;
     height: 45px;
     padding: 0;
     background: transparent;
@@ -208,8 +209,8 @@ shop-by-category-slider.shop-by-category__slider {
 
   .shop-by-category__nav-button svg {
     display: block;
-    width: 25px;
-    height: 45px;
+    width: 30px;
+    height: 30px;
     fill: currentColor;
     stroke: none;
   }
