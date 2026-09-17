@@ -7,32 +7,57 @@
   else
     assign new_in_image_mobile = new_in_image
   endif
+
+  assign image_alt = section.settings.heading
+  if image_alt == blank
+    assign image_alt = section.settings.description | strip_html | strip
+  endif
+
+  assign has_text = false
+  if section.settings.eyebrow != blank or section.settings.heading != blank or section.settings.description != blank or section.settings.link_label != blank
+    assign has_text = true
+  endif
+
+  assign has_link = false
+  if section.settings.link != blank or section.settings.link_label != blank
+    assign has_link = true
+  endif
 -%}
 
 <div class="new-in">
-  {%- if section.settings.description != blank or section.settings.link_label != blank -%}
+  {%- if has_text -%}
     <div class="new-in__content">
-      {%- if section.settings.description != blank -%}
-        <p class="new-in__description">{{ section.settings.description }}</p>
-      {%- endif -%}
+      <div class="new-in__content-inner">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="new-in__eyebrow">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
 
-      {%- if section.settings.link_label != blank -%}
-        <a
-          class="new-in__link"
-          href="{{ section.settings.link | default: routes.all_products_collection_url }}"
-        >
-          {{ section.settings.link_label }}
-        </a>
-      {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="new-in__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+
+        {%- if section.settings.description != blank -%}
+          <div class="new-in__description">{{ section.settings.description }}</div>
+        {%- endif -%}
+
+        {%- if section.settings.link_label != blank -%}
+          <a
+            class="new-in__link"
+            href="{{ section.settings.link | default: routes.all_products_collection_url }}"
+          >
+            {{ section.settings.link_label }}
+          </a>
+        {%- endif -%}
+      </div>
     </div>
   {%- endif -%}
 
   {%- if new_in_image != blank or new_in_image_mobile != blank -%}
-    {%- if section.settings.link != blank or section.settings.link_label != blank -%}
+    {%- if has_link -%}
       <a
         class="new-in__media"
         href="{{ section.settings.link | default: routes.all_products_collection_url }}"
-        aria-label="{{ section.settings.link_label | default: section.settings.description | escape }}"
+        aria-label="{{ section.settings.link_label | default: image_alt | escape }}"
       >
     {%- else -%}
       <div class="new-in__media">
@@ -46,39 +71,39 @@
           >
           {{
             new_in_image
-            | image_url: width: 2000
+            | image_url: width: 1600
             | image_tag:
               loading: 'lazy',
-              widths: '800, 1000, 1200, 1600, 2000',
-              sizes: '100vw',
-              alt: section.settings.description,
+              widths: '600, 800, 1000, 1200, 1600',
+              sizes: '(min-width: 750px) 35vw, 100vw',
+              alt: image_alt,
               class: 'new-in__img'
           }}
         </picture>
       {%- elsif new_in_image_mobile != blank and new_in_image == blank -%}
         {{
           new_in_image_mobile
-          | image_url: width: 2000
+          | image_url: width: 1600
           | image_tag:
             loading: 'lazy',
-            widths: '400, 600, 800, 1000, 1200, 1600, 2000',
-            sizes: '100vw',
-            alt: section.settings.description,
+            widths: '400, 600, 800, 1000, 1200, 1600',
+            sizes: '(min-width: 750px) 35vw, 100vw',
+            alt: image_alt,
             class: 'new-in__img'
         }}
       {%- else -%}
         {{
           new_in_image
-          | image_url: width: 2000
+          | image_url: width: 1600
           | image_tag:
             loading: 'lazy',
-            widths: '400, 600, 800, 1000, 1200, 1600, 2000',
-            sizes: '100vw',
-            alt: section.settings.description,
+            widths: '400, 600, 800, 1000, 1200, 1600',
+            sizes: '(min-width: 750px) 35vw, 100vw',
+            alt: image_alt,
             class: 'new-in__img'
         }}
       {%- endif -%}
-    {%- if section.settings.link != blank or section.settings.link_label != blank -%}
+    {%- if has_link -%}
       </a>
     {%- else -%}
       </div>
@@ -100,10 +125,23 @@
   },
   "settings": [
     {
-      "type": "textarea",
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "TRENDING"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "NEW ARRIVALS"
+    },
+    {
+      "type": "richtext",
       "id": "description",
       "label": "Description",
-      "default": "Discover Our New Arrivals"
+      "default": "<p>Discover Our New Arrivals</p>",
+      "info": "You can bold, italicize, or mix styles in this text."
     },
     {
       "type": "text",
