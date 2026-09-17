@@ -30,11 +30,64 @@
         {% render 'icon', icon_name: 'theme-arrow-close' %}
       </button>
 
-      <div class="drawer__row large-up-hide">
-        {%- render 'search', input_id: 'mobile' -%}
+      <div class="mobile-menu large-up-hide">
+        <div class="mobile-menu__bar">
+          <localization-form class="mobile-menu__localization">
+            {% form 'localization' %}
+              {%- if localization.available_countries.size > 1 -%}
+                <details class="mobile-menu__loc">
+                  <summary class="mobile-menu__loc-button">
+                    <span class="mobile-menu__loc-text">
+                      {{- localization.country.name }}
+                      ({{ localization.country.currency.iso_code }}
+                      {{ localization.country.currency.symbol }})
+                    </span>
+                    <svg class="mobile-menu__loc-caret" viewBox="0 0 19 12" width="10" height="6" aria-hidden="true">
+                      <polyline fill="none" stroke="currentColor" points="17 2 9.5 10 2 2" stroke-width="2" stroke-linecap="square"></polyline>
+                    </svg>
+                  </summary>
+                  <div class="mobile-menu__loc-list" role="list">
+                    {%- for country in localization.available_countries -%}
+                      <button
+                        type="submit"
+                        name="country_code"
+                        value="{{ country.iso_code }}"
+                        class="mobile-menu__loc-option{% if country.iso_code == localization.country.iso_code %} is-active{% endif %}"
+                      >
+                        {{- country.name }} ({{ country.currency.iso_code }} {{ country.currency.symbol }})
+                      </button>
+                    {%- endfor -%}
+                  </div>
+                </details>
+              {%- else -%}
+                <span class="mobile-menu__loc-button">
+                  <span class="mobile-menu__loc-text">
+                    {{- localization.country.name }}
+                    ({{ localization.country.currency.iso_code }}
+                    {{ localization.country.currency.symbol }})
+                  </span>
+                </span>
+              {%- endif -%}
+            {% endform %}
+          </localization-form>
+
+          <button
+            type="button"
+            class="mobile-menu__close button-reset js-btn-close-drawer"
+            aria-label="{{- 'actions.close' | t -}}"
+          >
+            <svg width="16" height="14" viewBox="0 0 16 14" aria-hidden="true">
+              <path d="M15 0L1 14m14 0L1 0" stroke="currentColor" fill="none"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="mobile-menu__search">
+          {%- render 'search', input_id: 'mobile', placeholder: 'SEARCH...' -%}
+        </div>
       </div>
 
-      <div class="drawer__row drawer__row--gutter-lg">
+      <div class="drawer__row drawer__row--gutter-lg mobile-menu__nav-row">
         <accordion-default class="accordion">
           <nav class="drawer__nav">
             <ul class="drawer__menu list-unstyled" role="list">
@@ -170,56 +223,6 @@
             </ul>
           </nav>
         </accordion-default>
-      </div>
-
-      {%- if submenu != blank -%}
-        <div class="drawer__row">
-          <nav class="drawer__subnav">
-            <ul class="list-unstyled">
-              {%- for link in submenu.links -%}
-                <li class="drawer__subnav-item">
-                  <a
-                    href="{{- link.url -}}"
-                    class="drawer__subnav-link h5{% if link.current %} is-current{% endif %}"
-                    {% if link.current %}aria-current="page"{% endif %}
-                    role="button"
-                  >
-                    {{- link.title | escape -}}
-                  </a>
-                </li>
-              {%- endfor -%}
-            </ul>
-          </nav>
-        </div>
-      {%- endif -%}
-
-      <div class="drawer__row">
-        <nav class="drawer__utils">
-          <ul class="drawer__utils-items list-unstyled">
-            <li class="drawer__utils-item">
-              <a
-                href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}"
-                class="drawer__utils-link h5"
-                title="{%- if customer -%}{{ 'accessibility.account' | t }}{%- else -%}{{ 'accessibility.sign_in' | t }}{%- endif -%}"
-                role="button"
-              >
-                {{- 'header.navigation_drawer.account_link' | t -}}
-              </a>
-            </li>
-
-            {%- if section.settings.country_drawer_navigation_menu -%}
-              <li class="drawer__utils-item">
-                <menu-drawer class="drawer">
-                  {%- render 'country-drawer',
-                    button_class: ' drawer__utils-link h5',
-                    section: section,
-                    append_id: 'header-drawer'
-                  -%}
-                </menu-drawer>
-              </li>
-            {%- endif -%}
-          </ul>
-        </nav>
       </div>
     </div>
   </details>
