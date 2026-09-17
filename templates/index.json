@@ -14,7 +14,7 @@
       "disabled": true,
       "name": "Denim Promo Banner",
       "settings": {
-        "background_image": "shopify://shop_images/WhatsApp_Image_2025-05-18_at_06.01.09.jpg",
+        "background_image": "shopify:\/\/shop_images\/WhatsApp_Image_2025-05-18_at_06.01.09.jpg",
         "banner_height": "100px",
         "heading": "",
         "subheading": "",
@@ -31,7 +31,6 @@
           "type": "slide",
           "settings": {
             "banner_layout": "hero-banner--full",
-            "color_scheme": "",
             "header_menu_text_color": "#ffffff",
             "content_position_horizontal": "align-center text-center",
             "content_position_vertical": "justify-end",
@@ -40,13 +39,13 @@
             "content": "",
             "enable_vertical_line": true,
             "button_text": "Shop Now",
-            "button_url": "shopify://collections/all-products",
+            "button_url": "shopify:\/\/collections\/all-products",
             "button_style": "button--outlined",
-            "image": "shopify://shop_images/banner-sons-son-son.jpg",
+            "image": "shopify:\/\/shop_images\/banner-sons-son-son.jpg",
             "video_external": "",
             "enable_media_overlay_desktop": true,
-            "image_mobile": "shopify://shop_images/comfortable-street-wear.jpg",
-            "video_mobile": "shopify://files/videos/mobil-video-son.mp4",
+            "image_mobile": "shopify:\/\/shop_images\/comfortable-street-wear.jpg",
+            "video_mobile": "shopify:\/\/files\/videos\/mobil-video-son.mp4",
             "video_external_mobile": "",
             "enable_media_overlay_mobile": true
           }
@@ -57,13 +56,9 @@
       ],
       "settings": {
         "enable_transparent_header": false,
-        "enable_overlay_for_transparent_header": true,
-        "slider_height": "100svh",
-        "slider_height_mobile": "100svh",
         "slider_autoplay_interval": 5,
         "slider_arrows": true,
-        "slider_arrows_position": "hero__swiper-buttons--right",
-        "slider_color_scheme": ""
+        "slider_arrows_position": "hero__swiper-buttons--right"
       }
     },
     "shop_by_category_main": {
@@ -73,7 +68,6 @@
           "type": "category",
           "settings": {
             "title": "SLIM FIT JEANS",
-            "link": "",
             "collection": "slim-fit-jeans"
           }
         },
@@ -81,7 +75,6 @@
           "type": "category",
           "settings": {
             "title": "CARGO JEANS",
-            "link": "",
             "collection": "cargo-jeans-for-men"
           }
         },
@@ -89,7 +82,6 @@
           "type": "category",
           "settings": {
             "title": "CARGO PANTS",
-            "link": "",
             "collection": "cargo-pants-for-men"
           }
         },
@@ -97,7 +89,6 @@
           "type": "category",
           "settings": {
             "title": "T-SHIRTS",
-            "link": "",
             "collection": "essential-t-shirt-men"
           }
         },
@@ -105,7 +96,6 @@
           "type": "category",
           "settings": {
             "title": "SHORTS",
-            "link": "",
             "collection": "mens-denim-shorts"
           }
         },
@@ -113,7 +103,6 @@
           "type": "category",
           "settings": {
             "title": "SWEATPANTS",
-            "link": "",
             "collection": "mens-sweatpants"
           }
         }
@@ -130,29 +119,18 @@
         "eyebrow": "SIMPLICITY IS THE KEY",
         "heading": "SHOP BY CATEGORY",
         "button_label": "SHOP ALL",
-        "button_link": "shopify://collections/all-products"
+        "button_link": "shopify:\/\/collections\/all-products"
       }
     },
     "new_in_main": {
       "type": "new-in",
       "name": "New In",
       "settings": {
-        "description": "Discover Our New Arrivals",
+        "eyebrow": "TRENDING",
+        "heading": "NEW ARRIVALS",
+        "description": "<p>Discover Our New Arrivals</p>",
         "link_label": "SHOP NEW IN",
-        "link": "shopify://collections/all-products",
-        "image": "shopify://shop_images/DSC0840_resized_b1563624-8d0a-4a75-95d2-6344e9003d2d.jpg",
-        "image_mobile": "shopify://shop_images/DSC0840_resized_b1563624-8d0a-4a75-95d2-6344e9003d2d.jpg"
-      }
-    },
-    "new_in_ygQJVi": {
-      "type": "new-in",
-      "name": "New In",
-      "settings": {
-        "description": "Discover Our New Arrivals",
-        "link_label": "SHOP NEW IN",
-        "link": "",
-        "image": "shopify://shop_images/DSC0968_resized_0cf4a2c9-0872-4594-95cd-f721ecb985b7.jpg",
-        "image_mobile": "shopify://shop_images/DSC0968_resized_0cf4a2c9-0872-4594-95cd-f721ecb985b7.jpg"
+        "link": "shopify:\/\/collections\/all-products"
       }
     },
     "1658994245757c7b20": {
@@ -179,17 +157,9 @@
       ],
       "settings": {
         "layout": "layout-1",
-        "heading": "Heading for Featured Products",
-        "heading_size": "h2",
         "button_text": "",
-        "button_url": "shopify://collections/best-sellers",
-        "button_style": "button--outlined",
-        "max_products": 8,
-        "section_width": "page",
-        "color_scheme": "",
-        "spacing_top": "2",
-        "spacing_bottom": "2",
-        "section_border": "none"
+        "button_url": "shopify:\/\/collections\/best-sellers",
+        "button_style": "button--outlined"
       }
     },
     "hero_alt_bDdiTf": {
@@ -200,17 +170,17 @@
           "settings": {
             "subtitle": "Best-selling product of the year",
             "title": "Best selling",
-            "content": "<h1>Spray on Jeans - Tint Washed - Dark Blue</h1>",
+            "content": "<h1>Spray on Jeans - Tint Washed - Dark Blue<\/h1>",
             "button_style": "button--filled",
             "button_text": "View more",
-            "button_url": "shopify://products/spray-on-jeans-tint-washed",
+            "button_url": "shopify:\/\/products\/spray-on-jeans-tint-washed",
             "button_separator": true
           }
         },
         "media_VixBNB": {
           "type": "media",
           "settings": {
-            "image": "shopify://shop_images/SJW604_2.jpg"
+            "image": "shopify:\/\/shop_images\/SJW604_2.jpg"
           }
         }
       },
@@ -221,12 +191,7 @@
       "disabled": true,
       "name": "t:sections.hero-alt.name",
       "settings": {
-        "hero_alt_banner_height": 50,
-        "section_width": "page",
-        "color_scheme": "",
-        "spacing_top": "2",
-        "spacing_bottom": "2",
-        "section_border": "none"
+        "hero_alt_banner_height": 50
       }
     },
     "16e24524-2040-41a4-b5ca-3a425d62879b": {
@@ -235,64 +200,43 @@
         "collection_slide_78zFkq": {
           "type": "collection-slide",
           "settings": {
-            "collection": "slim-fit-jeans",
-            "heading": "",
-            "heading_size": "h3",
-            "color_scheme": ""
+            "collection": "slim-fit-jeans"
           }
         },
         "collection_slide_pqQDtK": {
           "type": "collection-slide",
           "settings": {
-            "collection": "spray-on-jeans",
-            "heading": "",
-            "heading_size": "h3",
-            "color_scheme": ""
+            "collection": "spray-on-jeans"
           }
         },
         "collection_slide_eTb4PX": {
           "type": "collection-slide",
           "settings": {
-            "collection": "cargo-jeans-for-men",
-            "heading": "",
-            "heading_size": "h3",
-            "color_scheme": ""
+            "collection": "cargo-jeans-for-men"
           }
         },
         "collection_slide_axRPVF": {
           "type": "collection-slide",
           "settings": {
-            "collection": "cargo-pants-for-men",
-            "heading": "",
-            "heading_size": "h3",
-            "color_scheme": ""
+            "collection": "cargo-pants-for-men"
           }
         },
         "collection_slide_n347JB": {
           "type": "collection-slide",
           "settings": {
-            "collection": "essential-t-shirt-men",
-            "heading": "",
-            "heading_size": "h3",
-            "color_scheme": ""
+            "collection": "essential-t-shirt-men"
           }
         },
         "collection_slide_PcH3G6": {
           "type": "collection-slide",
           "settings": {
-            "collection": "mens-denim-shorts",
-            "heading": "",
-            "heading_size": "h3",
-            "color_scheme": ""
+            "collection": "mens-denim-shorts"
           }
         },
         "collection_slide_DWhbiL": {
           "type": "collection-slide",
           "settings": {
-            "collection": "mens-sweatpants",
-            "heading": "",
-            "heading_size": "h3",
-            "color_scheme": ""
+            "collection": "mens-sweatpants"
           }
         }
       },
@@ -308,17 +252,10 @@
       "disabled": true,
       "settings": {
         "layout": "layout-1",
-        "heading": "Heading for Featured Collections",
-        "heading_size": "h2",
         "button_text": "Explore all",
-        "button_url": "shopify://collections/hoodies",
+        "button_url": "shopify:\/\/collections\/hoodies",
         "button_style": "button--outlined",
-        "card_style": "compact",
-        "section_width": "page",
-        "color_scheme": "",
-        "spacing_top": "2",
-        "spacing_bottom": "2",
-        "section_border": "none"
+        "card_style": "compact"
       }
     },
     "featured_products_Neq4UB": {
@@ -341,17 +278,9 @@
       "name": "t:sections.featured-products.name",
       "settings": {
         "layout": "layout-1",
-        "heading": "Heading for Featured Products",
-        "heading_size": "h2",
         "button_text": "View all",
         "button_url": "",
-        "button_style": "button--filled",
-        "max_products": 8,
-        "section_width": "page",
-        "color_scheme": "",
-        "spacing_top": "2",
-        "spacing_bottom": "2",
-        "section_border": "none"
+        "button_style": "button--filled"
       }
     },
     "image_banner_duo_gTCAHK": {
@@ -360,19 +289,19 @@
         "banner_cncVTH": {
           "type": "banner",
           "settings": {
-            "image": "shopify://shop_images/37F1E82B-3D18-4031-B637-F4B843998DC5.jpg",
+            "image": "shopify:\/\/shop_images\/37F1E82B-3D18-4031-B637-F4B843998DC5.jpg",
             "heading": "",
             "button_label": "Shop now",
-            "button_link": "https://emolos.com/products/premium-pique-polo-shirt-sky-blue"
+            "button_link": "https:\/\/emolos.com\/products\/premium-pique-polo-shirt-sky-blue"
           }
         },
         "banner_8bPJcG": {
           "type": "banner",
           "settings": {
-            "image": "shopify://shop_images/3ACDDAEE-1646-40DE-A812-4649CB7AF5B4.jpg",
+            "image": "shopify:\/\/shop_images\/3ACDDAEE-1646-40DE-A812-4649CB7AF5B4.jpg",
             "heading": "",
             "button_label": "Shop now",
-            "button_link": "https://emolos.com/products/slim-fit-denim-shorts-light-grey"
+            "button_link": "https:\/\/emolos.com\/products\/slim-fit-denim-shorts-light-grey"
           }
         }
       },
@@ -397,21 +326,11 @@
       "type": "blog-articles",
       "settings": {
         "heading": "Blog",
-        "heading_size": "h2",
         "blog": "",
         "button_text": "Visit Blog",
         "button_style": "button--outlined",
         "layout": "layout-1",
-        "show_excerpt": true,
-        "show_date": false,
-        "show_author": false,
-        "show_read_more": false,
-        "content_alignment": "text-center",
-        "section_width": "page",
-        "color_scheme": "",
-        "spacing_top": "2",
-        "spacing_bottom": "2",
-        "section_border": "none"
+        "content_alignment": "text-center"
       }
     }
   },
@@ -420,7 +339,6 @@
     "1658995208ad05f95f",
     "shop_by_category_main",
     "new_in_main",
-    "new_in_ygQJVi",
     "1658994245757c7b20",
     "hero_alt_bDdiTf",
     "16e24524-2040-41a4-b5ca-3a425d62879b",
