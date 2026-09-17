@@ -137,12 +137,12 @@
       "type": "new-in",
       "name": "New In",
       "settings": {
+        "layout": "right",
         "eyebrow": "TRENDING",
         "heading": "NEW ARRIVALS",
         "content": "<p>Discover Our New Arrivals</p>",
         "link_label": "SHOP NEW IN",
         "link": "shopify://collections/all-products",
-        "image_position": "right",
         "image": "shopify://shop_images/DSC0840_resized_b1563624-8d0a-4a75-95d2-6344e9003d2d.jpg",
         "image_mobile": "shopify://shop_images/DSC0840_resized_b1563624-8d0a-4a75-95d2-6344e9003d2d.jpg"
       }
@@ -151,6 +151,7 @@
       "type": "new-in",
       "name": "New In",
       "settings": {
+        "layout": "left",
         "eyebrow": "TRENDING",
         "heading": "NEW ARRIVALS",
         "content": "<p>Discover Our New Arrivals</p>",
