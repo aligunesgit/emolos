@@ -96,6 +96,8 @@
   width: 100%;
   aspect-ratio: 2 / 3;
   overflow: hidden;
+  margin: 0;
+  line-height: 0;
   color: inherit;
   text-decoration: none;
 }
@@ -158,4 +160,8 @@
   .new-in--image-left .new-in__content {
     padding-left: 10rem;
   }
+}
+
+.section-new-in + .section-new-in .new-in {
+  padding-block-start: 0;
 }
