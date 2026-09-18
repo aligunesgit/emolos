@@ -1,0 +1,65 @@
+.newsletter-wrapper {
+  background-color: #ebebeb;
+  text-align: center;
+  padding: 5rem 2.4rem;
+}
+
+.newsletter-wrapper h2 {
+  margin: 0 0 1.6rem;
+  font-family: var(--font-heading-family);
+  font-size: 2.4rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: #000000;
+}
+
+.newsletter-wrapper p {
+  margin: 0 auto 2.4rem;
+  max-width: 48rem;
+  font-family: var(--font-body-family);
+  font-size: 1.6rem;
+  line-height: 1.5;
+  color: #8a8a8a;
+}
+
+.newsletter-wrapper input[type="email"] {
+  box-sizing: border-box;
+  width: min(100%, 52rem);
+  max-width: 52rem;
+  margin: 0 0 2.4rem;
+  padding: 1.4rem 1.6rem;
+  border: 1px solid #e2e2e2;
+  border-radius: 0.8rem;
+  background-color: #ffffff;
+  font-family: var(--font-body-family);
+  font-size: 1.4rem;
+  color: #000000;
+}
+
+.newsletter-wrapper input[type="email"]::placeholder {
+  color: #c4c4c4;
+}
+
+.newsletter-wrapper button[type="submit"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 47px;
+  padding: 1.4rem 2.8rem;
+  background-color: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+  font-family: var(--font-button-family);
+  font-size: 1.2rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.newsletter-wrapper button[type="submit"]:hover {
+  background-color: #ffffff;
+  color: #000000;
+}
