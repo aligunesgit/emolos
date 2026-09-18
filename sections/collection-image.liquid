@@ -1,0 +1,143 @@
+{{- 'section-collection-image.css' | asset_url | stylesheet_tag -}}
+
+{%- liquid
+  assign block_image = section.settings.image
+  assign block_image_mobile = section.settings.image_mobile
+  assign block_heading = section.settings.heading
+  assign block_link = section.settings.button_link
+
+  if section.settings.collection != blank
+    if block_image == blank
+      assign block_image = section.settings.collection.featured_image
+    endif
+    if block_heading == blank
+      assign block_heading = section.settings.collection.title
+    endif
+    if block_link == blank
+      assign block_link = section.settings.collection.url
+    endif
+  endif
+
+  if block_image_mobile == blank
+    assign block_image_mobile = block_image
+  endif
+-%}
+
+<div class="collection-image">
+  <div class="collection-image__frame">
+    {%- if block_link != blank -%}
+      <a class="collection-image__media" href="{{ block_link }}">
+    {%- else -%}
+      <div class="collection-image__media">
+    {%- endif -%}
+      {%- if block_image != blank and block_image_mobile != blank and block_image != block_image_mobile -%}
+        <picture>
+          <source
+            media="(max-width: 749px)"
+            srcset="{{ block_image_mobile | image_url: width: 400 }} 400w, {{ block_image_mobile | image_url: width: 600 }} 600w, {{ block_image_mobile | image_url: width: 800 }} 800w, {{ block_image_mobile | image_url: width: 1000 }} 1000w"
+            sizes="100vw"
+          >
+          {{
+            block_image
+            | image_url: width: 1200
+            | image_tag:
+              loading: 'lazy',
+              widths: '400, 600, 800, 1000, 1200',
+              sizes: '(min-width: 1140px) 26vw, (min-width: 750px) 33vw, 100vw',
+              alt: block_heading,
+              class: 'collection-image__img'
+          }}
+        </picture>
+      {%- elsif block_image != blank or block_image_mobile != blank -%}
+        {%- assign fallback_image = block_image | default: block_image_mobile -%}
+        {{
+          fallback_image
+          | image_url: width: 1200
+          | image_tag:
+            loading: 'lazy',
+            widths: '400, 600, 800, 1000, 1200',
+            sizes: '(min-width: 1140px) 26vw, (min-width: 750px) 33vw, 100vw',
+            alt: block_heading,
+            class: 'collection-image__img'
+        }}
+      {%- else -%}
+        {{ 'collection-1' | placeholder_svg_tag: 'placeholder-svg collection-image__img' }}
+      {%- endif -%}
+    {%- if block_link != blank -%}
+      </a>
+    {%- else -%}
+      </div>
+    {%- endif -%}
+
+    {%- if block_heading != blank or section.settings.button_label != blank -%}
+      <div class="collection-image__content">
+        {%- if block_heading != blank -%}
+          <h2 class="collection-image__title">{{ block_heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.button_label != blank -%}
+          <a
+            class="collection-image__button"
+            href="{{ block_link | default: routes.all_products_collection_url }}"
+          >
+            {{ section.settings.button_label }}
+          </a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Collection image",
+  "tag": "section",
+  "class": "section-collection-image",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_mobile",
+      "label": "Mobile image",
+      "info": "Optional. Desktop image is used on mobile when empty."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Collection name",
+      "info": "Shown on the lower part of the image. Collection title is used when empty."
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "SHOP NOW"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection",
+      "info": "Used for image, title and link when those fields are empty."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection image",
+      "settings": {
+        "button_label": "SHOP NOW"
+      }
+    }
+  ]
+}
+{% endschema %}
