@@ -1,1 +1,81 @@
-{"name":"t:sections.footer.name","type":"footer","sections":{"footer":{"type":"footer","blocks":{"b7f1dbf8-fb4b-4c72-ad35-cf47b087fc1f":{"type":"menu","settings":{"title":"Brand","menu":"footer2"}},"ba2e09f9-38b3-4ed6-93ae-c2cd3420c2c0":{"type":"menu","settings":{"title":"Collections","menu":"collections"}},"0de49fd3-060f-40bc-baeb-cf0131bae43e":{"type":"menu","settings":{"title":"Legal","menu":"footer"}},"762130ce-c112-474e-ab41-0e908f95e578":{"type":"socials","settings":{"icons":true}}},"block_order":["b7f1dbf8-fb4b-4c72-ad35-cf47b087fc1f","ba2e09f9-38b3-4ed6-93ae-c2cd3420c2c0","0de49fd3-060f-40bc-baeb-cf0131bae43e","762130ce-c112-474e-ab41-0e908f95e578"],"settings":{"first_accordion_show":true}}},"order":["footer"]}
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "name": "t:sections.footer.name",
+  "type": "footer",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "blocks": {
+        "b7f1dbf8-fb4b-4c72-ad35-cf47b087fc1f": {
+          "type": "menu",
+          "settings": {
+            "column_factor": 2,
+            "row_factor": 1,
+            "title": "Brand",
+            "heading_size": "h5",
+            "menu": "footer2"
+          }
+        },
+        "0de49fd3-060f-40bc-baeb-cf0131bae43e": {
+          "type": "menu",
+          "settings": {
+            "column_factor": 2,
+            "row_factor": 1,
+            "title": "Legal",
+            "heading_size": "h5",
+            "menu": "footer"
+          }
+        },
+        "762130ce-c112-474e-ab41-0e908f95e578": {
+          "type": "socials",
+          "settings": {
+            "show_on": "both",
+            "column_factor": 2,
+            "row_factor": 1,
+            "title": "Follow Us",
+            "heading_size": "h5",
+            "icons": true,
+            "social_links_in_new_tab": true
+          }
+        },
+        "footer_payment_icons": {
+          "type": "payment_icons",
+          "settings": {
+            "column_factor": 6,
+            "row_factor": 1,
+            "custom_payment_types": "american_express,apple_pay,bancontact,diners_club,discover,google_pay,ideal,klarna,maestro,master,paypal,shopify_pay,unionpay,visa",
+            "override_default_payment_icons": true,
+            "payment_icons_color": true,
+            "content_position_vertical": "justify-start",
+            "content_alignment": "align-center text-center",
+            "content_alignment_for_mobile": "align-center--mobile text-center--mobile"
+          }
+        }
+      },
+      "block_order": [
+        "b7f1dbf8-fb4b-4c72-ad35-cf47b087fc1f",
+        "0de49fd3-060f-40bc-baeb-cf0131bae43e",
+        "762130ce-c112-474e-ab41-0e908f95e578",
+        "footer_payment_icons"
+      ],
+      "settings": {
+        "spacing_grid": "2",
+        "first_accordion_show": true,
+        "section_width": "page",
+        "color_scheme": "scheme-1",
+        "spacing_top": "2",
+        "spacing_bottom": "2",
+        "section_border": "none"
+      }
+    }
+  },
+  "order": ["footer"]
+}
