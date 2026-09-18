@@ -1,3 +1,5 @@
+{{- 'section-newsletter-signup.css' | asset_url | stylesheet_tag -}}
+
 {% schema %}
 {
   "name": "Email Signup",
@@ -35,16 +37,16 @@
 }
 {% endschema %}
 
-<div class="newsletter-wrapper" style="text-align: center; padding: 2rem;">
+<div class="newsletter-wrapper">
   {% unless form_success %}
     <h2>{{ section.settings.heading }}</h2>
-    <p style="font-size:small;">{{ section.settings.subtext }}</p>
+    <p>{{ section.settings.subtext }}</p>
 
     <form id="newsletter-form" method="post" action="#" onsubmit="showThankYou(); return false;">
-      <input type="email" name="contact[email]" placeholder="e-mail" required style="padding: 0.5rem; width: 300px; margin: 1rem 0; font-size:small;"><br>
-<br>
+      <input type="email" name="contact[email]" placeholder="e-mail" required>
+      <br>
 
-      <button type="submit" style="background-color: black; color: white; padding: 1rem 2rem; border: none;">
+      <button type="submit">
         {{ section.settings.button_text }}
       </button>
     </form>
