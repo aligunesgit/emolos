@@ -193,56 +193,48 @@
                 </div>
               </div>
             {%- when 'payment_icons' -%}
-              <div class="footer__col block-{{ block.id }}">
+              <div class="footer__col footer__col--payment block-{{ block.id }}">
                 <div class="footer__content footer__payment {{ block.settings.content_position_vertical }} {{ block.settings.content_alignment }} {{ block.settings.content_alignment_for_mobile }}">
                   {%- style -%}
-                    .block-{{ block.id }} .footer__brand-logo {
-                      width: {{ block.settings.logo_width_mobile | divided_by: 10.0 }}rem;
-                      height: auto;
-                    }
-                    @media screen and (min-width: 750px) {
-                      .block-{{ block.id }} .footer__brand-logo {
-                        width: {{ block.settings.logo_width | divided_by: 10.0 }}rem;
-                        max-width: 100%;
-                      }
-                    }
                     {%- unless block.settings.payment_icons_color -%}
-                      .footer__payment svg {
+                      .block-{{ block.id }} .footer__payment svg {
                         filter: grayscale(100%);
                       }
                     {%- endunless -%}
                   {%- endstyle -%}
-                  {%- if shop.enabled_payment_types.size > 0 -%}
 
-                    {% liquid
-                      assign default_payment_types = shop.enabled_payment_types
-                      assign custom_payment_types = section.settings.custom_payment_types
-                      assign payment_type_list = blank
+                  {% liquid
+                    assign default_payment_types = shop.enabled_payment_types
+                    assign custom_payment_types = block.settings.custom_payment_types
+                    assign payment_type_list = blank
 
+                    unless block.settings.override_default_payment_icons
                       for type in default_payment_types
                         assign payment_type_list = payment_type_list | append: type | append: ','
                       endfor
+                    endunless
 
-                      if section.settings.override_default_payment_icons
-                        assign payment_type_list = custom_payment_types
-                      else
-                        assign payment_type_list = payment_type_list | append: custom_payment_types
-                      endif
-                      assign payment_type_list = payment_type_list | split: ',' | uniq | sort | join: ','
+                    if custom_payment_types != blank
+                      assign payment_type_list = payment_type_list | append: custom_payment_types
+                    endif
 
-                      assign payment_type_list = payment_type_list | split: ','
-                    %}
+                    assign payment_type_list = payment_type_list | split: ',' | compact | uniq
+                  %}
 
+                  {%- if payment_type_list.size > 0 -%}
                     <span class="visually-hidden">{{- 'footer.payment' | t -}}</span>
 
-                    <ul class="list-unstyled list-payment list-payment--{{ section.settings.footer_style }}" role="list">
+                    <ul class="list-unstyled list-payment" role="list">
                       {%- for type in payment_type_list -%}
+                        {%- assign payment_type = type | strip -%}
+                        {%- if payment_type == blank -%}
+                          {%- continue -%}
+                        {%- endif -%}
                         <li class="list-payment__item">
-                          {{ type | payment_type_svg_tag: class: 'icon icon--full-color' | replace: 'id="', 'id="footer-' | replace: 'aria-labelledby="', 'aria-labelledby="footer-' }}
+                          {{ payment_type | payment_type_svg_tag: class: 'icon icon--full-color' | replace: 'id="', 'id="footer-' | replace: 'aria-labelledby="', 'aria-labelledby="footer-' }}
                         </li>
                       {%- endfor -%}
                     </ul>
-
                   {%- endif -%}
                 </div>
               </div>
