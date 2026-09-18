@@ -142,7 +142,23 @@
         "heading": "NEW ARRIVALS",
         "content": "<p>Discover Our New Arrivals</p>",
         "link_label": "SHOP NEW IN",
-        "link": "shopify://collections/all-products"
+        "link": "shopify://collections/all-products",
+        "image": "shopify://shop_images/DSC0840_resized_b1563624-8d0a-4a75-95d2-6344e9003d2d.jpg",
+        "image_mobile": "shopify://shop_images/DSC0840_resized_b1563624-8d0a-4a75-95d2-6344e9003d2d.jpg"
+      }
+    },
+    "new_in_ynP37G": {
+      "type": "new-in",
+      "name": "New In",
+      "settings": {
+        "layout": "left",
+        "eyebrow": "TRENDING",
+        "heading": "NEW ARRIVALS",
+        "content": "<p>Discover Our New Arrivals</p>",
+        "link_label": "SHOP NEW IN",
+        "link": "",
+        "image": "shopify://shop_images/DSC0968_resized_0cf4a2c9-0872-4594-95cd-f721ecb985b7.jpg",
+        "image_mobile": "shopify://shop_images/DSC0968_resized_0cf4a2c9-0872-4594-95cd-f721ecb985b7.jpg"
       }
     },
     "best_seller_main": {
@@ -434,6 +450,7 @@
     "1658995208ad05f95f",
     "shop_by_category_main",
     "new_in_main",
+    "new_in_ynP37G",
     "best_seller_main",
     "collection_image_main",
     "1658994245757c7b20",
