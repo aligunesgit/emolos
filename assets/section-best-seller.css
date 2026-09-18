@@ -113,14 +113,26 @@ best-seller-slider.best-seller__slider {
   text-decoration: none;
 }
 
-.best-seller__price,
-.best-seller__price .money,
-.best-seller__price .glc-money {
+.best-seller__price {
   font-family: var(--font-body-family);
   font-size: 11px;
   font-weight: 400;
   line-height: 19.8px;
   text-transform: uppercase;
+}
+
+.best-seller__price span,
+.best-seller__price .money,
+.best-seller__price .glc-money {
+  display: inline-block;
+  font-family: var(--font-body-family);
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  line-height: 19.8px !important;
+  height: 19.8px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  vertical-align: baseline;
 }
 
 .best-seller__price-sale {
