@@ -96,10 +96,12 @@
 @media screen and (min-width: 750px) {
   .collection-image {
     padding-block-start: 8rem;
+    padding-block-end: 4rem;
   }
 
   .collection-image__frame {
-    width: calc(100% / 3.02);
+    width: 46%;
+    max-width: 52rem;
     aspect-ratio: 2 / 3;
   }
 
@@ -110,6 +112,7 @@
 
 @media screen and (min-width: 1140px) {
   .collection-image__frame {
-    width: calc(100% / 3.91);
+    width: 36%;
+    max-width: 56rem;
   }
 }
