@@ -8,8 +8,9 @@
 .best-seller__header {
   position: relative;
   text-align: center;
-  margin: 0 0 4rem;
+  margin: 0;
   padding-inline: 2.4rem;
+  padding-bottom: 4rem;
 }
 
 .best-seller__heading {
@@ -36,11 +37,6 @@ best-seller-slider.best-seller__slider {
   display: block;
   overflow: hidden;
   width: 100%;
-  cursor: grab;
-}
-
-best-seller-slider.best-seller__slider.is-dragging {
-  cursor: grabbing;
 }
 
 .best-seller__track {
@@ -106,22 +102,24 @@ best-seller-slider.best-seller__slider.is-dragging {
 
 .best-seller__title {
   display: block;
-  margin: 0 0 0.4rem;
+  margin: 0 0 4px;
   font-family: var(--font-heading-family);
-  font-size: 1.1rem;
+  font-size: 11px;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 17px;
   letter-spacing: 0;
   text-transform: uppercase;
   color: #000000;
   text-decoration: none;
 }
 
-.best-seller__price {
+.best-seller__price,
+.best-seller__price .money,
+.best-seller__price .glc-money {
   font-family: var(--font-body-family);
-  font-size: 1.1rem;
+  font-size: 11px;
   font-weight: 400;
-  line-height: 1.65;
+  line-height: 19.8px;
   text-transform: uppercase;
 }
 
@@ -162,9 +160,12 @@ best-seller-slider.best-seller__slider.is-dragging {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  width: 154px;
+  min-width: 154px;
+  max-width: 154px;
   min-height: 47px;
   height: 47px;
-  padding: 14px 28px;
+  padding: 14px 20px;
   background-color: #000000;
   color: #ffffff;
   border: 1px solid #000000;
@@ -190,7 +191,8 @@ best-seller-slider.best-seller__slider.is-dragging {
   }
 
   .best-seller__header {
-    margin-bottom: 7rem;
+    margin: 0;
+    padding-bottom: 70px;
   }
 
   .best-seller__heading {
@@ -208,6 +210,7 @@ best-seller-slider.best-seller__slider.is-dragging {
     right: 40px;
     top: auto;
     bottom: 12px;
+    transform: none;
     z-index: 2;
     gap: 5px;
     align-items: center;
@@ -217,7 +220,7 @@ best-seller-slider.best-seller__slider.is-dragging {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 25px;
+    width: 30px;
     height: 45px;
     padding: 0;
     background: transparent;
@@ -228,8 +231,8 @@ best-seller-slider.best-seller__slider.is-dragging {
 
   .best-seller__nav-button svg {
     display: block;
-    width: 25px;
-    height: 25px;
+    width: 30px;
+    height: 30px;
     fill: currentColor;
     stroke: none;
   }

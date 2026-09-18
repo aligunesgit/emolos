@@ -45,9 +45,9 @@ if (!customElements.get('best-seller-slider')) {
 
     slideRatio() {
       const width = window.innerWidth;
-      if (width >= 1140) return 1 / 4.15;
-      if (width >= 750) return 1 / 3.2;
-      return 0.62;
+      if (width >= 1140) return 1 / 3.91;
+      if (width >= 750) return 1 / 3.02;
+      return 0.657;
     }
 
     sizeSlides() {
