@@ -50,6 +50,7 @@ newsletter-popup p:last-child {
   width: 100%;
   transform: translateY(100%);
   transition: transform var(--duration-default);
+  background-color: #ebebeb;
 }
 
 .newsletter-popup__media {
@@ -58,6 +59,7 @@ newsletter-popup p:last-child {
 
 .newsletter-popup__content {
   padding: 4rem var(--page-gutter);
+  background-color: #ebebeb;
 }
 
 .newsletter-popup__title {
