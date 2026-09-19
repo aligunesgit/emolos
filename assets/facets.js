@@ -118,9 +118,8 @@ class FacetFiltersForm extends HTMLElement {
   }
 
   static renderProductCount(html) {
-    const count = new DOMParser()
-      .parseFromString(html, 'text/html')
-      .getElementById('ProductCount');
+    const parsed = new DOMParser().parseFromString(html, 'text/html');
+    const count = parsed.getElementById('ProductCount');
     const container = document.getElementById('ProductCount');
 
     if (container) {
