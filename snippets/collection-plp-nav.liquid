@@ -1,0 +1,129 @@
+{%- comment -%}
+  Nude Project-style collection listing header:
+  top category strip, title + count, Filter | Sort, subcategory tabs.
+{%- endcomment -%}
+
+{%- liquid
+  assign plp_menu = section.settings.plp_menu
+  assign sub_links = nil
+  assign view_all_url = nil
+  assign view_all_current = false
+  assign active_filter_count = 0
+
+  if collection.filters != blank
+    for filter in collection.filters
+      assign active_filter_count = active_filter_count | plus: filter.active_values.size
+    endfor
+  endif
+
+  if plp_menu != blank
+    for link in plp_menu.links
+      if link.current
+        if link.links.size > 0
+          assign sub_links = link.links
+          assign view_all_url = link.url
+          assign view_all_current = true
+        endif
+      elsif link.child_current or link.child_active
+        assign sub_links = link.links
+        assign view_all_url = link.url
+        assign view_all_current = false
+      endif
+    endfor
+  endif
+
+  assign product_count = collection.products_count | default: 0
+-%}
+
+{{- 'section-collection-plp.css' | asset_url | stylesheet_tag -}}
+
+<div class="collection-plp">
+  {%- if plp_menu != blank and plp_menu.links.size > 0 -%}
+    <nav class="collection-plp__menu" aria-label="{{- collection.title | escape -}}">
+      <ul class="collection-plp__menu-list list-unstyled">
+        {%- for link in plp_menu.links -%}
+          <li class="collection-plp__menu-item">
+            <a
+              href="{{- link.url -}}"
+              class="collection-plp__menu-link{% if link.current or link.child_current %} is-active{% endif %}"
+              {% if link.current %}aria-current="page"{% endif %}
+            >
+              {{- link.title | escape -}}
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </nav>
+  {%- endif -%}
+
+  <div class="collection-plp__heading">
+    <div class="collection-plp__title-row">
+      <div class="collection-plp__title-wrap">
+        <h1 class="collection-plp__title">{{- collection.title | escape -}}</h1>
+        {%- if section.settings.enable_products_count -%}
+          <span class="collection-plp__count" id="ProductCount">{{- product_count -}}</span>
+        {%- endif -%}
+      </div>
+
+      {%- if enable_filtering or section.settings.enable_sorting -%}
+        <button
+          type="button"
+          class="collection-plp__filter"
+          id="CollectionPlpFilter-{{- section.id -}}"
+          aria-haspopup="dialog"
+          aria-controls="Filters-menu-drawer-{{- section.id -}}"
+        >
+          <span class="collection-plp__filter-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M10 13.4404H4M15.56 13.4404H13.56" stroke="currentColor" stroke-linecap="square" stroke-linejoin="round"></path>
+              <path d="M11.9986 15.0001C12.4137 15.0001 12.8117 14.8352 13.1052 14.5417C13.3987 14.2482 13.5636 13.8502 13.5636 13.4351C13.5636 13.0201 13.3987 12.622 13.1052 12.3285C12.8117 12.035 12.4137 11.8701 11.9986 11.8701C11.5835 11.8701 11.1855 12.035 10.892 12.3285C10.5985 12.622 10.4336 13.0201 10.4336 13.4351C10.4336 13.8502 10.5985 14.2482 10.892 14.5417C11.1855 14.8352 11.5835 15.0001 11.9986 15.0001Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path d="M6 6.55957H4M15.69 6.55957H9.69" stroke="currentColor" stroke-linecap="square" stroke-linejoin="round"></path>
+              <path d="M8.13141 8.13C8.54647 8.13 8.94453 7.96512 9.23803 7.67162C9.53152 7.37813 9.69641 6.98006 9.69641 6.565C9.69641 6.14994 9.53152 5.75187 9.23803 5.45838C8.94453 5.16488 8.54647 5 8.13141 5C7.71634 5 7.31828 5.16488 7.02478 5.45838C6.73129 5.75187 6.56641 6.14994 6.56641 6.565C6.56641 6.98006 6.73129 7.37813 7.02478 7.67162C7.31828 7.96512 7.71634 8.13 8.13141 8.13Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span class="collection-plp__filter-text">{{- 'collection.plp.filter_sort' | t -}}</span>
+          {%- if active_filter_count > 0 -%}
+            <span class="collection-plp__filter-count">{{- active_filter_count -}}</span>
+          {%- endif -%}
+        </button>
+      {%- endif -%}
+    </div>
+
+    {%- if sub_links != nil and sub_links.size > 0 -%}
+      <nav class="collection-plp__subs" aria-label="{{- collection.title | escape -}}">
+        <ul class="collection-plp__subs-list list-unstyled">
+          <li class="collection-plp__subs-item">
+            <a
+              href="{{- view_all_url -}}"
+              class="collection-plp__subs-link{% if view_all_current %} is-active{% endif %}"
+              {% if view_all_current %}aria-current="page"{% endif %}
+            >
+              {{- 'collection.plp.view_all' | t -}}
+            </a>
+            <span class="collection-plp__dot" aria-hidden="true"></span>
+          </li>
+          {%- for link in sub_links -%}
+            <li class="collection-plp__subs-item">
+              <a
+                href="{{- link.url -}}"
+                class="collection-plp__subs-link{% if link.current %} is-active{% endif %}"
+                {% if link.current %}aria-current="page"{% endif %}
+              >
+                {{- link.title | escape -}}
+              </a>
+              <span class="collection-plp__dot" aria-hidden="true"></span>
+            </li>
+          {%- endfor -%}
+        </ul>
+      </nav>
+    {%- endif -%}
+  </div>
+</div>
+
+<script>
+  document.getElementById('CollectionPlpFilter-{{ section.id }}')?.addEventListener('click', function () {
+    const details = document.getElementById('Filters-drawer-{{ section.id }}');
+    const summary = details?.querySelector('summary');
+    if (summary) summary.click();
+  });
+</script>
