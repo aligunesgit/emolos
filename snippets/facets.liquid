@@ -26,7 +26,7 @@
   <script src="{{- 'custom-select.js' | asset_url -}}" defer="defer"></script>
 {%- endif -%}
 
-<facet-filters-form class="collection-facets {% if search.results_count == 0 %} collection-facets__no-result{% endif %}" data-section-id="{{- section.id -}}">
+<facet-filters-form class="collection-facets{% if plp_layout %} collection-facets--plp{% endif %}{% if search.results_count == 0 %} collection-facets__no-result{% endif %}" data-section-id="{{- section.id -}}">
   <div class="container max-w-{{ section.settings.section_width }}">
     <div class="collection-facets__inner">
       {%- if search.results_count != 0 and enable_filtering or section.settings.enable_sorting -%}
@@ -43,7 +43,7 @@
               {%- endif -%}
 
               <ul class="facets__actions-list list-unstyled">
-                {%- if enable_filtering and results.filters != empty -%}
+                {%- if enable_filtering and results.filters != empty or plp_layout and section.settings.enable_sorting -%}
                   <li class="facets__actions-item {% if filters_style == 'sidebar' %}collection__aside-filters-actions-item{% endif %}">
                     <menu-drawer class="drawer drawer--start drawer--sm facets__drawer">
                       <details id="Filters-drawer-{{- section.id -}}" class="drawer__container">
@@ -82,6 +82,37 @@
 
                           <div class="drawer__row drawer__row--mb-lg">
                             <accordion-default class="accordion facets__accordion">
+                              {%- if plp_layout and section.settings.enable_sorting -%}
+                                {%- assign sort_by = results.sort_by | default: results.default_sort_by -%}
+                                <details class="accordion__section facets__accordion-section" id="Filters-accordion-section-sort" open>
+                                  <summary class="facets__accordion-btn h4 js-btn" id="Filters-accordion-button-sort">
+                                    {{- 'collection.facets.sort_by_label' | t -}}
+                                    <div class="facets__accordion-icon svg-color-inherit">
+                                      {% render 'icon', icon_name: 'theme-chevron' %}
+                                    </div>
+                                  </summary>
+                                  <div class="accordion__body facets__accordion-body" id="Filters-accordion-dropdown-sort">
+                                    <ul class="facets__list list-unstyled" role="list">
+                                      {%- for option in results.sort_options -%}
+                                        <li class="facets__item">
+                                          <div class="checkbox facet-checkbox">
+                                            <input
+                                              type="radio"
+                                              name="sort_by"
+                                              id="Filter-sort-{{- option.value | handleize -}}"
+                                              value="{{- option.value | escape -}}"
+                                              {% if option.value == sort_by %}checked{% endif %}
+                                            >
+                                            <label for="Filter-sort-{{- option.value | handleize -}}">
+                                              {{- option.name | escape -}}
+                                            </label>
+                                          </div>
+                                        </li>
+                                      {%- endfor -%}
+                                    </ul>
+                                  </div>
+                                </details>
+                              {%- endif -%}
                               {%- for filter in results.filters -%}
                                 {%- render 'facet', index: forloop.index, section_id: section.id, filter: filter -%}
                               {%- endfor -%}
@@ -102,7 +133,7 @@
                   </li>
                 {%- endif -%}
 
-                {%- if section.settings.enable_sorting -%}
+                {%- if section.settings.enable_sorting and plp_layout != true -%}
                   <li class="facets__actions-item js-filter" data-index="sort-by">
                     {%- assign sort_by = results.sort_by | default: results.default_sort_by -%}
 
@@ -142,7 +173,7 @@
         </div>
       {%- endif -%}
 
-      {%- if section.settings.enable_products_count -%}
+      {%- if section.settings.enable_products_count and plp_layout != true -%}
         <div class="collection-facets__item">
           <div class="collection-facets__status" role="status">
             <span id="ProductCount">
