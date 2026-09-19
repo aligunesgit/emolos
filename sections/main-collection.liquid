@@ -64,11 +64,16 @@
 {%- endcapture -%}
 
 {%- liquid
+  capture facets_html
+    render 'collection-plp-nav', results: collection, enable_filtering: enable_filtering, section: section
+  endcapture
+
   if enable_filtering or section.settings.enable_sorting or section.settings.enable_products_count or section.settings.products_per_row_ui
     echo 'component-facets.css' | asset_url | stylesheet_tag
 
     capture facets_html
-      render 'facets', results: collection, enable_filtering: enable_filtering, enable_sorting: section.settings.enable_sorting, section_id: section.id, filters_style: section.settings.filters_style
+      echo facets_html
+      render 'facets', results: collection, enable_filtering: enable_filtering, enable_sorting: section.settings.enable_sorting, section_id: section.id, filters_style: section.settings.filters_style, plp_layout: true
     endcapture
   elsif section.settings.sidebar_navigation != blank
     assign collection_additional_classes = collection_additional_classes | append: ' collection--no-utils'
@@ -97,7 +102,7 @@
   endif
 -%}
 
-<div class="collection color-{{ section.settings.color_scheme }} gradient js-animation-fade-in {{ collection_additional_classes | strip }} section-{{ section.id }}">
+<div class="collection collection--plp color-{{ section.settings.color_scheme }} gradient js-animation-fade-in {{ collection_additional_classes | strip }} section-{{ section.id }}">
   {{ facets_html }}
 
   <div class="container max-w-{{ section.settings.section_width }}">
@@ -331,6 +336,12 @@
     {
       "type": "header",
       "content": "t:sections.main-collection.settings.header_sidebar.content"
+    },
+    {
+      "type": "link_list",
+      "id": "plp_menu",
+      "label": "Collection category menu",
+      "info": "Top horizontal category strip. Nested menu items become the subcategory tabs (View All + children)."
     },
     {
       "type": "link_list",
