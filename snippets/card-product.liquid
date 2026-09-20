@@ -467,6 +467,23 @@
   {%- endif -%}
 {%- endunless -%}
 
+{%- if plp_card -%}
+  {%- capture quick_add_to_cart_button_html -%}
+    <div class="card-product__sizes svg-color-inherit no-js-hidden">
+      <button
+        type="button"
+        class="card-product__sizes-btn-toggle button-reset card-product__sizes-btn-out quick-cart-modal__trigger"
+        data-product-url="{{- product_ref.url -}}"
+        aria-label="{{- 'products.card-product.add_to_cart' | t -}}"
+        aria-controls="quick-cart-modal"
+        aria-expanded="false"
+      >
+        {% render 'icon', icon_name: 'theme-plus-button' %}
+      </button>
+    </div>
+  {%- endcapture -%}
+{%- endif -%}
+
 <card-product
   class="card-product {{ class }}{% if hide_actions %} disabled{% endif %} {{ card_product_layout }}{% if plp_card %} card-product--plp{% endif %}"
   data-handle="{{- product_ref.handle -}}"
