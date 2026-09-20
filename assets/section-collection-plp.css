@@ -6,9 +6,20 @@
   position: sticky;
   top: var(--header-height, 0);
   z-index: 5;
-  padding-inline-start: 1.6rem;
+  width: 100%;
+  padding-inline: 0;
   background-color: rgb(var(--color-background));
-  border-block-end: 0.1rem solid #dad4d3;
+}
+
+.collection-plp__menu::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  width: 100%;
+  height: 0.1rem;
+  background-color: #dad4d3;
+  pointer-events: none;
 }
 
 .collection-plp__menu-list,
@@ -29,7 +40,7 @@
 }
 
 .collection-plp__menu-list {
-  padding: 0.6rem 0 0.5rem;
+  padding: 0.6rem 1.6rem 0.5rem;
 }
 
 .collection-plp__menu-item,
@@ -42,10 +53,6 @@
 
 .collection-plp__menu-item {
   padding: 0.4rem 1.8rem 0.4rem 0;
-}
-
-.collection-plp__menu-item:last-child {
-  padding-inline-end: 1.6rem;
 }
 
 .collection-plp__menu-link,
@@ -86,13 +93,13 @@
   min-width: 0;
 }
 
-.collection-plp__title {
+h1.collection-plp__title {
   margin: 0;
   color: rgb(var(--color-foreground));
   font-family: var(--font-heading-family);
   font-size: 2.2rem;
   font-weight: 400;
-  line-height: 3.3rem;
+  line-height: 2.7rem;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -220,9 +227,10 @@
 }
 
 @media screen and (min-width: 750px) {
-  .collection-plp__title {
+  h1.collection-plp__title:not(.heading-static),
+  h1.collection-plp__title {
     font-size: 2.4rem;
-    line-height: 3.6rem;
+    line-height: 2.7rem;
   }
 
   .collection-plp__subs {
@@ -421,22 +429,36 @@ html.no-js .collection-facets--plp .plp-filters-drawer > .drawer__container[open
   gap: 3.6rem;
 }
 
+.collection-facets--plp .plp-filters .accordion__section.facets__accordion-section,
 .collection-facets--plp .plp-filters .facets__accordion-section {
   margin: 0;
+  padding: 0;
   border: 0;
 }
 
+.collection-facets--plp .plp-filters .facets__accordion-btn.h4,
 .collection-facets--plp .plp-filters .facets__accordion-btn {
-  min-height: 3rem;
+  min-height: 0;
   padding: 0;
   font-family: var(--font-body-family);
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 400;
   line-height: 2.7rem;
   letter-spacing: 0;
   text-transform: none;
   text-decoration: none;
   color: rgb(var(--color-foreground));
+}
+
+.collection-facets--plp .plp-filters .facets__accordion-body,
+.collection-facets--plp .plp-filters .facets__accordion .facets__list,
+.collection-facets--plp .plp-filters .facets__accordion .facets__price {
+  padding-block-start: 0;
+}
+
+.collection-facets--plp .plp-filters .plp-filters__pills,
+.collection-facets--plp .plp-filters .facets__accordion .facets__price {
+  padding-block-start: 1rem;
 }
 
 .collection-facets--plp .plp-filters .facets__accordion-icon,
