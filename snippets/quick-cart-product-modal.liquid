@@ -2,7 +2,7 @@
   {%- liquid
     assign product_images = product.media | where: 'media_type', 'image'
     assign product_models = product.media | where: 'media_type', 'model'
-    assign product_media = product_images | concat: product_models  | sort: 'position'
+    assign product_media = product_images | concat: product_models | sort: 'position'
   -%}
 
   {% liquid
@@ -22,15 +22,18 @@
         assign slider_auto_height = false
     endcase
   %}
-    <button
+
+  <button
     type="button"
-    class="button--close small-up-hide"
+    class="button--close"
+    aria-label="{{- 'actions.close' | t -}}"
     aria-expanded="false"
     aria-controls="quick-cart-modal"
     tabindex="0"
   >
-    {% render 'icon', icon_name: 'theme-arrow-close' %}
+    {% render 'icon', icon_name: 'theme-close' %}
   </button>
+
   {%- if product.media.size > 0 -%}
     <div class="grid__item product__grid__item product__grid__item--media">
       <product-media
@@ -56,12 +59,12 @@
 
         {% liquid
           assign swiper_options = '{'
-          assign swiper_options = swiper_options | append: '"slidesPerView": 1.2'
-          assign swiper_options = swiper_options | append: ', "slidesPerViewDesktop": 1.3'
+          assign swiper_options = swiper_options | append: '"slidesPerView": 1'
+          assign swiper_options = swiper_options | append: ', "slidesPerViewDesktop": 1'
           assign swiper_options = swiper_options | append: ', "direction": "horizontal"'
-          assign swiper_options = swiper_options | append: ', "directionDesktop": "vertical"'
-          assign swiper_options = swiper_options | append: ', "disablePagination": false'
-          assign swiper_options = swiper_options | append: ', "spaceBetween": 2'
+          assign swiper_options = swiper_options | append: ', "directionDesktop": "horizontal"'
+          assign swiper_options = swiper_options | append: ', "disablePagination": true'
+          assign swiper_options = swiper_options | append: ', "spaceBetween": 0'
           assign swiper_options = swiper_options | append: ', "resistanceRatio": 0'
           assign swiper_options = swiper_options | append: ', "centerInsufficientSlides": false'
           assign swiper_options = swiper_options | append: '}'
@@ -79,17 +82,16 @@
             </div>
           </div>
 
-          <div class="swiper-pagination  small-up-hide"></div>
-
-          <div class="swiper-buttons small-hide medium-hide hidden no-js-hidden">
-            <button class="swiper-button swiper-button--prev">
-              {% render 'icon', icon_name: 'theme-arrow' %}
-            </button>
-
-            <button class="swiper-button swiper-button--next">
-              {% render 'icon', icon_name: 'theme-arrow' %}
-            </button>
-          </div>
+          {%- if product_media.size > 1 -%}
+            <div class="swiper-buttons no-js-hidden">
+              <button type="button" class="swiper-button swiper-button--prev" aria-label="{{- 'actions.previous' | t -}}">
+                {% render 'icon', icon_name: 'theme-arrow' %}
+              </button>
+              <button type="button" class="swiper-button swiper-button--next" aria-label="{{- 'actions.next' | t -}}">
+                {% render 'icon', icon_name: 'theme-arrow' %}
+              </button>
+            </div>
+          {%- endif -%}
         </div>
 
         <div class="hidden" data-close-icon>{% render 'icon', icon_name: 'theme-close' %}</div>
@@ -100,25 +102,23 @@
   {%- endif -%}
 
   <div class="product__content">
-    <button
-      type="button"
-      class="button--close small-hide"
-      aria-expanded="false"
-      aria-controls="quick-cart-modal"
-      tabindex="0"
-    >
-      {% render 'icon', icon_name: 'theme-arrow-close' %}
-    </button>
+    <div class="quick-cart-product-modal__info">
+      <div class="product__title-wrapper h2 product__title heading-static">
+        {{- product.title | escape -}}
+      </div>
 
-    <div>
-      <div>
-        <div class="product__title-wrapper h2 product__title">
-          {{- product.title | escape  -}}
-        </div>
+      <div class="quick-cart-product-modal__rating" aria-hidden="true">
+        {%- for i in (1..5) -%}
+          <span class="quick-cart-product-modal__star">
+            <svg width="14" height="14" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 0.8L7.35 4.35L11.2 4.65L8.3 7.2L9.15 11L6 9.05L2.85 11L3.7 7.2L0.8 4.65L4.65 4.35L6 0.8Z" fill="currentColor"></path>
+            </svg>
+          </span>
+        {%- endfor -%}
+      </div>
 
-        <div class="product__price">
-          {%- render 'price', product_ref: product, use_variant: true, show_sale_badge: true -%}
-        </div>
+      <div class="product__price">
+        {%- render 'price', product_ref: product, use_variant: true, show_sale_badge: false -%}
       </div>
 
       <product-card
@@ -127,10 +127,6 @@
           data-has-pre-order
         {% endif %}
       >
-        {% if settings.show_product_groups_on_product_card %}
-          {% render 'product-groups', product: product, on: 'page' %}
-        {% endif %}
-
         <div class="product-card__variants">
           {%- liquid
             assign modal_context_id = 'quick-cart-modal-' | append: product.id
@@ -158,25 +154,19 @@
           if product.metafields.theme.preorder.value
             assign product_preorder = true
           endif
-        -%}
-
-        {%- liquid
           assign modal_form_id = 'product-form-' | append: product.id | append: '-modal'
         -%}
 
         {%- form 'product',
           product,
-          class: 'product-card__add-to-cart--form product__form product__form--inline',
+          class: 'product-card__add-to-cart--form product__form',
           novalidate: 'novalidate',
           id: modal_form_id
         -%}
           <input type="hidden" name="id" value="{{- product.first_available_variant.id -}}">
-          <div class="product-selector__quantity">
-            {%- render 'quantity-input', product_ref: product, hide_label: true -%}
-          </div>
           <button
             type="submit"
-            class="button button--filled button--uppercase"
+            class="button button--filled button--uppercase quick-cart-product-modal__submit"
             {% unless product.available %}
               disabled
             {% endunless %}
@@ -189,16 +179,14 @@
               {%- endif -%}
             </span>
           </button>
-          {% if product_preorder == false %}
-            {{- form | payment_button -}}
-          {% endif %}
           <div class="product-form__error-message-wrapper" role="alert" hidden>
             <span class="product-form__error-message"></span>
           </div>
         {%- endform -%}
 
-        <a href="{{- product.url -}}" class="quick-cart-product-modal__product-link" role="button">
-          {{- 'products.card-product.view_full_product' | t -}}
+        <a href="{{- product.url -}}" class="quick-cart-product-modal__product-link">
+          <span>{{- 'products.card-product.view_full_product' | t -}}</span>
+          {% render 'icon', icon_name: 'theme-chevron' %}
         </a>
       </product-card>
     </div>
