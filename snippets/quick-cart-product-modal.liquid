@@ -51,7 +51,7 @@
             for media in product_media
               capture slides_html
                 echo slides_html
-                render 'product-media', media: media, output_type: 'slider-slide', media_index: forloop.index0, preserve_aspect_ratio: adaptive_ratio, section_index: 0, media_aspect_ratio: media_aspect_ratio_setting
+                render 'product-media', media: media, output_type: 'slider-slide', media_index: forloop.index0, preserve_aspect_ratio: adaptive_ratio, section_index: 0, media_aspect_ratio: media_aspect_ratio_setting, image_per_view: 20
               endcapture
             endfor
           endif
@@ -287,8 +287,8 @@
       {%- endif -%}
 
       <div class="quick-cart-size-chart__howto">
-        <p><strong>1. WAIST:</strong> Button the pants first, then spread them flat and measure straight across the waistband, removing any fullness or wrinkles.</p>
-        <p><strong>2. INSEAM:</strong> With the pants buttoned and laid flat, measure from the crotch — where the front and back seams meet — down to the hem.</p>
+        <p><strong>1. WAIST:</strong> For measuring the waist first button the pants up. Next spread the pants flat on the surface, and remove any fullness and wrinkles from it.</p>
+        <p><strong>2. INSEAM:</strong> Having the pants buttoned up, spread the pants on a surface flat. Now measure the inseam gap from the crotch, at the spot where the front and back seams meet, exactly where, depends on the length you desire ultimately.</p>
       </div>
     </div>
   </div>
