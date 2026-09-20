@@ -5,24 +5,6 @@
     assign product_media = product_images | concat: product_models | sort: 'position'
   -%}
 
-  {% liquid
-    assign adaptive_ratio_setting = section.settings.adaptive_ratio_and_auto_height | default: 'default'
-    assign product_media_layout_setting = section.settings.product_media_layout | default: 'product__media-layout--slider'
-    assign media_aspect_ratio_setting = section.settings.media_aspect_ratio | default: 'default'
-
-    case adaptive_ratio_setting
-      when 'slider_auto_height'
-        assign adaptive_ratio = true
-        assign slider_auto_height = true
-      when 'adaptive_ratio'
-        assign adaptive_ratio = true
-        assign slider_auto_height = false
-      else
-        assign adaptive_ratio = false
-        assign slider_auto_height = false
-    endcase
-  %}
-
   <button
     type="button"
     class="button--close"
@@ -34,70 +16,38 @@
     {% render 'icon', icon_name: 'theme-close' %}
   </button>
 
-  {%- if product.media.size > 0 -%}
-    <div class="grid__item product__grid__item product__grid__item--media">
-      <product-media
-        class="product__media {{ product_media_layout_setting }} {% if adaptive_ratio_setting == "default" %} product__media--fit{% endif %}"
-        data-auto-height="{{ slider_auto_height }}"
-        data-layout="{{- product_media_layout_setting -}}"
-      >
-        {%- liquid
-          assign slides_html = ''
-          assign addition_swiper_class = 'swiper'
-          if product_media.size == 1
-            assign addition_swiper_class = addition_swiper_class | append: ' one-slide'
-          endif
-          if product_media.size > 0
-            for media in product_media
-              capture slides_html
-                echo slides_html
-                render 'product-media', media: media, output_type: 'slider-slide', media_index: forloop.index0, preserve_aspect_ratio: adaptive_ratio, section_index: 0, media_aspect_ratio: media_aspect_ratio_setting, image_per_view: 20
-              endcapture
-            endfor
-          endif
-        -%}
-
-        {% liquid
-          assign swiper_options = '{'
-          assign swiper_options = swiper_options | append: '"slidesPerView": 1'
-          assign swiper_options = swiper_options | append: ', "slidesPerViewDesktop": 1'
-          assign swiper_options = swiper_options | append: ', "direction": "horizontal"'
-          assign swiper_options = swiper_options | append: ', "directionDesktop": "horizontal"'
-          assign swiper_options = swiper_options | append: ', "disablePagination": true'
-          assign swiper_options = swiper_options | append: ', "spaceBetween": 0'
-          assign swiper_options = swiper_options | append: ', "resistanceRatio": 0'
-          assign swiper_options = swiper_options | append: ', "centerInsufficientSlides": false'
-          assign swiper_options = swiper_options | append: '}'
-        %}
-
-        <div class="product__media-slider relative {{ product_media_layout_setting }}">
-          <div
-            class="{{- addition_swiper_class -}}"
-            data-slider
-            data-swiper-options='{{- swiper_options -}}'
-            id="product-media-gallery"
-          >
-            <div class="swiper-wrapper">
-              {{- slides_html -}}
-            </div>
+  {%- if product_media.size > 0 -%}
+    <div class="product__grid__item product__grid__item--media">
+      <div class="quick-cart-product-modal__media" data-slide-count="{{- product_media.size -}}">
+        <div class="swiper" data-quick-cart-slider id="QuickCartSlider-{{ product.id }}">
+          <div class="swiper-wrapper">
+            {%- for media in product_media -%}
+              <div class="swiper-slide" data-media-id="{{ media.id }}" data-index="{{ forloop.index0 }}">
+                <img
+                  src="{{ media.preview_image | image_url: width: 1200 }}"
+                  srcset="{{ media.preview_image | image_url: width: 600 }} 600w, {{ media.preview_image | image_url: width: 900 }} 900w, {{ media.preview_image | image_url: width: 1200 }} 1200w"
+                  sizes="(min-width: 750px) 240px, 100vw"
+                  alt="{{ media.alt | default: product.title | escape }}"
+                  width="{{ media.preview_image.width }}"
+                  height="{{ media.preview_image.height }}"
+                  loading="eager"
+                  fetchpriority="{% if forloop.first %}high{% else %}low{% endif %}"
+                >
+              </div>
+            {%- endfor -%}
           </div>
-
-          {%- if product_media.size > 1 -%}
-            <div class="swiper-buttons no-js-hidden">
-              <button type="button" class="swiper-button swiper-button--prev" aria-label="{{- 'actions.previous' | t -}}">
-                {% render 'icon', icon_name: 'theme-arrow' %}
-              </button>
-              <button type="button" class="swiper-button swiper-button--next" aria-label="{{- 'actions.next' | t -}}">
-                {% render 'icon', icon_name: 'theme-arrow' %}
-              </button>
-            </div>
-          {%- endif -%}
         </div>
-
-        <div class="hidden" data-close-icon>{% render 'icon', icon_name: 'theme-close' %}</div>
-        <div class="hidden" data-prev-icon>{% render 'icon', icon_name: 'theme-arrow' %}</div>
-        <div class="hidden" data-next-icon>{% render 'icon', icon_name: 'theme-arrow' %}</div>
-      </product-media>
+        {%- if product_media.size > 1 -%}
+          <div class="swiper-buttons">
+            <button type="button" class="swiper-button swiper-button--prev" aria-label="{{- 'actions.previous' | t -}}">
+              {% render 'icon', icon_name: 'theme-arrow' %}
+            </button>
+            <button type="button" class="swiper-button swiper-button--next" aria-label="{{- 'actions.next' | t -}}">
+              {% render 'icon', icon_name: 'theme-arrow' %}
+            </button>
+          </div>
+        {%- endif -%}
+      </div>
     </div>
   {%- endif -%}
 
