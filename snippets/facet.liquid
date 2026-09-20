@@ -18,9 +18,19 @@
 
 <details class="accordion__section facets__accordion-section" id="Filters-accordion-section-{{- index -}}">
   <summary class="facets__accordion-btn h4 js-btn" id="Filters-accordion-button-{{- index -}}">
-    {{- filter.label | escape -}}
-    <div class="facets__accordion-icon svg-color-inherit">
-      {% render 'icon', icon_name: 'theme-chevron' %}
+    <span class="plp-filters__summary-text">
+      {{- filter.label | escape -}}
+      {%- if plp_layout and filter.active_values.size > 0 -%}
+        <span class="plp-filters__heading-count">{{- filter.active_values.size -}}</span>
+      {%- endif -%}
+    </span>
+    <div class="facets__accordion-icon svg-color-inherit{% if plp_layout %} plp-filters__toggle{% endif %}">
+      {%- if plp_layout -%}
+        <span class="plp-filters__icon-plus">{% render 'icon', icon_name: 'theme-plus' %}</span>
+        <span class="plp-filters__icon-minus">{% render 'icon', icon_name: 'theme-minus' %}</span>
+      {%- else -%}
+        {% render 'icon', icon_name: 'theme-chevron' %}
+      {%- endif -%}
     </div>
   </summary>
 
@@ -28,7 +38,7 @@
     <div class="js-filter" data-index="{{- index -}}">
       {%- case filter.type -%}
         {%- when 'list' or 'boolean' -%}
-          <ul class="facets__list list-unstyled" role="list">
+          <ul class="facets__list list-unstyled{% if plp_layout %} plp-filters__pills{% endif %}" role="list">
             {%- for value in filter.values -%}
               <li class="facets__item{% if value.active %} facets__item--checked{% endif %}">
                 {%- liquid
@@ -61,6 +71,12 @@
                   endif
                 -%}
 
+                {%- if plp_layout -%}
+                  <input type="checkbox" name="{{- value.param_name -}}" value="{{- value.value -}}" id="{{- id -}}" class="visually-hidden" {{ checkbox_attr }}>
+                  <label class="plp-filters__pill" for="{{- id -}}">
+                    {{- value.label | escape -}}
+                  </label>
+                {%- else -%}
                 <div class="checkbox facet-checkbox {{ checkbox_additional_classes }}">
                   {%- if filter.presentation == 'swatch' -%}
                     {%- render 'product-option', value: value, input_type: 'checkbox', name: value.param_name, id: id, option_value: value.label, visually_hidden: 'false', attr: checkbox_attr, class: 'swatch--hide-line', where: 'facets' -%}
@@ -71,10 +87,11 @@
                       {{- value.label | escape -}}
                     </label>
                   {%- endif -%}
+                </div>
+                {%- endif -%}
 
                   {%- assign id = nil -%}
                   {%- assign checkbox_attr = nil -%}
-                </div>
               </li>
             {%- endfor -%}
           </ul>
