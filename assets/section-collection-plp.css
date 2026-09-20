@@ -207,3 +207,278 @@
     padding-block-start: 1.6rem;
   }
 }
+
+html.js .collection-facets--plp .plp-filters-drawer.drawer--start > .drawer__container > .drawer__content,
+html.js .collection-facets--plp .plp-filters {
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(var(--color-background));
+  transform: translateY(100%);
+}
+
+html.js .collection-facets--plp .plp-filters-drawer > .drawer__container.menu-opening > .drawer__content {
+  transform: none;
+  opacity: 1;
+}
+
+.plp-filters__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 0 0 auto;
+  height: 7.8rem;
+  padding: 2.7rem 1.6rem 2.4rem 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: rgb(var(--color-background));
+}
+
+.plp-filters__header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.plp-filters__header-icon {
+  display: flex;
+  width: 2rem;
+  height: 2rem;
+  margin-inline-end: 0.4rem;
+}
+
+.plp-filters__header-icon svg {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+}
+
+.plp-filters__heading {
+  margin: 0;
+  color: rgb(var(--color-foreground));
+  font-family: var(--font-heading-family);
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 2.7rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.plp-filters__summary-text {
+  display: inline-flex;
+  align-items: flex-start;
+}
+
+.plp-filters__heading-count {
+  display: inline-block;
+  margin-inline-start: 0.2rem;
+  font-family: var(--font-body-family);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1;
+  vertical-align: super;
+}
+
+.plp-filters__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  color: rgb(var(--color-foreground));
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.plp-filters__close svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.plp-filters__applied {
+  padding: 0 1.6rem 1.6rem 1.5rem;
+}
+
+.plp-filters__applied.hidden {
+  display: none;
+}
+
+.plp-filters__applied-title {
+  margin: 0 0 1rem;
+  font-family: var(--font-body-family);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1;
+  text-transform: none;
+}
+
+.plp-filters__applied-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 0.4rem;
+  margin: 0;
+}
+
+.plp-filters__applied-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 1.1rem;
+  border: 0.1rem solid rgb(var(--color-foreground));
+  border-radius: 10rem;
+  color: rgb(var(--color-foreground));
+  font-family: var(--font-body-family);
+  font-size: 1.2rem;
+  line-height: 1.6rem;
+  text-decoration: none;
+}
+
+.plp-filters__body {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0 1.6rem 2.4rem 1.5rem;
+  overflow-y: auto;
+}
+
+.collection-facets--plp .plp-filters .facets__accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 3.6rem;
+}
+
+.collection-facets--plp .plp-filters .facets__accordion-section {
+  margin: 0;
+  border: 0;
+}
+
+.collection-facets--plp .plp-filters .facets__accordion-btn {
+  min-height: 3rem;
+  padding: 0;
+  font-family: var(--font-body-family);
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 2.7rem;
+  letter-spacing: 0;
+  text-transform: none;
+  text-decoration: none;
+  color: rgb(var(--color-foreground));
+}
+
+.collection-facets--plp .plp-filters .facets__accordion-icon,
+.collection-facets--plp .plp-filters .plp-filters__toggle {
+  margin-inline-start: auto;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.collection-facets--plp .plp-filters .plp-filters__toggle svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  transform: none !important;
+}
+
+.plp-filters__icon-minus {
+  display: none;
+}
+
+html.no-js .collection-facets--plp .facets__accordion-section[open] .plp-filters__icon-plus,
+html.js .collection-facets--plp .facets__accordion-section.is-active .plp-filters__icon-plus,
+html.js .collection-facets--plp .facets__accordion-section[open] .plp-filters__icon-plus {
+  display: none;
+}
+
+html.no-js .collection-facets--plp .facets__accordion-section[open] .plp-filters__icon-minus,
+html.js .collection-facets--plp .facets__accordion-section.is-active .plp-filters__icon-minus,
+html.js .collection-facets--plp .facets__accordion-section[open] .plp-filters__icon-minus {
+  display: block;
+}
+
+.plp-filters__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 0.4rem;
+  width: 100%;
+  max-width: none;
+  padding: 1rem 0 0;
+}
+
+.collection-facets--plp .plp-filters .facets__item + .facets__item {
+  margin: 0;
+}
+
+.plp-filters__pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1.1rem;
+  border: 0.1rem solid #dad4d3;
+  border-radius: 10rem;
+  background: transparent;
+  color: rgb(var(--color-foreground));
+  font-family: var(--font-body-family);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.6rem;
+  letter-spacing: 0;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.plp-filters__pills input:checked + .plp-filters__pill {
+  border-color: rgb(var(--color-foreground));
+}
+
+.plp-filters__footer {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: stretch;
+  margin: auto 0 0;
+  padding: 0;
+  position: sticky;
+  bottom: 0;
+  background-color: rgb(var(--color-background));
+  border-block-start: 0.1rem solid rgba(var(--color-border), 0.35);
+}
+
+.plp-filters__footer-clear,
+.plp-filters__footer-btn {
+  flex: 1 1 50%;
+}
+
+.plp-filters__footer-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 4.8rem;
+  padding: 1.6rem 1rem;
+  border: 0;
+  font-family: var(--font-button-family);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.plp-filters__footer-btn--clear {
+  background: transparent;
+  color: rgb(var(--color-foreground));
+}
+
+.plp-filters__footer-btn--apply {
+  background-color: rgb(var(--color-foreground));
+  color: rgb(var(--color-background));
+}
+
+.collection-facets--plp .drawer__button::after {
+  background-color: rgba(17, 17, 17, 0.7);
+}
