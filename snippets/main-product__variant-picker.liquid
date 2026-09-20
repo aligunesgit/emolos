@@ -92,6 +92,11 @@
       <fieldset class="product-options{% if product.has_only_default_variant %} hidden{% endif %}" data-input-wrapper id="{{ product_option_href -}}">
         <legend class="product-selector__label">
           {{- option.name -}}
+          {%- if context_type == 'modal' and option.name == settings.sizes_option or context_type == 'modal' and option.name == 'Size' -%}
+            <button type="button" class="quick-cart-size-chart__trigger">
+              {{- 'products.product.size_chart' | t -}}
+            </button>
+          {%- endif -%}
           {%- if context_type != 'modal' and option.name == settings.sizes_option and block.settings.size_guide_page != '' and variant_picker_layout != 'stacked' -%}
             {{ size_guide }}
           {%- endif -%}
