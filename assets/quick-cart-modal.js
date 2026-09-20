@@ -188,7 +188,47 @@ if (!customElements.get('quick-cart-modal')) {
 
         this.initVariantSelection();
         this.initFormSubmit();
+        this.initSizeChart();
       }
+    }
+
+    initSizeChart() {
+      const chart = this.querySelector('.quick-cart-size-chart');
+      if (!chart) return;
+
+      const open = () => {
+        chart.hidden = false;
+      };
+      const close = event => {
+        event?.preventDefault();
+        event?.stopPropagation();
+        chart.hidden = true;
+      };
+
+      this.querySelectorAll('.quick-cart-size-chart__trigger').forEach(trigger => {
+        trigger.addEventListener('click', event => {
+          event.preventDefault();
+          event.stopPropagation();
+          open();
+        });
+      });
+
+      chart.querySelector('.quick-cart-size-chart__close')?.addEventListener('click', close);
+      chart.addEventListener('click', event => {
+        if (event.target === chart) close(event);
+      });
+
+      chart.querySelectorAll('.quick-cart-size-chart__unit').forEach(button => {
+        button.addEventListener('click', () => {
+          const unit = button.dataset.unit;
+          chart.querySelectorAll('.quick-cart-size-chart__unit').forEach(el => {
+            el.classList.toggle('is-active', el === button);
+          });
+          chart.querySelectorAll('[data-unit-table]').forEach(table => {
+            table.hidden = table.dataset.unitTable !== unit;
+          });
+        });
+      });
     }
 
     initVariantSelection() {
@@ -399,6 +439,8 @@ if (!customElements.get('quick-cart-modal')) {
         document.querySelector('body').classList.remove('overflow-hidden');
       }
       this.classList.remove('is--open');
+      const sizeChart = this.querySelector('.quick-cart-size-chart');
+      if (sizeChart) sizeChart.hidden = true;
       this.closed();
       this.toggleAriaExpanded();
 
