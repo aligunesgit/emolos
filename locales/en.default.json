@@ -353,6 +353,7 @@
       "filter_sort": "Filter | Sort",
       "filters_sort": "Filters | Sort",
       "view_all": "View All",
+      "all": "All {{ title }}",
       "applied_filters": "Applied Filters",
       "remove_all": "Remove All",
       "apply": "Apply"
