@@ -107,9 +107,24 @@
         {{- product.title | escape -}}
       </div>
 
-      <div class="quick-cart-product-modal__rating" aria-hidden="true">
+      {%- liquid
+        assign rating_value = 0
+        if product.metafields.reviews.rating.value.rating != blank
+          assign rating_value = product.metafields.reviews.rating.value.rating
+        elsif product.metafields.loox.avg_rating != blank
+          assign rating_value = product.metafields.loox.avg_rating
+        endif
+        assign rating_filled = rating_value | round
+        if rating_filled > 5
+          assign rating_filled = 5
+        endif
+        if rating_filled < 0
+          assign rating_filled = 0
+        endif
+      -%}
+      <div class="quick-cart-product-modal__rating" aria-label="{{- rating_value -}} / 5">
         {%- for i in (1..5) -%}
-          <span class="quick-cart-product-modal__star">
+          <span class="quick-cart-product-modal__star{% if i <= rating_filled %} is-filled{% endif %}" aria-hidden="true">
             <svg width="14" height="14" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M6 0.8L7.35 4.35L11.2 4.65L8.3 7.2L9.15 11L6 9.05L2.85 11L3.7 7.2L0.8 4.65L4.65 4.35L6 0.8Z" fill="currentColor"></path>
             </svg>
@@ -189,6 +204,92 @@
           {% render 'icon', icon_name: 'theme-chevron' %}
         </a>
       </product-card>
+    </div>
+  </div>
+
+  {%- liquid
+    assign size_option = product.options_by_name[settings.sizes_option]
+  -%}
+  <div class="quick-cart-size-chart" hidden>
+    <div class="quick-cart-size-chart__panel" role="dialog" aria-modal="true" aria-labelledby="QuickCartSizeChartTitle">
+      <button type="button" class="quick-cart-size-chart__close" aria-label="{{- 'actions.close' | t -}}">
+        {% render 'icon', icon_name: 'theme-close' %}
+      </button>
+      <h2 id="QuickCartSizeChartTitle" class="quick-cart-size-chart__title heading-static">
+        {{- product.title | escape -}}
+      </h2>
+      <p class="quick-cart-size-chart__subtitle">{{- 'products.product.size_charts' | t -}}</p>
+      <div class="quick-cart-size-chart__units" role="tablist">
+        <button type="button" class="quick-cart-size-chart__unit is-active" data-unit="cm">
+          {{- 'products.product.size_chart_cm' | t -}}
+        </button>
+        <span class="quick-cart-size-chart__unit-sep" aria-hidden="true">|</span>
+        <button type="button" class="quick-cart-size-chart__unit" data-unit="in">
+          {{- 'products.product.size_chart_inches' | t -}}
+        </button>
+      </div>
+
+      {%- if size_option != blank -%}
+        <div class="quick-cart-size-chart__table-wrap" data-unit-table="cm">
+          <table class="quick-cart-size-chart__table">
+            <thead>
+              <tr>
+                <th>Size</th>
+                <th>WAIST</th>
+                <th>INSIDE LEG SEAM</th>
+              </tr>
+            </thead>
+            <tbody>
+              {%- for value in size_option.values -%}
+                {%- assign size_number = value.name | plus: 0 -%}
+                <tr>
+                  <td>{{- value -}}</td>
+                  <td>
+                    {%- if size_number > 0 -%}
+                      {{- size_number | plus: 9 -}}
+                    {%- else -%}
+                      —
+                    {%- endif -%}
+                  </td>
+                  <td>81.3</td>
+                </tr>
+              {%- endfor -%}
+            </tbody>
+          </table>
+        </div>
+        <div class="quick-cart-size-chart__table-wrap" data-unit-table="in" hidden>
+          <table class="quick-cart-size-chart__table">
+            <thead>
+              <tr>
+                <th>Size</th>
+                <th>WAIST</th>
+                <th>INSIDE LEG SEAM</th>
+              </tr>
+            </thead>
+            <tbody>
+              {%- for value in size_option.values -%}
+                {%- assign size_number = value.name | plus: 0 -%}
+                <tr>
+                  <td>{{- value -}}</td>
+                  <td>
+                    {%- if size_number > 0 -%}
+                      {{- size_number | plus: 9 | times: 10.0 | divided_by: 25.4 | round: 1 -}}
+                    {%- else -%}
+                      —
+                    {%- endif -%}
+                  </td>
+                  <td>32</td>
+                </tr>
+              {%- endfor -%}
+            </tbody>
+          </table>
+        </div>
+      {%- endif -%}
+
+      <div class="quick-cart-size-chart__howto">
+        <p><strong>1. WAIST:</strong> Button the pants first, then spread them flat and measure straight across the waistband, removing any fullness or wrinkles.</p>
+        <p><strong>2. INSEAM:</strong> With the pants buttoned and laid flat, measure from the crotch — where the front and back seams meet — down to the hem.</p>
+      </div>
     </div>
   </div>
 </div>
