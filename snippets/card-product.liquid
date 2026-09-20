@@ -13,6 +13,7 @@
 
 {%- assign hide_actions = hide_actions | default: false -%}
 {%- assign image_per_view = image_per_view | default: 4 -%}
+{%- assign plp_card = plp_card | default: false -%}
 {%- capture card_id -%}
   {{- product_ref.id -}}-{{- section_id -}}-{{- card_index -}}
 {%- endcapture -%}
@@ -467,7 +468,7 @@
 {%- endunless -%}
 
 <card-product
-  class="card-product {{ class }}{% if hide_actions %} disabled{% endif %} {{ card_product_layout }}"
+  class="card-product {{ class }}{% if hide_actions %} disabled{% endif %} {{ card_product_layout }}{% if plp_card %} card-product--plp{% endif %}"
   data-handle="{{- product_ref.handle -}}"
   {% if product_ref.metafields.theme.preorder.value %}data-has-pre-order{% endif %}
   data-id="{{- card_id -}}"
@@ -535,26 +536,74 @@
 
     {%- unless hide_actions -%}
       <div class="card-product__overlay-content">
-        {%- if settings.product_swatches_on_card -%}
-          {%- if card_product_layout == 'card-product__layout--compact' -%}
-            {{ product_swatches_html }}
+        {%- if plp_card -%}
+          {%- if product_ref.compare_at_price > product_ref.price -%}
+            {%- assign sale_percent = product_ref.compare_at_price | minus: product_ref.price | times: 100.0 | divided_by: product_ref.compare_at_price | round -%}
+            <span class="card-product__sale-badge">{{- 'products.product.badges.percent_sale' | t: percent: sale_percent -}}</span>
           {%- endif -%}
+        {%- else -%}
+          {%- if settings.product_swatches_on_card -%}
+            {%- if card_product_layout == 'card-product__layout--compact' -%}
+              {{ product_swatches_html }}
+            {%- endif -%}
+          {%- endif -%}
+          {%- render 'product-tags', product_ref: product_ref -%}
         {%- endif -%}
-        {%- render 'product-tags', product_ref: product_ref -%}
       </div>
       {{ quick_add_to_cart_button_html }}
     {%- endunless -%}
   </div>
 
   <a href="{{- product_ref.url -}}" class="card-product__content focus-inset" role="button">
-    <h5 class="card-product__title">
+    {%- if plp_card -%}
+      {%- liquid
+        assign rating_value = 0
+        if product_ref.metafields.reviews.rating.value.rating != blank
+          assign rating_value = product_ref.metafields.reviews.rating.value.rating
+        elsif product_ref.metafields.loox.avg_rating != blank
+          assign rating_value = product_ref.metafields.loox.avg_rating
+        endif
+        assign rating_filled = rating_value | round
+        if rating_filled > 5
+          assign rating_filled = 5
+        endif
+      -%}
+      <div class="card-product__rating" aria-label="{{- rating_value -}} / 5">
+        {%- for i in (1..5) -%}
+          <span class="card-product__star{% if i <= rating_filled %} is-filled{% endif %}" aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 0.8L7.35 4.35L11.2 4.65L8.3 7.2L9.15 11L6 9.05L2.85 11L3.7 7.2L0.8 4.65L4.65 4.35L6 0.8Z" fill="currentColor"></path>
+            </svg>
+          </span>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+    <h5 class="card-product__title{% if plp_card %} heading-static{% endif %}">
       {%- if product_ref and product_ref != empty -%}
         {{- product_ref.title | escape -}}
       {%- else -%}
         {{- 'products.product.title' | t -}}
-
       {%- endif -%}
     </h5>
+    {%- if plp_card -%}
+      {%- liquid
+        assign variant_label = blank
+        assign plp_variant = product_ref.selected_or_first_available_variant | default: product_ref.first_available_variant
+        assign color_option = product_ref.options_by_name[settings.swatches_option]
+        if color_option and plp_variant
+          if color_option.position == 1
+            assign variant_label = plp_variant.option1
+          elsif color_option.position == 2
+            assign variant_label = plp_variant.option2
+          elsif color_option.position == 3
+            assign variant_label = plp_variant.option3
+          endif
+        endif
+      -%}
+      {%- if variant_label != blank -%}
+        <span class="card-product__variant">{{- variant_label | escape -}}</span>
+      {%- endif -%}
+    {%- endif -%}
     {%- render 'price', product_ref: product_ref, price_class: 'card-product__price' -%}
   </a>
 
@@ -562,7 +611,7 @@
     {%- render 'product-groups', product: product_ref, on: 'card' -%}
   {%- endif -%}
 
-  {%- unless hide_actions -%}
+  {%- unless hide_actions or plp_card -%}
     {%- if card_product_layout == 'card-product__layout--standard' -%}
       {%- if settings.product_swatches_on_card -%}
         {{ product_swatches_html }}
