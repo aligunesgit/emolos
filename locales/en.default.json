@@ -351,7 +351,11 @@
     },
     "plp": {
       "filter_sort": "Filter | Sort",
-      "view_all": "View All"
+      "filters_sort": "Filters | Sort",
+      "view_all": "View All",
+      "applied_filters": "Applied Filters",
+      "remove_all": "Remove All",
+      "apply": "Apply"
     }
   },
   "gift_cards": {
