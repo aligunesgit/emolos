@@ -2,6 +2,16 @@
   background-color: rgb(var(--color-background));
 }
 
+body:has(.collection--plp) .header {
+  border-bottom: 0.1rem solid #dad4d3;
+}
+
+body:has(.collection--plp) .header.has-bottom-border .header__inner::after,
+body:has(.collection--plp) .header .header__inner::after {
+  display: none !important;
+  content: none;
+}
+
 .collection-plp__menu {
   position: sticky;
   top: var(--header-height, 0);
