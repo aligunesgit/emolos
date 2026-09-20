@@ -547,6 +547,10 @@
         "label": "Media gallery"
       },
       "size_guide": "Size guide",
+      "size_chart": "Size Chart",
+      "size_charts": "Size Charts",
+      "size_chart_cm": "CM",
+      "size_chart_inches": "INCHES",
       "pickup_availability": {
         "popup": {
           "title": "Pickup availabilities"
