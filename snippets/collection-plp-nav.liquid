@@ -7,6 +7,7 @@
   assign plp_menu = section.settings.plp_menu
   assign sub_links = nil
   assign view_all_url = nil
+  assign view_all_title = nil
   assign view_all_current = false
   assign active_filter_count = 0
 
@@ -21,10 +22,12 @@
       if link.current and link.links.size > 0
         assign sub_links = link.links
         assign view_all_url = link.url
+        assign view_all_title = link.title
         assign view_all_current = true
       elsif link.child_current or link.child_active
         assign sub_links = link.links
         assign view_all_url = link.url
+        assign view_all_title = link.title
         assign view_all_current = false
       endif
     endfor
@@ -56,6 +59,7 @@
             >
               {{- link.title | escape -}}
             </a>
+            <span class="collection-plp__dot" aria-hidden="true"></span>
           </li>
         {%- endfor -%}
       </ul>
@@ -104,7 +108,11 @@
               class="collection-plp__subs-link{% if view_all_current %} is-active{% endif %}"
               {% if view_all_current %}aria-current="page"{% endif %}
             >
-              {{- 'collection.plp.view_all' | t -}}
+              {%- if view_all_title != blank -%}
+                {{- 'collection.plp.all' | t: title: view_all_title -}}
+              {%- else -%}
+                {{- 'collection.plp.view_all' | t -}}
+              {%- endif -%}
             </a>
             <span class="collection-plp__dot" aria-hidden="true"></span>
           </li>

@@ -20,7 +20,7 @@
   assign results_sort_url = results.url | append: '?sort_by=' | append: sort_by
 -%}
 
-{%- if section.settings.enable_sorting -%}
+{%- if section.settings.enable_sorting and plp_layout != true -%}
   {{- 'component-custom-select.css' | asset_url | stylesheet_tag -}}
 
   <script src="{{- 'custom-select.js' | asset_url -}}" defer="defer"></script>
@@ -45,12 +45,12 @@
               <ul class="facets__actions-list list-unstyled">
                 {%- if enable_filtering and results.filters != empty or plp_layout and section.settings.enable_sorting -%}
                   <li class="facets__actions-item {% if filters_style == 'sidebar' %}collection__aside-filters-actions-item{% endif %}">
-                    <menu-drawer class="drawer drawer--start drawer--sm facets__drawer">
+                    <menu-drawer class="drawer{% unless plp_layout %} drawer--start{% endunless %} drawer--sm facets__drawer{% if plp_layout %} plp-filters-drawer{% endif %}">
                       <details id="Filters-drawer-{{- section.id -}}" class="drawer__container">
                         <summary
                           class="drawer__button facets__actions-button svg-color-inherit focus-inset"
                           id="Filters-drawer-button-{{- section.id -}}"
-                          aria-label="{{- 'collection.facets.filters' | t -}}"
+                          aria-label="{{- 'collection.plp.filters_sort' | t -}}"
                           tabindex="0"
                         >
                           <span>
@@ -63,50 +63,98 @@
                         </summary>
 
                         <div
-                          class="drawer__content js-drawer color-scheme-1 gradient"
+                          class="drawer__content js-drawer color-scheme-1 gradient{% if plp_layout %} plp-filters{% endif %}"
                           id="Filters-menu-drawer-{{- section.id -}}"
                           tabindex="-1"
                         >
-                          <button
-                            class="drawer__button-close svg-color-inherit button-reset no-js-hidden js-btn-close-drawer"
-                            aria-label="{{- 'actions.close' | t -}}"
-                            aria-controls="Filters-menu-drawer-{{- section.id -}}"
-                            aria-expanded="false"
-                          >
-                            {% render 'icon', icon_name: 'theme-arrow-close' %}
-                          </button>
+                          {%- if plp_layout -%}
+                            {%- liquid
+                              assign active_filter_count = 0
+                              for filter in results.filters
+                                assign active_filter_count = active_filter_count | plus: filter.active_values.size
+                              endfor
+                            -%}
+                            <div class="plp-filters__header">
+                              <div class="plp-filters__header-title">
+                                <span class="plp-filters__header-icon" aria-hidden="true">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 13.4404H4M15.56 13.4404H13.56" stroke="currentColor" stroke-linecap="square" stroke-linejoin="round"></path>
+                                    <path d="M11.9986 15.0001C12.4137 15.0001 12.8117 14.8352 13.1052 14.5417C13.3987 14.2482 13.5636 13.8502 13.5636 13.4351C13.5636 13.0201 13.3987 12.622 13.1052 12.3285C12.8117 12.035 12.4137 11.8701 11.9986 11.8701C11.5835 11.8701 11.1855 12.035 10.892 12.3285C10.5985 12.622 10.4336 13.0201 10.4336 13.4351C10.4336 13.8502 10.5985 14.2482 10.892 14.5417C11.1855 14.8352 11.5835 15.0001 11.9986 15.0001Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M6 6.55957H4M15.69 6.55957H9.69" stroke="currentColor" stroke-linecap="square" stroke-linejoin="round"></path>
+                                    <path d="M8.13141 8.13C8.54647 8.13 8.94453 7.96512 9.23803 7.67162C9.53152 7.37813 9.69641 6.98006 9.69641 6.565C9.69641 6.14994 9.53152 5.75187 9.23803 5.45838C8.94453 5.16488 8.54647 5 8.13141 5C7.71634 5 7.31828 5.16488 7.02478 5.45838C6.73129 5.75187 6.56641 6.14994 6.56641 6.565C6.56641 6.98006 6.73129 7.37813 7.02478 7.67162C7.31828 7.96512 7.71634 8.13 8.13141 8.13Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
+                                  </svg>
+                                </span>
+                                <h2 class="plp-filters__heading">{{- 'collection.plp.filters_sort' | t -}}</h2>
+                                {%- if active_filter_count > 0 -%}
+                                  <span class="plp-filters__heading-count">{{- active_filter_count -}}</span>
+                                {%- endif -%}
+                              </div>
+                              <button
+                                class="plp-filters__close button-reset js-btn-close-drawer"
+                                type="button"
+                                aria-label="{{- 'actions.close' | t -}}"
+                              >
+                                {% render 'icon', icon_name: 'theme-close' %}
+                              </button>
+                            </div>
 
-                          <h2 class="drawer__title drawer__title--mb-lg heading-static">
-                            {{- 'collection.facets.filters_title' | t -}}
-                          </h2>
+                            <div class="plp-filters__applied js-facets-active{% if active_filter_count == 0 %} hidden{% endif %}">
+                              <p class="plp-filters__applied-title">{{- 'collection.plp.applied_filters' | t -}}</p>
+                              <ul class="plp-filters__applied-list list-unstyled">
+                                {%- for filter in results.filters -%}
+                                  {%- for value in filter.active_values -%}
+                                    <li>
+                                      <a href="{{- value.url_to_remove -}}" class="plp-filters__applied-pill">
+                                        {{- value.label | escape -}}
+                                        <span aria-hidden="true">&times;</span>
+                                      </a>
+                                    </li>
+                                  {%- endfor -%}
+                                {%- endfor -%}
+                              </ul>
+                            </div>
+                          {%- else -%}
+                            <button
+                              class="drawer__button-close svg-color-inherit button-reset no-js-hidden js-btn-close-drawer"
+                              aria-label="{{- 'actions.close' | t -}}"
+                              aria-controls="Filters-menu-drawer-{{- section.id -}}"
+                              aria-expanded="false"
+                            >
+                              {% render 'icon', icon_name: 'theme-arrow-close' %}
+                            </button>
 
-                          <div class="drawer__row drawer__row--mb-lg">
+                            <h2 class="drawer__title drawer__title--mb-lg heading-static">
+                              {{- 'collection.facets.filters_title' | t -}}
+                            </h2>
+                          {%- endif -%}
+
+                          <div class="drawer__row drawer__row--mb-lg{% if plp_layout %} plp-filters__body{% endif %}">
                             <accordion-default class="accordion facets__accordion">
                               {%- if plp_layout and section.settings.enable_sorting -%}
                                 {%- assign sort_by = results.sort_by | default: results.default_sort_by -%}
-                                <details class="accordion__section facets__accordion-section" id="Filters-accordion-section-sort" open>
+                                <details class="accordion__section facets__accordion-section" id="Filters-accordion-section-sort">
                                   <summary class="facets__accordion-btn h4 js-btn" id="Filters-accordion-button-sort">
-                                    {{- 'collection.facets.sort_by_label' | t -}}
-                                    <div class="facets__accordion-icon svg-color-inherit">
-                                      {% render 'icon', icon_name: 'theme-chevron' %}
+                                    <span class="plp-filters__summary-text">{{- 'collection.facets.sort_by_label' | t -}}</span>
+                                    <div class="facets__accordion-icon svg-color-inherit plp-filters__toggle">
+                                      <span class="plp-filters__icon-plus">{% render 'icon', icon_name: 'theme-plus' %}</span>
+                                      <span class="plp-filters__icon-minus">{% render 'icon', icon_name: 'theme-minus' %}</span>
                                     </div>
                                   </summary>
                                   <div class="accordion__body facets__accordion-body" id="Filters-accordion-dropdown-sort">
-                                    <ul class="facets__list list-unstyled" role="list">
+                                    <ul class="facets__list list-unstyled plp-filters__pills" role="list">
                                       {%- for option in results.sort_options -%}
                                         <li class="facets__item">
-                                          <div class="checkbox facet-checkbox">
-                                            <input
-                                              type="radio"
-                                              name="sort_by"
-                                              id="Filter-sort-{{- option.value | handleize -}}"
-                                              value="{{- option.value | escape -}}"
-                                              {% if option.value == sort_by %}checked{% endif %}
-                                            >
-                                            <label for="Filter-sort-{{- option.value | handleize -}}">
-                                              {{- option.name | escape -}}
-                                            </label>
-                                          </div>
+                                          <input
+                                            type="radio"
+                                            name="sort_by"
+                                            id="Filter-sort-{{- option.value | handleize -}}"
+                                            value="{{- option.value | escape -}}"
+                                            class="visually-hidden"
+                                            {% if option.value == sort_by %}checked{% endif %}
+                                          >
+                                          <label class="plp-filters__pill" for="Filter-sort-{{- option.value | handleize -}}">
+                                            {{- option.name | escape -}}
+                                          </label>
                                         </li>
                                       {%- endfor -%}
                                     </ul>
@@ -114,18 +162,35 @@
                                 </details>
                               {%- endif -%}
                               {%- for filter in results.filters -%}
-                                {%- render 'facet', index: forloop.index, section_id: section.id, filter: filter -%}
+                                {%- render 'facet', index: forloop.index, section_id: section.id, filter: filter, plp_layout: plp_layout -%}
                               {%- endfor -%}
                             </accordion-default>
                           </div>
 
-                          <div class="drawer__row drawer__row--buttons">
-                            {%- assign clear_text = 'collection.facets.clear_all' | t | escape -%}
-                            <facet-remove>
-                              {%- render 'button', type: 'link', class: 'button button--full facets__clear-button', button_style: 'button--outlined', value: clear_text, href: results_sort_url -%}
-                            </facet-remove>
-                            {%- assign show_results_button_value = 'collection.facets.filters_submit' | t | escape -%}
-                            {%- render 'button', type: 'button', class: 'button button--full js-btn-close-drawer no-js-hidden', button_style: 'button--filled', value: show_results_button_value -%}
+                          <div class="drawer__row drawer__row--buttons{% if plp_layout %} plp-filters__footer{% endif %}">
+                            {%- if plp_layout -%}
+                              <facet-remove class="plp-filters__footer-clear">
+                                <a href="{{- results_sort_url -}}" class="plp-filters__footer-btn plp-filters__footer-btn--clear">
+                                  {{- 'collection.plp.remove_all' | t -}}
+                                  {%- if active_filter_count > 0 -%}
+                                    <span class="plp-filters__heading-count">{{- active_filter_count -}}</span>
+                                  {%- endif -%}
+                                </a>
+                              </facet-remove>
+                              <button type="button" class="plp-filters__footer-btn plp-filters__footer-btn--apply js-btn-close-drawer">
+                                {{- 'collection.plp.apply' | t -}}
+                                {%- if active_filter_count > 0 -%}
+                                  <span class="plp-filters__heading-count">{{- active_filter_count -}}</span>
+                                {%- endif -%}
+                              </button>
+                            {%- else -%}
+                              {%- assign clear_text = 'collection.facets.clear_all' | t | escape -%}
+                              <facet-remove>
+                                {%- render 'button', type: 'link', class: 'button button--full facets__clear-button', button_style: 'button--outlined', value: clear_text, href: results_sort_url -%}
+                              </facet-remove>
+                              {%- assign show_results_button_value = 'collection.facets.filters_submit' | t | escape -%}
+                              {%- render 'button', type: 'button', class: 'button button--full js-btn-close-drawer no-js-hidden', button_style: 'button--filled', value: show_results_button_value -%}
+                            {%- endif -%}
                           </div>
                         </div>
                       </details>
