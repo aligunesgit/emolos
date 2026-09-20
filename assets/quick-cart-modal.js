@@ -97,11 +97,13 @@ if (!customElements.get('quick-cart-modal')) {
       }
 
       const isRecommendations = trigger.classList.contains('quick-cart-modal__trigger--recommendations');
+      const isPlpCard = !!trigger.closest('card-product');
+      const skipOptionSync = isRecommendations || isPlpCard;
 
       const productCard = trigger.closest('product-card');
       let productOptions = null;
 
-      if (!isRecommendations) {
+      if (!skipOptionSync) {
         if (!productCard) return;
         productOptions = productCard.querySelectorAll('input[type="radio"]:checked, select');
       }
@@ -114,6 +116,7 @@ if (!customElements.get('quick-cart-modal')) {
 
         // Check if URL already has query parameters
         const productUrl = trigger.dataset.productUrl;
+        if (!productUrl) return;
         const separator = productUrl.includes('?') ? '&' : '?';
         const fetchUrl = `${fetchPrefix}${productUrl}${separator}view=quick-cart-modal`;
 
@@ -130,6 +133,8 @@ if (!customElements.get('quick-cart-modal')) {
         this.querySelector('.quick-cart-modal__main').innerHTML = '';
         this.querySelector('.quick-cart-modal__main').append(quickCartProductModal);
 
+        this.classList.toggle('quick-cart-modal--plp', isPlpCard);
+
         // Attach close button event listener (button is now inside the loaded content)
         const closeButtons = this.querySelectorAll('.button--close');
         closeButtons.forEach(closeButton => {
@@ -140,7 +145,7 @@ if (!customElements.get('quick-cart-modal')) {
       } finally {
         trigger.classList.toggle('is--loading');
 
-        if (!isRecommendations) {
+        if (!skipOptionSync) {
           productOptions.forEach(productOption => {
             const quickCartModalOption = this.querySelector(
               `[name="${CSS.escape(productOption.name)}-quick-cart-product-modal"][value="${CSS.escape(productOption.value)}"]`
@@ -179,7 +184,7 @@ if (!customElements.get('quick-cart-modal')) {
           }
 
           this.open();
-        }, 500);
+        }, 80);
 
         this.initVariantSelection();
         this.initFormSubmit();
