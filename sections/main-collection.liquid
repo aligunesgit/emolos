@@ -245,7 +245,7 @@
                     echo card_text_html
                   endif
 
-                  render 'card-product', product_ref: product_ref, collection_ref: collection, section_id: section.id, card_index: forloop.index, card_product_layout: settings.card_product_layout, image_per_view: section.settings.products_per_row_default
+                  render 'card-product', product_ref: product_ref, collection_ref: collection, section_id: section.id, card_index: forloop.index, card_product_layout: settings.card_product_layout, image_per_view: section.settings.products_per_row_default, plp_card: true
                 endfor
 
                 if card_text_position > collection.products.size
