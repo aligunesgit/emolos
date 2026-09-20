@@ -6,7 +6,7 @@
     data-cols="{{ section.settings.products_per_row_default }}"
   >
     {%- for product in collection.products -%}
-      {%- render 'card-product', product_ref: product, section_id: section.id, card_index: forloop.index, card_product_layout: settings.card_product_layout -%}
+      {%- render 'card-product', product_ref: product, section_id: section.id, card_index: forloop.index, card_product_layout: settings.card_product_layout, plp_card: true -%}
     {%- endfor -%}
   </div>
 </div>
