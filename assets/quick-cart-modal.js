@@ -178,18 +178,56 @@ if (!customElements.get('quick-cart-modal')) {
         }
 
         setTimeout(() => {
-          const productMediaElement = this.querySelector('product-media');
-          if (productMediaElement && productMediaElement.settings && productMediaElement.settings.sliderInstance) {
-            this.sliderInstance = productMediaElement.settings.sliderInstance;
-          }
-
           this.open();
-        }, 80);
+          requestAnimationFrame(() => {
+            this.initQuickCartSlider();
+            this.sliderInstance?.update?.();
+          });
+        }, 40);
 
         this.initVariantSelection();
         this.initFormSubmit();
         this.initSizeChart();
       }
+    }
+
+    initQuickCartSlider() {
+      if (this.sliderInstance?.destroy) {
+        this.sliderInstance.destroy(true, true);
+        this.sliderInstance = null;
+      }
+
+      const mediaRoot = this.querySelector('.quick-cart-product-modal__media');
+      const sliderEl = this.querySelector('[data-quick-cart-slider]');
+      if (!mediaRoot || !sliderEl) return;
+
+      if (typeof Swiper === 'undefined') {
+        window.addEventListener('load', () => this.initQuickCartSlider(), { once: true });
+        return;
+      }
+
+      const slideCount = Number(mediaRoot.dataset.slideCount || sliderEl.querySelectorAll('.swiper-slide').length);
+      const prevEl = mediaRoot.querySelector('.swiper-button--prev');
+      const nextEl = mediaRoot.querySelector('.swiper-button--next');
+
+      this.sliderInstance = new Swiper(sliderEl, {
+        slidesPerView: 1,
+        spaceBetween: 2,
+        observer: true,
+        observeParents: true,
+        observeSlideChildren: true,
+        watchOverflow: true,
+        allowTouchMove: true,
+        navigation: prevEl && nextEl ? { prevEl, nextEl } : false,
+        breakpoints: {
+          750: {
+            slidesPerView: Math.min(2, slideCount),
+            spaceBetween: 2
+          }
+        }
+      });
+
+      requestAnimationFrame(() => this.sliderInstance?.update?.());
     }
 
     initSizeChart() {
@@ -340,6 +378,7 @@ if (!customElements.get('quick-cart-modal')) {
     }
 
     setActiveMedia(id) {
+      if (!this.sliderInstance) return;
       const mediaFound = Array.from(this.querySelectorAll('[data-media-id]')).find(media => Number(media.dataset.mediaId) === id);
       if (mediaFound) {
         this.sliderInstance.slideTo(Number(mediaFound.dataset.index));
@@ -439,6 +478,10 @@ if (!customElements.get('quick-cart-modal')) {
         document.querySelector('body').classList.remove('overflow-hidden');
       }
       this.classList.remove('is--open');
+      if (this.sliderInstance?.destroy) {
+        this.sliderInstance.destroy(true, true);
+        this.sliderInstance = null;
+      }
       const sizeChart = this.querySelector('.quick-cart-size-chart');
       if (sizeChart) sizeChart.hidden = true;
       this.closed();
