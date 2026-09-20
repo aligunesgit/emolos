@@ -18,18 +18,24 @@
 
   if plp_menu != blank
     for link in plp_menu.links
-      if link.current
-        if link.links.size > 0
-          assign sub_links = link.links
-          assign view_all_url = link.url
-          assign view_all_current = true
-        endif
+      if link.current and link.links.size > 0
+        assign sub_links = link.links
+        assign view_all_url = link.url
+        assign view_all_current = true
       elsif link.child_current or link.child_active
         assign sub_links = link.links
         assign view_all_url = link.url
         assign view_all_current = false
       endif
     endfor
+
+    if sub_links == nil and plp_menu.links.size > 0
+      assign sub_links = plp_menu.links
+      assign view_all_url = routes.all_products_collection_url
+      if collection.handle == 'all' or collection.handle == 'all-products'
+        assign view_all_current = true
+      endif
+    endif
   endif
 
   assign product_count = collection.products_count | default: 0
