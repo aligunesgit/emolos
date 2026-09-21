@@ -154,6 +154,13 @@
     <div class="container max-w-{% if product.media.size > 0 %}{{- section.settings.section_width -}}{% else %}narrow{% endif %}">
       <div class="grid product__grid {% if product.media.size > 0 %} product__grid--has-media {% endif %}">
         {%- if product.media.size > 0 -%}
+          {%- if settings.enable_breadcrumbs_on_product_page and product.gift_card? == false -%}
+            {%- liquid
+              assign gallery_breadcrumbs_class = 'product__gallery-breadcrumbs product__breadcrumbs ' | append: section.settings.breadcrumbs_color_scheme_text
+              render 'breadcrumbs', alignment: 'start', class: gallery_breadcrumbs_class
+            -%}
+          {%- endif -%}
+
           <div class="grid__item product__grid__item product__grid__item--media">
 
             <product-media class="product__media {{ section.settings.product_media_layout }} {% if section.settings.adaptive_ratio_and_auto_height == "default" %} product__media--fit{% endif %}" data-auto-height="{{ slider_auto_height }}" data-with-thumbs="{{- with_thumbs -}}" data-layout="{{- section.settings.product_media_layout -}}">
@@ -280,28 +287,6 @@
             </product-media>
           </div>
         {%- endif -%}
-
-        <div class="product__bar{% if product.gift_card? %} small-hide{% endif %} product__bar--fixed-desktop">
-          <div class="container max-w-full">
-            <div class="product__bar-inner flex flex--justify">
-              {%- liquid
-                assign breadcrumbs_class = 'product__breadcrumbs ' | append: section.settings.breadcrumbs_color_scheme_text | append: ' '
-                unless product.gift_card? == false
-                  assign breadcrumbs_class = breadcrumbs_class | append: ' small-hide '
-                endunless
-                if settings.enable_breadcrumbs_on_product_page
-                  render 'breadcrumbs', alignment: 'start', class: breadcrumbs_class
-                endif
-
-                assign desktop_tags_class = 'product__tags small-hide medium-hide ' | append: section.settings.tags_color_scheme_text | append: ' '
-                render 'product-tags', class: desktop_tags_class, product_ref: product
-
-                assign tags_class = 'product__tags small-hide large-up-hide '
-                render 'product-tags', class: tags_class, product_ref: product
-              -%}
-            </div>
-          </div>
-        </div>
 
         <div class="grid__item product__grid__item product__grid__item--content">
           <div class="product__content {{ section.settings.horizontal_alignment }} {% if section.settings.show_tags_on_mobile %}product__content--has-mobile-tags {% endif %}">
