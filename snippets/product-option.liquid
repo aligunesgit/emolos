@@ -9,6 +9,8 @@
    - show_label {Bool}: Show input label
    - input_type: {String}: Input element type
    - value: {String}: Input element value
+   - option {Object}: Product option drop (PDP colour photos)
+   - product {Object}: Product drop (PDP colour photos)
 {%- endcomment -%}
 {%- liquid
   assign option_value_handle = value | handle
@@ -36,12 +38,45 @@
     assign product_option_value = value.value
   endif
 
-  if swatch_value
+  assign option_image = nil
+  assign is_colour_image = false
+  if where == 'product' and option != blank
+    assign option_name_down = option.name | downcase
+    assign swatch_name_down = settings.swatches_option | downcase
+    if option_name_down == swatch_name_down or option_name_down == 'color' or option_name_down == 'colour'
+      assign is_colour_image = true
+      assign value_name = value.name | default: value
+      if value.variant.featured_image != blank
+        assign option_image = value.variant.featured_image
+      elsif product != blank
+        for variant in product.variants
+          if option.position == 1 and variant.option1 == value_name and variant.featured_image != blank
+            assign option_image = variant.featured_image
+            break
+          elsif option.position == 2 and variant.option2 == value_name and variant.featured_image != blank
+            assign option_image = variant.featured_image
+            break
+          elsif option.position == 3 and variant.option3 == value_name and variant.featured_image != blank
+            assign option_image = variant.featured_image
+            break
+          endif
+        endfor
+      endif
+      if option_image == nil and value.swatch.image != blank
+        assign option_image = value.swatch.image
+      endif
+    endif
+  endif
+
+  if option_image != nil
+    assign swatch_value = null
+    assign visually_hidden = true
+  elsif swatch_value
     assign visually_hidden = 'false'
   endif
 -%}
 
-<div class="product-options__item{% if swatch_value %} product-options__item--swatch swatch--{{ settings.swatch_shape }}{% endif %}{% if class != '' %} {{ class }}{% endif %}"{% if swatch_value %} style="--swatch-background: {{ swatch_value }};{% if swatch_focal_point %} --swatch-focal-point: {{ swatch_focal_point }};{% endif %}"{% endif %}>
+<div class="product-options__item{% if option_image != nil %} product-options__item--image product-options__item--colour-image{% elsif swatch_value %} product-options__item--swatch swatch--{{ settings.swatch_shape }}{% endif %}{% if class != '' %} {{ class }}{% endif %}"{% if swatch_value %} style="--swatch-background: {{ swatch_value }};{% if swatch_focal_point %} --swatch-focal-point: {{ swatch_focal_point }};{% endif %}"{% endif %}>
   <input
     id="{{- id -}}"
     type="{{- input_type -}}"
@@ -61,6 +96,14 @@
   <span class="product-options__sizing-text" aria-hidden="true">{{- value.label | default: value.name | escape -}}</span>
 
   <label for="{{- id -}}" title="{{- value -}}" class="product-options__label">
-    <span>{{- value.label | default: value.name | escape -}}</span>
+    {%- if option_image != nil -%}
+      <span class="visually-hidden">{{- value.label | default: value.name | escape -}}</span>
+      <div class="media">
+        {%- assign option_image_alt = value.label | default: value.name -%}
+        {%- render 'image', image: option_image, width: 120, alt: option_image_alt -%}
+      </div>
+    {%- else -%}
+      <span>{{- value.label | default: value.name | escape -}}</span>
+    {%- endif -%}
   </label>
 </div>
