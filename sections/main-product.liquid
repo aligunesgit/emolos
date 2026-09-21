@@ -299,7 +299,7 @@
               {%- case block.type -%}
 
                 {%- when 'title' -%}
-                <h1 class="h2 product__title" {{ block.shopify_attributes }}>{{- product.title | escape -}}</h1>
+                <h1 class="product__title" {{ block.shopify_attributes }}>{{- product.title | escape -}}</h1>
                 {%- when 'text' -%}
                 <p class="product__text product__text--{{- block.settings.text_style }} caption caption--small" {{ block.shopify_attributes }}>
                   {%- liquid
@@ -330,7 +330,7 @@
                 <div id="Product-Price-{{- section.id -}}" role="status" {{ block.shopify_attributes }}>
                   <div class="product__price{% unless current_selling_plan_allocation == nil %} product__price--subscription{% endunless %}">
                     {%- unless product.gift_card? -%}
-                      {%- render 'price', product_ref: product, use_variant: true, price_extra_info: block.settings.show_price_extra_info, show_sale_badge: true -%}
+                      {%- render 'price', product_ref: product, use_variant: true, price_extra_info: false, show_sale_badge: false -%}
                       {% unless current_selling_plan_allocation == nil %}
                         <p class="product__price-subscription text-navigation-button">{{- 'products.product.price.subscription' | t -}}</p>
                       {% endunless %}
@@ -343,7 +343,7 @@
                           </p>
                       {% endif %}
                     {%- else -%}
-                      {%- render 'price', product_ref: product, use_variant: true, show_sale_badge: true -%}
+                      {%- render 'price', product_ref: product, use_variant: true, show_sale_badge: false -%}
                     {%- endunless -%}
                   </div>
                   {%- if product.metafields.theme.preorder.value -%}
@@ -444,12 +444,12 @@
                       if block.settings.show_dynamic_checkout
                         assign button_style = 'solid'
                       endif
-                      render 'button', type: 'submit', name: 'add', style: button_style, value: value, class: 'button product-selector__submit no-js-hidden', disabled: disabled
+                      render 'button', type: 'submit', name: 'add', button_style: 'button--filled', value: value, class: 'button product-selector__submit no-js-hidden', disabled: disabled, fullwidth: true
                       assign value = nil
                       assign disabled = nil
 
                       assign no_js_value = 'products.product.add_to_cart' | t
-                      render 'button', type: 'submit', name: 'add', style: button_style, value: no_js_value, class: 'button product-selector__submit no-js'
+                      render 'button', type: 'submit', name: 'add', button_style: 'button--filled', value: no_js_value, class: 'button product-selector__submit no-js', fullwidth: true
                     -%}
 
                     <p class="color-alert hidden" data-error-wrapper></p>
@@ -658,7 +658,9 @@
                   {%- if product.gift_card? -%}
                     {%- continue -%}
                   {%- endif -%}
-                  {{- block.settings.custom_liquid -}}
+                  <div class="product__custom-liquid" {{ block.shopify_attributes }}>
+                    {{- block.settings.custom_liquid -}}
+                  </div>
                 {%- when 'inventory_notice' -%}
                   {%- if product.gift_card? -%}
                     {%- continue -%}
