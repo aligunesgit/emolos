@@ -30,9 +30,9 @@
   @media screen and (max-width: 749px) {
     #shopify-section-{{ section.id }} {
       {%- if section.settings.enable_transparent_header -%}
-        --inner-height: max(calc({{ section_height_mobile }} - var(--announcement-bar-height, var(--default-announcement-bar-height, 0px))), 50vh);
+        --inner-height: {{ section_height_mobile }};
       {%- else -%}
-        --inner-height: max(calc({{ section_height_mobile }} - var(--announcement-bar-height, var(--default-announcement-bar-height, 0px)) - var(--header-height, var(--default-header-height, 0px))), 50vh);
+        --inner-height: calc({{ section_height_mobile }} - var(--header-height, var(--default-header-height, 0px)));
       {%- endif -%}
     }
 
@@ -57,7 +57,19 @@
 
   @media screen and (min-width: 750px) {
     #shopify-section-{{ section.id }} {
-      --inner-height: max(calc({{ section_height }} - var(--announcement-bar-height, var(--default-announcement-bar-height))), 50vh);
+      {%- if section.settings.enable_transparent_header -%}
+        --inner-height: {{ section_height }};
+      {%- else -%}
+        --inner-height: calc({{ section_height }} - var(--header-height, var(--default-header-height, 0px)));
+      {%- endif -%}
+    }
+
+    #shopify-section-{{ section.id }} .hero-banner,
+    #shopify-section-{{ section.id }} .hero__swiper,
+    #shopify-section-{{ section.id }} .hero__swiper-slide,
+    #shopify-section-{{ section.id }} .hero__inner {
+      height: var(--inner-height);
+      min-height: var(--inner-height);
     }
 
     {%- if section.settings.slider_height == 'auto' -%}
@@ -220,16 +232,16 @@
       {%- if block.settings.title != blank or block.settings.content != blank or block.settings.button_text != blank and block.settings.button_url != blank -%}
         {% capture content_element %}
           <div class="hero__content {{ hero_inner_setting_classes | strip }}">
-            {%- if block.settings.subtitle != blank -%}
-              <p class="hero__subtitle">
-                {{- block.settings.subtitle -}}
-              </p>
-            {%- endif -%}
-
             {%- if block.settings.title != blank -%}
               <h3 class="hero__title">
                 {{- block.settings.title -}}
               </h3>
+            {%- endif -%}
+
+            {%- if block.settings.subtitle != blank -%}
+              <p class="hero__subtitle">
+                {{- block.settings.subtitle -}}
+              </p>
             {%- endif -%}
 
             {%- if block.settings.content != blank -%}
