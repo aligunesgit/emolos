@@ -1685,8 +1685,9 @@ section .product__gallery-breadcrumbs.breadcrumbs {
 .product__gallery-breadcrumbs.breadcrumbs,
 .product__gallery-breadcrumbs {
   display: none;
-  position: relative !important;
+  position: static !important;
   inset: auto !important;
+  inset-block-start: 0 !important;
   top: auto !important;
   right: auto !important;
   bottom: auto !important;
@@ -1694,8 +1695,8 @@ section .product__gallery-breadcrumbs.breadcrumbs {
   z-index: 2;
   width: auto !important;
   max-width: 100%;
-  margin: 0 0 12px;
-  padding: 0;
+  margin: 0 0 8px !important;
+  padding: 0 !important;
   text-align: left;
 }
 
@@ -1940,7 +1941,24 @@ section .product__gallery-breadcrumbs.breadcrumbs {
 }
 
 .product__media .swiper-thumbs .swiper-slide-thumb-active .media.media--thumb {
-  box-shadow: 0 3px 0 0 #000;
+  box-shadow: none;
+}
+
+.product__media .swiper-thumbs .swiper-slide.swiper-slide-thumb-active .media.media--thumb::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute;
+  left: 0;
+  right: auto;
+  bottom: 0;
+  width: 60px;
+  max-width: 100%;
+  height: 3px;
+  margin: 0;
+  padding: 0;
+  background: #000;
+  z-index: 6;
+  pointer-events: none;
 }
 
 .container .product__media-layout--partial .swiper#product-media-gallery,
@@ -2002,6 +2020,9 @@ section .product__gallery-breadcrumbs.breadcrumbs {
 
   .product__media {
     position: relative !important;
+    inset: auto !important;
+    inset-block-start: 0 !important;
+    top: 0 !important;
     height: auto !important;
     width: 100% !important;
     max-width: 100%;
@@ -2064,7 +2085,10 @@ section .product__gallery-breadcrumbs.breadcrumbs {
   .container .product__media:not(.product__media--fit) {
     width: 100%;
     height: auto !important;
-    position: relative;
+    position: relative !important;
+    inset: auto !important;
+    inset-block-start: 0 !important;
+    top: 0 !important;
     overflow: visible;
   }
 
@@ -2076,6 +2100,14 @@ section .product__gallery-breadcrumbs.breadcrumbs {
 
   .product__title {
     margin-block-start: 0 !important;
+  }
+}
+
+@media screen and (min-width: 990px) and (max-width: 1200px) {
+  .product__media,
+  .product__media .product__media-slider,
+  .product__media .product__media-slider .swiper {
+    height: auto !important;
   }
 }
 
