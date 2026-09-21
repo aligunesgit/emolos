@@ -30,7 +30,7 @@
   <div data-debug-container-rendered></div>
   {%- for group_has_this_product in groups_has_this_product_arr -%}
     {%- assign group_metaobject = metaobjects['product_groups'][group_has_this_product] -%}
-    <fieldset class="product-options product__product-group product__variant-options">
+    <fieldset class="product-options product-options--colour product__product-group product__variant-options">
       {% if on != 'card' %}
         {%- liquid
           assign type_on_card = group_metaobject.type_on_card | handleize
@@ -84,15 +84,16 @@
             assign custom_label_on_page = false
           endif
         -%}
-        <legend class="form__label">
-          {{ group_metaobject.group_by_option }}
-          <span data-current-product>
-            {%- if custom_label_on_page -%}
-              {{ custom_label }}
-            {%- else -%}
-              {{ product.title }}
-            {%- endif -%}
-          </span>
+        <legend class="form__label product-selector__label">
+          {%- liquid
+            assign group_label = group_metaobject.group_by_option | default: 'COLOUR'
+            assign group_label_down = group_label | downcase
+            if group_label_down == 'color' or group_label_down == 'colour'
+              echo 'COLOUR'
+            else
+              echo group_label
+            endif
+          -%}
         </legend>
       {% endif %}
 
