@@ -1997,6 +1997,16 @@ section .product__gallery-breadcrumbs.breadcrumbs {
     height: auto !important;
   }
 
+  .product__media .swiper-thumbs,
+  .product .swiper-thumbs.swiper-horizontal,
+  .product .swiper-thumbs.swiper-vertical,
+  .product__media .swiper-thumbs.swiper-horizontal,
+  .product__media .swiper-thumbs.swiper-vertical {
+    padding-inline-start: 12px !important;
+    padding-inline-end: 0 !important;
+    box-sizing: border-box;
+  }
+
   .product__content {
     padding-inline: var(--page-gutter);
   }
