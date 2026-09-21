@@ -549,6 +549,7 @@
       },
       "size_guide": "Size guide",
       "size_chart": "Size Chart",
+      "reviews_count": "{{ count }} reviews",
       "size_charts": "Size Charts",
       "size_chart_cm": "CM",
       "size_chart_inches": "INCHES",
