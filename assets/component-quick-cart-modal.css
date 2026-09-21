@@ -1517,7 +1517,6 @@ quick-cart-modal .product-options {
 quick-cart-modal .product__title-wrapper,
 quick-cart-modal .product__title,
 quick-cart-modal h2.product__title,
-.quick-cart-product-modal__rating,
 quick-cart-modal .product__price,
 quick-cart-modal .product__price .price,
 quick-cart-modal .product__price .price__container,
@@ -1526,6 +1525,11 @@ quick-cart-modal .product__price .price__sale-inner,
 quick-cart-modal .product__price .price__regular {
   margin-top: 0 !important;
   margin-bottom: 0.8rem !important;
+}
+
+.quick-cart-product-modal__rating {
+  margin-top: 0 !important;
+  margin-bottom: 1.4rem !important;
 }
 
 quick-cart-modal .product-selector__label,
@@ -1543,7 +1547,6 @@ quick-cart-modal .product-card__add-to-cart--form {
   quick-cart-modal .product__title-wrapper,
   quick-cart-modal .product__title,
   quick-cart-modal h2.product__title,
-  .quick-cart-product-modal__rating,
   quick-cart-modal .product__price,
   quick-cart-modal .product__price .price,
   quick-cart-modal .product__price .price__container,
@@ -1551,6 +1554,10 @@ quick-cart-modal .product-card__add-to-cart--form {
   quick-cart-modal .product__price .price__sale-inner,
   quick-cart-modal .product__price .price__regular {
     margin-bottom: 1rem !important;
+  }
+
+  .quick-cart-product-modal__rating {
+    margin-bottom: 1.8rem !important;
   }
 
   quick-cart-modal .product__form,
