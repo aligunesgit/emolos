@@ -1,0 +1,107 @@
+{%- comment -%}
+  COLOUR photo links for products that are split by colour (separate products)
+  rather than a Color variant option.
+{%- endcomment -%}
+{%- liquid
+  assign has_colour_option = false
+  for option in product.options_with_values
+    assign option_name_down = option.name | downcase
+    assign swatch_name_down = settings.swatches_option | downcase
+    if option_name_down == swatch_name_down or option_name_down == 'color' or option_name_down == 'colour'
+      if option.values.size > 1
+        assign has_colour_option = true
+      endif
+    endif
+  endfor
+
+  assign colour_list = nil
+  if product.metafields.custom.colour_group.value != blank
+    assign colour_list = product.metafields.custom.colour_group.value
+  elsif product.metafields.custom.color_group.value != blank
+    assign colour_list = product.metafields.custom.color_group.value
+  elsif product.metafields.custom.linked_products.value != blank
+    assign colour_list = product.metafields.custom.linked_products.value
+  endif
+
+  assign colour_collection_handle = ''
+  assign colour_match_best = 0
+  assign colour_match_mode = ''
+  if colour_list == blank and has_colour_option == false
+    for collection in product.collections
+      assign colour_match_count = 0
+      for colour_product in collection.products
+        if product.template_suffix != blank and colour_product.template_suffix == product.template_suffix
+          assign colour_match_count = colour_match_count | plus: 1
+        elsif product.template_suffix == blank and product.type != blank and colour_product.type == product.type
+          assign colour_match_count = colour_match_count | plus: 1
+        endif
+      endfor
+      if colour_match_count > colour_match_best
+        if product.template_suffix != blank or colour_match_count < 16
+          assign colour_match_best = colour_match_count
+          assign colour_collection_handle = collection.handle
+          if product.template_suffix != blank
+            assign colour_match_mode = 'template'
+          else
+            assign colour_match_mode = 'type'
+          endif
+        endif
+      endif
+    endfor
+  endif
+-%}
+
+{%- unless has_colour_option -%}
+  {%- capture colour_items -%}
+    {%- if colour_list != blank -%}
+      {%- for colour_product in colour_list -%}
+        {%- if colour_product.featured_image -%}
+          <a
+            href="{{ colour_product.url }}"
+            class="product-colour-swatches__item{% if colour_product.id == product.id %} is-active{% endif %}"
+            title="{{ colour_product.title | escape }}"
+          >
+            <span class="media">
+              {%- render 'image', image: colour_product.featured_image, width: 120, alt: colour_product.title -%}
+            </span>
+          </a>
+        {%- endif -%}
+      {%- endfor -%}
+    {%- elsif colour_collection_handle != blank and colour_match_best > 1 -%}
+      {%- assign colour_collection = collections[colour_collection_handle] -%}
+      {%- for colour_product in colour_collection.products -%}
+        {%- liquid
+          assign colour_is_match = false
+          if colour_match_mode == 'template' and colour_product.template_suffix == product.template_suffix
+            assign colour_is_match = true
+          elsif colour_match_mode == 'type' and colour_product.type == product.type
+            assign colour_is_match = true
+          endif
+        -%}
+        {%- if colour_is_match and colour_product.featured_image -%}
+          <a
+            href="{{ colour_product.url }}"
+            class="product-colour-swatches__item{% if colour_product.id == product.id %} is-active{% endif %}"
+            title="{{ colour_product.title | escape }}"
+          >
+            <span class="media">
+              {%- render 'image', image: colour_product.featured_image, width: 120, alt: colour_product.title -%}
+            </span>
+          </a>
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+  {%- endcapture -%}
+
+  {%- assign colour_item_count = colour_items | split: 'product-colour-swatches__item' | size | minus: 1 -%}
+  {%- if colour_item_count > 1 -%}
+    <fieldset class="product-options product-options--colour product-colour-swatches">
+      <legend class="product-selector__label">COLOUR</legend>
+      <div class="product-options__value-list">
+        <div class="product-colour-swatches__list">
+          {{ colour_items }}
+        </div>
+      </div>
+    </fieldset>
+  {%- endif -%}
+{%- endunless -%}
