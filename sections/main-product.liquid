@@ -330,7 +330,7 @@
                 <div id="Product-Price-{{- section.id -}}" role="status" {{ block.shopify_attributes }}>
                   <div class="product__price{% unless current_selling_plan_allocation == nil %} product__price--subscription{% endunless %}">
                     {%- unless product.gift_card? -%}
-                      {%- render 'price', product_ref: product, use_variant: true, price_extra_info: false, show_sale_badge: false -%}
+                      {%- render 'price', product_ref: product, use_variant: true, price_extra_info: false, show_sale_badge: false, skip_currency_code: true -%}
                       {% unless current_selling_plan_allocation == nil %}
                         <p class="product__price-subscription text-navigation-button">{{- 'products.product.price.subscription' | t -}}</p>
                       {% endunless %}
@@ -343,7 +343,7 @@
                           </p>
                       {% endif %}
                     {%- else -%}
-                      {%- render 'price', product_ref: product, use_variant: true, show_sale_badge: false -%}
+                      {%- render 'price', product_ref: product, use_variant: true, show_sale_badge: false, skip_currency_code: true -%}
                     {%- endunless -%}
                   </div>
                   {%- if product.metafields.theme.preorder.value -%}
@@ -368,6 +368,7 @@
                   {%- if settings.show_product_groups == 'both' or settings.show_product_groups == 'product' -%}
                     {%- render 'product-groups', product: product, on: 'product' -%}
                   {%- endif -%}
+                  {%- render 'product-colour-swatches', product: product -%}
                   {%- render 'main-product__variant-picker', product: product, section: section, block: block, product_form_id: product_form_id, product_form_installments_id: product_form_installments_id, back_in_stock: block.settings.back_in_stock -%}
 
                 {%- when 'purchase_options' -%}
@@ -812,7 +813,7 @@
                     </accordion-default>
                   {% endif %}
                 {%- else -%}
-                  <div class="product__app-block" {{ block.shopify_attributes }}>
+                  <div class="product__app-block{% if block.type contains 'loox-rating' %} product__rating{% endif %}" {{ block.shopify_attributes }}>
                     {%- render block -%}
                   </div>
               {%- endcase -%}
@@ -823,6 +824,40 @@
     </div>
   </section>
 </div>
+
+<script>
+  (function () {
+    var reviewLabel = {{ 'products.product.reviews_count' | t: count: '__COUNT__' | json }};
+    function formatLooxReviews(root) {
+      if (!root) return;
+      var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      var nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach(function (node) {
+        var text = node.textContent.trim();
+        var match = text.match(/^\((\d+)\)$/);
+        if (match) {
+          node.textContent = reviewLabel.replace('__COUNT__', match[1]);
+        }
+      });
+    }
+    function run() {
+      document.querySelectorAll('.product__rating, .product__content .loox-rating').forEach(formatLooxReviews);
+    }
+    var reviewTimer;
+    function schedule() {
+      clearTimeout(reviewTimer);
+      reviewTimer = setTimeout(run, 60);
+    }
+    run();
+    document.addEventListener('DOMContentLoaded', run);
+    var content = document.querySelector('.product__content');
+    if (content && typeof MutationObserver === 'function') {
+      var observer = new MutationObserver(schedule);
+      observer.observe(content, { childList: true, subtree: true });
+    }
+  })();
+</script>
 
 {%- liquid
   if product.selected_or_first_available_variant.featured_media
