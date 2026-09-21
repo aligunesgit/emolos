@@ -655,7 +655,7 @@
   .product .container .product__grid--has-media,
   .product .container.max-w-fluid .product__grid--has-media {
     gap: 0;
-    grid-template-columns: 60% 40%;
+    grid-template-columns: minmax(0, 45%) minmax(0, 490px);
   }
 
   .product__media {
@@ -666,7 +666,7 @@
   }
 
   .product__content {
-    padding-inline: 2rem;
+    padding-inline: 0;
   }
 
   .product .product__content {
@@ -2036,19 +2036,30 @@ section .product__gallery-breadcrumbs.breadcrumbs {
 }
 
 @media screen and (min-width: 990px) {
-  .product.js-product > .container {
+  .product.js-product > .container,
+  .product.js-product > .container.max-w-page,
+  .product.js-product > .container.max-w-container,
+  .product.js-product > .container.max-w-fluid,
+  .product.js-product > .container.max-w-full {
+    width: 100%;
+    max-width: 1480px;
     padding-block-start: 8px;
+    padding-inline: 32px;
   }
 
   .product .container .product__grid--has-media,
-  .product .container.max-w-fluid .product__grid--has-media {
+  .product .container.max-w-fluid .product__grid--has-media,
+  .product .container.max-w-container .product__grid--has-media,
+  .product .container.max-w-page .product__grid--has-media {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    grid-template-columns: minmax(0, 45%) minmax(0, 490px);
     grid-template-rows: auto;
     grid-template-areas: none;
-    column-gap: 4rem;
+    justify-content: start;
+    column-gap: 44px;
     row-gap: 0;
     align-items: start;
+    width: 100%;
   }
 
   .product.js-product > .container > .product__gallery-breadcrumbs.breadcrumbs,
@@ -2074,6 +2085,8 @@ section .product__gallery-breadcrumbs.breadcrumbs {
     grid-column: 2;
     grid-row: 1;
     align-self: start;
+    width: 100%;
+    max-width: 490px;
   }
 
   .product .container .product__grid--has-media .product__bar--fixed-desktop,
@@ -2098,7 +2111,9 @@ section .product__gallery-breadcrumbs.breadcrumbs {
   .product .product__content {
     margin-block: 0 !important;
     padding-block-start: 0 !important;
-    padding-inline: 0 2rem;
+    padding-inline: 0 !important;
+    width: 100%;
+    max-width: 490px;
   }
 
   .product__title {
@@ -2116,8 +2131,9 @@ section .product__gallery-breadcrumbs.breadcrumbs {
 
 @media screen and (min-width: 1250px) {
   .product .container.max-w-fluid .product__grid--has-media,
+  .product .container.max-w-container .product__grid--has-media,
   .product .container .product__grid--has-media {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    grid-template-columns: minmax(0, 45%) minmax(0, 490px);
     grid-template-rows: auto;
   }
 }
@@ -2305,7 +2321,43 @@ section .product__gallery-breadcrumbs.breadcrumbs {
 @media screen and (min-width: 990px) {
   .product .product__content > .product__rating,
   .product .product__content > .product__app-block.product__rating {
+    grid-row: 2;
+    grid-column: 2;
+    justify-self: end;
     margin: 0;
+  }
+}
+
+@media screen and (max-width: 989px) {
+  .product .product__content {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: 1.6rem;
+    padding-block-start: 1.2rem;
+  }
+
+  .product .product__content > .product__title {
+    grid-row: 1;
+    grid-column: 1;
+    margin: 0 0 0.8rem;
+  }
+
+  .product .product__content > [id^="Product-Price-"] {
+    grid-row: 2;
+    grid-column: 1;
+  }
+
+  .product .product__content > .product__rating,
+  .product .product__content > .product__app-block.product__rating {
+    grid-row: 3;
+    grid-column: 1;
+    justify-self: start;
+    margin: 0.6rem 0 0;
+  }
+
+  .product .product__title {
+    justify-content: flex-start;
+    text-align: left;
+    font-size: 2.4rem;
   }
 }
 
@@ -2833,19 +2885,6 @@ section .product__gallery-breadcrumbs.breadcrumbs {
 
 .product__content product-sticky-atc {
   display: none;
-}
-
-@media screen and (max-width: 989px) {
-  .product .product__content {
-    padding-inline: 1.6rem;
-    padding-block-start: 2rem;
-  }
-
-  .product .product__title {
-    justify-content: flex-start;
-    text-align: left;
-    font-size: 2.4rem;
-  }
 }
 
 .product-size-guide-modal {
