@@ -33,60 +33,66 @@
         }
       {% endstyle %}
     {% endunless %}
-    {% capture size_guide %}
-      <menu-drawer class="product__size-guide">
-        <details id="Size-Guide-drawer" class="drawer__container">
-          <summary class="drawer__button drawer__button--text svg-color-inherit product__size-guide-summary" tabindex="0">
-            <span class="product__size-guide-link" role="button">
-              <svg class="product__size-guide-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
-                <path fill="currentColor" d="M14.93 4.11L12.1 1.28a1 1 0 00-1.41 0L6.8 5.17.78 11.18a1 1 0 000 1.42l2.82 2.82a1 1 0 001.42 0l9.9-9.9a1 1 0 000-1.4zm-10.6 10.6L1.48 11.9l1.41-1.41 1.06 1.06a.5.5 0 00.71-.71L3.61 9.77l1.42-1.42 1.05 1.06a.5.5 0 00.71-.7L5.73 7.65l1.42-1.42L8.2 7.3c.2.2.5.2.7 0s.2-.5 0-.7L7.85 5.53 9.27 4.1l1.06 1.06a.5.5 0 00.71-.7L9.98 3.4 11.39 2l2.83 2.83-9.9 9.9z"></path>
-              </svg>
-              <span class="product__size-guide-text">{{- 'products.product.size_guide' | t -}}</span>
-            </span>
-          </summary>
-
-          <div
-            class="drawer__content js-drawer"
-            id="Size-Guide-menu-drawer"
-            tabindex="-1">
-            <button
-              class="drawer__button-close button-reset no-js-hidden js-btn-close-drawer svg-color-inherit"
-              aria-label="{{- 'actions.close' | t -}}"
-              aria-controls="Size-Guide-menu-drawer"
-              aria-expanded="false">
-              {% render 'icon', icon_name: 'theme-arrow-close' %}
-            </button>
-
-            <div class="drawer__row drawer__row--gutter-sm">
-              <h2 class="drawer__title heading-static">
-                {{- block.settings.size_guide_page.title -}}
-              </h2>
-
-              <div class="rte">
-                <div class="size-guide-container">
-                  <div class="size-guide-table-wrapper">
-                    {{- block.settings.size_guide_page.content -}}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </details>
-      </menu-drawer>
-      <script>
-        document.addEventListener('DOMContentLoaded', function () {
-          const tableWrapper = document.querySelector('.size-guide-table-wrapper');
-          if (!tableWrapper) return;
-          tableWrapper.addEventListener('scroll', function () {
-            if (tableWrapper.scrollLeft > 0) {
-              tableWrapper.classList.add('with-shadow');
-            } else {
-              tableWrapper.classList.remove('with-shadow');
-            }
-          });
-        });
-      </script>
+    {% capture size_guide_trigger %}
+      <button
+        type="button"
+        class="product__size-guide-link js-size-guide-open"
+        aria-haspopup="dialog"
+        aria-controls="SizeGuide-{{ section.id }}"
+      >
+        <svg class="product__size-guide-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M14.93 4.11L12.1 1.28a1 1 0 00-1.41 0L6.8 5.17.78 11.18a1 1 0 000 1.42l2.82 2.82a1 1 0 001.42 0l9.9-9.9a1 1 0 000-1.4zm-10.6 10.6L1.48 11.9l1.41-1.41 1.06 1.06a.5.5 0 00.71-.71L3.61 9.77l1.42-1.42 1.05 1.06a.5.5 0 00.71-.7L5.73 7.65l1.42-1.42L8.2 7.3c.2.2.5.2.7 0s.2-.5 0-.7L7.85 5.53 9.27 4.1l1.06 1.06a.5.5 0 00.71-.7L9.98 3.4 11.39 2l2.83 2.83-9.9 9.9z"></path>
+        </svg>
+        <span class="product__size-guide-text">{{- 'products.product.size_guide' | t -}}</span>
+      </button>
     {% endcapture %}
+    {%- liquid
+      assign size_guide_page = nil
+      assign size_guide_html = ''
+      assign size_guide_title = ''
+      assign sg_field = product.metafields.custom.size_guide
+      if sg_field == blank
+        assign sg_field = product.metafields.custom.size_chart
+      endif
+      if sg_field == blank
+        assign sg_field = product.metafields.shopify.size-chart
+      endif
+      if sg_field != blank
+        if sg_field.type == 'page_reference'
+          assign size_guide_page = sg_field.value
+        else
+          assign size_guide_html = sg_field | metafield_tag
+          if size_guide_html == blank
+            assign size_guide_html = sg_field.value
+          endif
+        endif
+      endif
+      if size_guide_page == nil and product.template_suffix != blank
+        assign sg_handle = product.template_suffix | append: '-size-guide'
+        if pages[sg_handle].content != blank
+          assign size_guide_page = pages[sg_handle]
+        endif
+      endif
+      if size_guide_page == nil and product.type != blank
+        assign sg_handle = product.type | handle | append: '-size-guide'
+        if pages[sg_handle].content != blank
+          assign size_guide_page = pages[sg_handle]
+        endif
+      endif
+      if size_guide_page == nil and block.settings.size_guide_page != blank
+        assign size_guide_page = block.settings.size_guide_page
+      endif
+      if size_guide_page == nil and pages['size-guide'].content != blank
+        assign size_guide_page = pages['size-guide']
+      endif
+      if size_guide_page != nil
+        assign size_guide_title = size_guide_page.title
+        assign size_guide_html = size_guide_page.content
+      endif
+      if size_guide_title == blank
+        assign size_guide_title = product.title | append: ' Size Guide'
+      endif
+    -%}
     {%- for option in product.options_with_values -%}
       {%- liquid
         assign option_name_down = option.name | downcase
@@ -100,8 +106,8 @@
           assign is_size_option = true
         endif
       -%}
-      {%- if context_type != 'modal' and is_size_option and variant_picker_layout == 'stacked' -%}
-        {{ size_guide }}
+      {%- if context_type != 'modal' and is_size_option and variant_picker_layout == 'stacked' and size_guide_html != blank -%}
+        <span class="product__size-guide">{{ size_guide_trigger }}</span>
       {%- endif -%}
       {%- liquid
         assign product_option_handle = option.name | handle
@@ -120,8 +126,8 @@
               {{- 'products.product.size_chart' | t -}}
             </button>
           {%- endif -%}
-          {%- if context_type != 'modal' and is_size_option and variant_picker_layout != 'stacked' -%}
-            {{ size_guide }}
+          {%- if context_type != 'modal' and is_size_option and variant_picker_layout != 'stacked' and size_guide_html != blank -%}
+            <span class="product__size-guide">{{ size_guide_trigger }}</span>
           {%- endif -%}
         </legend>
         {%- capture options_html -%}
@@ -198,4 +204,46 @@
       {{- product.variants | json -}}
     </script>
   </product-selector>
+  {%- if context_type != 'modal' and size_guide_html != blank -%}
+    <dialog class="product-size-guide-modal" id="SizeGuide-{{ section.id }}" aria-labelledby="SizeGuideTitle-{{ section.id }}">
+      <div class="product-size-guide-modal__window">
+        <button type="button" class="product-size-guide-modal__close js-size-guide-close" aria-label="{{- 'actions.close' | t -}}">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+        <div class="product-size-guide-modal__content rte">
+          <h2 class="product-size-guide-modal__title" id="SizeGuideTitle-{{ section.id }}">{{- size_guide_title -}}</h2>
+          <div class="product-size-guide-modal__table-wrap">
+            {{- size_guide_html -}}
+          </div>
+        </div>
+      </div>
+    </dialog>
+    <script>
+      (function () {
+        var dialog = document.getElementById('SizeGuide-{{ section.id }}');
+        if (!dialog) return;
+        document.querySelectorAll('[aria-controls="SizeGuide-{{ section.id }}"]').forEach(function (btn) {
+          btn.addEventListener('click', function (event) {
+            event.preventDefault();
+            if (typeof dialog.showModal === 'function') dialog.showModal();
+            else dialog.setAttribute('open', '');
+          });
+        });
+        dialog.querySelectorAll('.js-size-guide-close').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            if (typeof dialog.close === 'function') dialog.close();
+            else dialog.removeAttribute('open');
+          });
+        });
+        dialog.addEventListener('click', function (event) {
+          if (event.target === dialog) {
+            if (typeof dialog.close === 'function') dialog.close();
+            else dialog.removeAttribute('open');
+          }
+        });
+      })();
+    </script>
+  {%- endif -%}
 {%- endif -%}
