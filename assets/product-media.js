@@ -240,8 +240,8 @@ class ProductMedia extends HTMLElement {
           },
           direction: 'horizontal',
 
-          slidesPerView: 6,
-          spaceBetween: 2,
+          slidesPerView: 'auto',
+          spaceBetween: 0,
 
           threshold: 5,
 
@@ -252,8 +252,8 @@ class ProductMedia extends HTMLElement {
           breakpoints: {
             750: {
               direction: swiperOptions.thumbsDirectionDesktop,
-              spaceBetween: 5,
-              slidesPerView: 5
+              spaceBetween: 0,
+              slidesPerView: 'auto'
             }
           },
 
