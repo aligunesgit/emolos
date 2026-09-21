@@ -7,6 +7,9 @@
 {%- assign current_variant = product.selected_or_first_available_variant -%}
 {%- assign show_size_guide = show_size_guide | default: true -%}
 {%- assign variant_picker_layout = block.settings.variant_picker_layout | default: 'buttons' -%}
+{%- unless variant_picker_layout == 'buttons' or variant_picker_layout == 'dropdowns' or variant_picker_layout == 'stacked' -%}
+  {%- assign variant_picker_layout = 'buttons' -%}
+{%- endunless -%}
 
 {%- if product.has_only_default_variant == false -%}
   <product-selector id="ProductSelector-{{- section.id -}}"
@@ -33,9 +36,12 @@
     {% capture size_guide %}
       <menu-drawer class="product__size-guide">
         <details id="Size-Guide-drawer" class="drawer__container">
-          <summary class="drawer__button drawer__button--text svg-color-inherit" tabindex="0">
-            <span class="drawer__button-text underlined-link caption caption--small" role="button">
-              {{- 'products.product.size_guide' | t -}}
+          <summary class="drawer__button drawer__button--text svg-color-inherit product__size-guide-summary" tabindex="0">
+            <span class="product__size-guide-link" role="button">
+              <svg class="product__size-guide-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
+                <path fill="currentColor" d="M14.93 4.11L12.1 1.28a1 1 0 00-1.41 0L6.8 5.17.78 11.18a1 1 0 000 1.42l2.82 2.82a1 1 0 001.42 0l9.9-9.9a1 1 0 000-1.4zm-10.6 10.6L1.48 11.9l1.41-1.41 1.06 1.06a.5.5 0 00.71-.71L3.61 9.77l1.42-1.42 1.05 1.06a.5.5 0 00.71-.7L5.73 7.65l1.42-1.42L8.2 7.3c.2.2.5.2.7 0s.2-.5 0-.7L7.85 5.53 9.27 4.1l1.06 1.06a.5.5 0 00.71-.7L9.98 3.4 11.39 2l2.83 2.83-9.9 9.9z"></path>
+              </svg>
+              <span class="product__size-guide-text">{{- 'products.product.size_guide' | t -}}</span>
             </span>
           </summary>
 
@@ -70,6 +76,7 @@
       <script>
         document.addEventListener('DOMContentLoaded', function () {
           const tableWrapper = document.querySelector('.size-guide-table-wrapper');
+          if (!tableWrapper) return;
           tableWrapper.addEventListener('scroll', function () {
             if (tableWrapper.scrollLeft > 0) {
               tableWrapper.classList.add('with-shadow');
@@ -81,7 +88,19 @@
       </script>
     {% endcapture %}
     {%- for option in product.options_with_values -%}
-      {%- if context_type != 'modal' and option.name == settings.sizes_option and block.settings.size_guide_page != '' and variant_picker_layout == 'stacked' -%}
+      {%- liquid
+        assign option_name_down = option.name | downcase
+        assign swatch_name_down = settings.swatches_option | downcase
+        assign is_colour_option = false
+        assign is_size_option = false
+        if option_name_down == swatch_name_down or option_name_down == 'color' or option_name_down == 'colour'
+          assign is_colour_option = true
+        endif
+        if option.name == settings.sizes_option or option_name_down == 'size'
+          assign is_size_option = true
+        endif
+      -%}
+      {%- if context_type != 'modal' and is_size_option and variant_picker_layout == 'stacked' -%}
         {{ size_guide }}
       {%- endif -%}
       {%- liquid
@@ -89,15 +108,19 @@
         assign product_option_href = 'product-option--' | append: product_option_handle | append: '-' | append: section.id
       -%}
 
-      <fieldset class="product-options{% if product.has_only_default_variant %} hidden{% endif %}" data-input-wrapper id="{{ product_option_href -}}">
+      <fieldset class="product-options{% if is_colour_option %} product-options--colour{% endif %}{% if is_size_option %} product-options--size{% endif %}{% if product.has_only_default_variant %} hidden{% endif %}" data-input-wrapper id="{{ product_option_href -}}">
         <legend class="product-selector__label">
-          {{- option.name -}}
-          {%- if context_type == 'modal' and option.name == settings.sizes_option or context_type == 'modal' and option.name == 'Size' -%}
+          {%- if is_colour_option -%}
+            COLOUR
+          {%- else -%}
+            {{- option.name -}}
+          {%- endif -%}
+          {%- if context_type == 'modal' and is_size_option -%}
             <button type="button" class="quick-cart-size-chart__trigger">
               {{- 'products.product.size_chart' | t -}}
             </button>
           {%- endif -%}
-          {%- if context_type != 'modal' and option.name == settings.sizes_option and block.settings.size_guide_page != '' and variant_picker_layout != 'stacked' -%}
+          {%- if context_type != 'modal' and is_size_option and variant_picker_layout != 'stacked' -%}
             {{ size_guide }}
           {%- endif -%}
         </legend>
@@ -145,7 +168,7 @@
                   assign class = class | append: ' product-options__item--disabled'
                 endif
 
-                render 'product-option', value: value, class: class, id: id, name: name, attr: attr, show_label: show_label, back_in_stock: back_in_stock, option_value_id: value.id, where: 'product'
+                render 'product-option', value: value, class: class, id: id, name: name, attr: attr, show_label: show_label, back_in_stock: back_in_stock, option_value_id: value.id, where: 'product', option: option, product: product
               -%}
             </li>
           {%- endfor -%}
