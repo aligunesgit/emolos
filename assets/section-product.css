@@ -1926,19 +1926,21 @@ section .product__gallery-breadcrumbs.breadcrumbs {
   object-fit: contain;
 }
 
-.product__media .swiper-thumbs .media--thumb::after {
+.product__media .swiper-thumbs .media--thumb::after,
+.product__media .swiper-thumbs .swiper-slide-thumb-active::after {
   content: none !important;
 }
 
-.product__media .swiper-thumbs .swiper-slide-thumb-active::after {
-  content: "";
+.product__media .swiper-thumbs .swiper-slide-thumb-active .media--thumb::after {
+  content: "" !important;
   position: absolute;
-  right: 5px;
-  bottom: 0;
   left: 0;
-  z-index: 3;
+  right: 0;
+  bottom: 0;
+  width: 100%;
   height: 3px;
   background: #000;
+  z-index: 3;
   pointer-events: none;
 }
 
@@ -2015,36 +2017,41 @@ section .product__gallery-breadcrumbs.breadcrumbs {
 
 @media screen and (min-width: 990px) {
   .product.js-product > .container {
-    padding-block-start: 16px;
-  }
-
-  .product__gallery-breadcrumbs.breadcrumbs,
-  .product__gallery-breadcrumbs {
-    display: block;
-    grid-area: crumbs;
-    justify-self: start;
-    align-self: end;
-    margin: 0 0 12px;
+    padding-block-start: 8px;
   }
 
   .product .container .product__grid--has-media,
   .product .container.max-w-fluid .product__grid--has-media {
+    display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-    grid-template-areas:
-      "crumbs ."
-      "media content";
-    gap: 0 4rem;
+    grid-template-rows: min-content auto;
+    grid-template-areas: none;
+    column-gap: 4rem;
+    row-gap: 8px;
     align-items: start;
   }
 
+  .product__gallery-breadcrumbs.breadcrumbs,
+  .product__gallery-breadcrumbs {
+    display: block !important;
+    grid-column: 1 / 2 !important;
+    grid-row: 1 / 2 !important;
+    justify-self: start;
+    align-self: start;
+    margin: 0;
+    padding: 0;
+  }
+
   .product__grid__item--media {
-    grid-area: media;
+    grid-column: 1 / 2 !important;
+    grid-row: 2 / 3 !important;
     align-self: start;
     overflow: visible;
   }
 
   .product__grid__item--content {
-    grid-area: content;
+    grid-column: 2 / 3 !important;
+    grid-row: 2 / 3 !important;
     align-self: start;
   }
 
@@ -2066,12 +2073,12 @@ section .product__gallery-breadcrumbs.breadcrumbs {
 
   .product .product__content {
     margin-block: 0 !important;
-    padding-block-start: 0;
+    padding-block-start: 0 !important;
     padding-inline: 0 2rem;
   }
 
   .product__title {
-    margin-block-start: 0;
+    margin-block-start: 0 !important;
   }
 }
 
@@ -2079,5 +2086,6 @@ section .product__gallery-breadcrumbs.breadcrumbs {
   .product .container.max-w-fluid .product__grid--has-media,
   .product .container .product__grid--has-media {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    grid-template-rows: min-content auto;
   }
 }
