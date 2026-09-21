@@ -231,8 +231,8 @@ class ProductMedia extends HTMLElement {
 
           initialSlide: this.selectedMediaIndex,
 
-          centeredSlides: true,
-          centeredSlidesBounds: true,
+          centeredSlides: false,
+          centeredSlidesBounds: false,
           // slideToClickedSlide: true,
           freeMode: {
             enabled: true,
@@ -468,6 +468,7 @@ class ProductMedia extends HTMLElement {
     );
 
     photoSwipeLightboxInstance.init();
+    this.lightbox = photoSwipeLightboxInstance;
 
     photoSwipeLightboxInstance.on('beforeOpen', () => {
       const videos = this.querySelectorAll('video');
@@ -497,6 +498,20 @@ class ProductMedia extends HTMLElement {
       this.settings.sliderElement,
       this.settings.options
     );
+
+    this.settings.sliderInstance.on('click', (swiper, event) => {
+      if (
+        event.target.closest(
+          '.swiper-button, .product__media-arrows, .product__model-info, .product__media-sale-badge'
+        )
+      ) {
+        return;
+      }
+
+      if (this.lightbox) {
+        this.lightbox.loadAndOpen(swiper.activeIndex);
+      }
+    });
   }
 
   setActiveMedia(id) {
