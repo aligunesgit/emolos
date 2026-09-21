@@ -538,7 +538,8 @@
         "unavailable": "Unavailable",
         "new": "New",
         "sale": "Sale",
-        "percent_sale": "{{ percent }} % SALE"
+        "percent_sale": "{{ percent }} % SALE",
+        "percent_off": "{{ percent }}% off"
       },
       "media": {
         "open_media": "Open media {{ index }} in modal"
