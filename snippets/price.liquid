@@ -24,7 +24,7 @@
   assign money_price = price | money
   assign price_extra_info = price_extra_info | default: false
 
-  if settings.show_currency_codes
+  if settings.show_currency_codes and skip_currency_code != true
     assign money_price = price | money_with_currency
   endif
 
