@@ -1676,3 +1676,189 @@ product-sticky-atc {
     border: none;
   }
 }
+
+/* PDP gallery: Carpe Omnia overlay arrows, sale badge, model info */
+#product-media-gallery {
+  position: relative;
+}
+
+.product__media[data-with-thumbs="true"] .swiper-pagination {
+  display: none;
+}
+
+.product__media-sale-badge {
+  position: absolute;
+  top: 7.5px;
+  right: 7.5px;
+  z-index: 4;
+  margin: 2.5px;
+  padding: 0.5em 1em;
+  background: #171717;
+  color: #fff;
+  font-family: var(--font-body-family);
+  font-size: 8px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
+  pointer-events: none;
+}
+
+.product__model-info {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 4;
+  margin: 0;
+  max-width: calc(100% - 24px);
+  padding: 8px 12px;
+  background: #fff;
+  color: #111;
+  font-family: var(--font-body-family);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: 0;
+  text-align: left;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.product__media .product__media-arrows.swiper-buttons {
+  padding: 0;
+  inset-block-start: 50%;
+  inset-inline: 0;
+  transform: translateY(-50%);
+  z-index: 5;
+  height: 0;
+  align-items: center;
+}
+
+.product__media .product__media-arrows .swiper-button {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  color: #020202;
+  opacity: 1;
+}
+
+.product__media .product__media-arrows .swiper-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+}
+
+.product__media .product__media-arrows .swiper-button:hover::after {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.product__media .product__media-arrows .swiper-button svg {
+  position: relative;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  margin: 6px;
+  stroke: currentColor;
+  transform: none;
+}
+
+.product__media .product__media-arrows .swiper-button:hover {
+  opacity: 1;
+}
+
+.product__media .product__media-arrows .swiper-button--prev,
+.product__media .product__media-arrows .swiper-button--next {
+  margin: 0;
+  transform: none;
+}
+
+.product__media .product__media-arrows .swiper-button.swiper-button-disabled,
+.product__media .product__media-arrows .swiper-button:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.product__media-slider .swiper-thumbs-container {
+  background-color: transparent;
+}
+
+.product__media .media.media--thumb {
+  position: relative;
+}
+
+.product__media .swiper-thumbs .swiper-slide-thumb-active .media--thumb::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: #000;
+}
+
+@media screen and (min-width: 750px) {
+  .product__media-sale-badge {
+    font-size: 9px;
+  }
+
+  .product__model-info {
+    left: 16px;
+    bottom: 16px;
+    font-size: 13px;
+    padding: 9px 14px;
+  }
+
+  .product__media .swiper-thumbs {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 20px 0 0;
+  }
+
+  .product__media .swiper-thumbs.swiper-horizontal,
+  .product__media-slider .swiper-thumbs.swiper-horizontal {
+    margin: 20px 0 0;
+  }
+
+  .product__media .swiper-thumbs .swiper-slide {
+    width: 65px !important;
+    max-height: 80px;
+    height: 80px;
+    padding-inline-end: 5px;
+    border: 0;
+  }
+
+  .product__media .swiper-thumbs .swiper-slide-thumb-active {
+    border: 0;
+  }
+
+  .container .product__media-layout--partial .swiper#product-media-gallery,
+  .container.max-w-fluid .product__media-layout--partial .swiper#product-media-gallery {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 749px) {
+  .product__media {
+    background-color: #fff;
+  }
+
+  .product__media .swiper-thumbs .swiper-slide {
+    width: 65px !important;
+    height: 80px;
+    padding-inline-end: 5px;
+    border: 0;
+  }
+
+  .product__media-slider .swiper-thumbs.swiper-horizontal {
+    margin: 0 0 20px;
+  }
+}
