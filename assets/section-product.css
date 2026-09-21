@@ -1907,6 +1907,7 @@ section .product__gallery-breadcrumbs.breadcrumbs {
 .product__media .swiper-thumbs.swiper-horizontal .swiper-slide-thumb-active,
 .product__media .swiper-thumbs.swiper-vertical .swiper-slide-thumb-active {
   position: relative;
+  box-sizing: border-box !important;
   width: 65px !important;
   height: 80px !important;
   max-height: 80px !important;
@@ -1915,33 +1916,31 @@ section .product__gallery-breadcrumbs.breadcrumbs {
   outline: 0 !important;
 }
 
-.product__media .swiper-thumbs .swiper-slide .media {
+.product__media .swiper-thumbs .swiper-slide .media.media--thumb {
+  width: 60px;
+  height: 80px;
+  padding: 0 !important;
+  padding-block-end: 0 !important;
   overflow: hidden;
   background-color: #fff;
+  box-shadow: none;
 }
 
 .product__media .swiper-thumbs .swiper-slide .media img {
   height: 100%;
   width: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 .product__media .swiper-thumbs .media--thumb::after,
+.product__media .swiper-thumbs .swiper-slide::after,
 .product__media .swiper-thumbs .swiper-slide-thumb-active::after {
   content: none !important;
+  display: none !important;
 }
 
-.product__media .swiper-thumbs .swiper-slide-thumb-active .media--thumb::after {
-  content: "" !important;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  height: 3px;
-  background: #000;
-  z-index: 3;
-  pointer-events: none;
+.product__media .swiper-thumbs .swiper-slide-thumb-active .media.media--thumb {
+  box-shadow: 0 3px 0 0 #000;
 }
 
 .container .product__media-layout--partial .swiper#product-media-gallery,
@@ -2024,34 +2023,32 @@ section .product__gallery-breadcrumbs.breadcrumbs {
   .product .container.max-w-fluid .product__grid--has-media {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-    grid-template-rows: min-content auto;
+    grid-template-rows: auto;
     grid-template-areas: none;
     column-gap: 4rem;
-    row-gap: 8px;
+    row-gap: 0;
     align-items: start;
   }
 
   .product__gallery-breadcrumbs.breadcrumbs,
   .product__gallery-breadcrumbs {
     display: block !important;
-    grid-column: 1 / 2 !important;
-    grid-row: 1 / 2 !important;
-    justify-self: start;
-    align-self: start;
-    margin: 0;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    margin: 0 0 8px;
     padding: 0;
   }
 
   .product__grid__item--media {
-    grid-column: 1 / 2 !important;
-    grid-row: 2 / 3 !important;
+    grid-column: 1;
+    grid-row: 1;
     align-self: start;
     overflow: visible;
   }
 
   .product__grid__item--content {
-    grid-column: 2 / 3 !important;
-    grid-row: 2 / 3 !important;
+    grid-column: 2;
+    grid-row: 1;
     align-self: start;
   }
 
@@ -2086,6 +2083,6 @@ section .product__gallery-breadcrumbs.breadcrumbs {
   .product .container.max-w-fluid .product__grid--has-media,
   .product .container .product__grid--has-media {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-    grid-template-rows: min-content auto;
+    grid-template-rows: auto;
   }
 }
