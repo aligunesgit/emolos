@@ -152,16 +152,15 @@
     %}
 
     <div class="container max-w-{% if product.media.size > 0 %}{{- section.settings.section_width -}}{% else %}narrow{% endif %}">
+      {%- if settings.enable_breadcrumbs_on_product_page and product.gift_card? == false and product.media.size > 0 -%}
+        {%- liquid
+          assign gallery_breadcrumbs_class = 'product__gallery-breadcrumbs product__breadcrumbs ' | append: section.settings.breadcrumbs_color_scheme_text
+          render 'breadcrumbs', alignment: 'start', class: gallery_breadcrumbs_class
+        -%}
+      {%- endif -%}
       <div class="grid product__grid {% if product.media.size > 0 %} product__grid--has-media {% endif %}">
         {%- if product.media.size > 0 -%}
           <div class="grid__item product__grid__item product__grid__item--media">
-            {%- if settings.enable_breadcrumbs_on_product_page and product.gift_card? == false -%}
-              {%- liquid
-                assign gallery_breadcrumbs_class = 'product__gallery-breadcrumbs product__breadcrumbs ' | append: section.settings.breadcrumbs_color_scheme_text
-                render 'breadcrumbs', alignment: 'start', class: gallery_breadcrumbs_class
-              -%}
-            {%- endif -%}
-
             <product-media class="product__media {{ section.settings.product_media_layout }} {% if section.settings.adaptive_ratio_and_auto_height == "default" %} product__media--fit{% endif %}" data-auto-height="{{ slider_auto_height }}" data-with-thumbs="{{- with_thumbs -}}" data-layout="{{- section.settings.product_media_layout -}}">
 
               {%-
