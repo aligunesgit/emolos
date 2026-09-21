@@ -33,7 +33,8 @@
         return;
       }
 
-      this.submitButton.classList.add('disabled');
+      this.submitButton.classList.add('disabled', 'is-loading');
+      this.submitButton.classList.remove('is-success');
 
       const config = fetchConfig('javascript');
       config.headers['X-Requested-With'] = 'XMLHttpRequest';
@@ -60,12 +61,18 @@
           }
 
           this.cartDrawer.renderContents(response);
+          this.submitButton.classList.remove('is-loading');
+          this.submitButton.classList.add('is-success');
+          clearTimeout(this._atcSuccessTimer);
+          this._atcSuccessTimer = setTimeout(() => {
+            this.submitButton.classList.remove('is-success');
+          }, 2000);
         })
         .catch(error => {
           console.error(error);
         })
         .finally(() => {
-          this.submitButton.classList.remove('disabled');
+          this.submitButton.classList.remove('disabled', 'is-loading');
         });
     }
 
