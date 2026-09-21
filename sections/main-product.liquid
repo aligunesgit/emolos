@@ -195,7 +195,7 @@
                 assign swiper_options = '{'
                 assign swiper_options = swiper_options | append: '"slidesPerViewDesktop": ' | append: '1'
                 if section.settings.slides_with_thumbs != 'none'
-                  assign swiper_options = swiper_options | append: ', "thumbsDirectionDesktop": "' | append: 'vertical' | append: '"'
+                  assign swiper_options = swiper_options | append: ', "thumbsDirectionDesktop": "' | append: 'horizontal' | append: '"'
                 endif
                 assign swiper_options = swiper_options | append: '}'
               %}
@@ -216,6 +216,44 @@
                   </div>
 
                   <div class="swiper-pagination"></div>
+
+                  {%- liquid
+                    assign gallery_variant = product.selected_or_first_available_variant
+                    assign gallery_sale_percent = 0
+                    if gallery_variant.compare_at_price > gallery_variant.price and gallery_variant.compare_at_price > 0
+                      assign gallery_sale_percent = gallery_variant.compare_at_price | minus: gallery_variant.price | times: 100.0 | divided_by: gallery_variant.compare_at_price | round
+                    endif
+
+                    assign model_info = section.settings.model_info
+                    if product.metafields.custom.model_info.value != blank
+                      assign model_info = product.metafields.custom.model_info.value
+                    elsif product.metafields.theme.model_info.value != blank
+                      assign model_info = product.metafields.theme.model_info.value
+                    endif
+                  -%}
+
+                  {%- if gallery_sale_percent > 0 -%}
+                    <span class="product__media-sale-badge">{{- 'products.product.badges.percent_off' | t: percent: gallery_sale_percent -}}</span>
+                  {%- endif -%}
+
+                  {%- if model_info != blank -%}
+                    <p class="product__model-info">{{- model_info | escape -}}</p>
+                  {%- endif -%}
+
+                  {%- if product.media.size > 1 -%}
+                    <div class="swiper-buttons product__media-arrows no-js-hidden">
+                      <button type="button" class="swiper-button swiper-button--prev" name="prev" aria-label="{{- 'actions.previous' | t -}}">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                          <path d="m15 18-6-6 6-6"></path>
+                        </svg>
+                      </button>
+                      <button type="button" class="swiper-button swiper-button--next" name="next" aria-label="{{- 'actions.next' | t -}}">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                          <path d="m9 18 6-6-6-6"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  {%- endif -%}
                 </div>
 
                 {% if section.settings.slides_with_thumbs != 'none' %}
@@ -232,18 +270,6 @@
                       </div>
                     </div>
 
-                  </div>
-                {% endif %}
-
-                {% if section.settings.slides_with_thumbs != 'desktop_and_mobile' %}
-                  <div class="swiper-buttons small-hide medium-hide {{ section.settings.arrows_color }} {% if product.media.size == 1 %} hidden {% endif %} no-js-hidden">
-                    <button class="swiper-button swiper-button--prev">
-                      {% render 'icon', icon_name: 'theme-arrow' %}
-                    </button>
-
-                    <button class="swiper-button swiper-button--next">
-                      {% render 'icon', icon_name: 'theme-arrow' %}
-                    </button>
                   </div>
                 {% endif %}
               </div>
@@ -958,6 +984,13 @@
       "id": "slider_background_color_transparent",
       "label": "t:sections.main-product.settings.slider_background_color_transparent.label",
       "default": false
+    },
+    {
+      "type": "text",
+      "id": "model_info",
+      "label": "Model info",
+      "info": "Shown on the gallery image, left-aligned. Override per product with metafield custom.model_info or theme.model_info.",
+      "default": "Model is 1.81m Wearing Size 32\""
     },
     {
       "type": "header",
