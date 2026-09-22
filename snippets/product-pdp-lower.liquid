@@ -1,0 +1,116 @@
+{%- comment -%}
+  Choixx-style PDP lower block: UNLOCK 30% OFF, trust rows, DESCRIPTION/DELIVERY/RETURNS.
+  Pack is 3 items at 30% (not Choixx 5 / 40%). DESCRIPTION starts expanded.
+{%- endcomment -%}
+
+{%- liquid
+  assign bundle_page = pages.bundle
+  if bundle_page != empty
+    assign unlock_url = bundle_page.url
+  else
+    assign unlock_url = '/pages/bundle'
+  endif
+
+  assign delivery_html = ''
+  if pages.shipping != empty and pages.shipping.content != blank
+    assign delivery_html = pages.shipping.content
+  elsif pages.delivery != empty and pages.delivery.content != blank
+    assign delivery_html = pages.delivery.content
+  elsif shop.shipping_policy != blank and shop.shipping_policy.body != blank
+    assign delivery_html = shop.shipping_policy.body
+  endif
+
+  assign returns_html = ''
+  if pages.returns != empty and pages.returns.content != blank
+    assign returns_html = pages.returns.content
+  elsif shop.refund_policy != blank and shop.refund_policy.body != blank
+    assign returns_html = shop.refund_policy.body
+  endif
+-%}
+
+<div class="product-pdp-lower">
+  <a class="product-unlock-btn" href="{{- unlock_url -}}">
+    {{- 'products.product.unlock_offer' | t -}}
+  </a>
+
+  <div class="product-trust-list">
+    <p class="product-trust-list__item">
+      <span class="product-trust-list__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 16" width="23" height="15" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1 10.5V4.2C1 3.5 1.5 3 2.2 3H14.5V11.5H1V10.5Z" stroke="currentColor" stroke-width="1.1"/>
+          <path d="M14.5 6.2H19.2L22.5 9.4V11.5H14.5V6.2Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+          <circle cx="5.2" cy="12.6" r="1.7" stroke="currentColor" stroke-width="1.1"/>
+          <circle cx="18.3" cy="12.6" r="1.7" stroke="currentColor" stroke-width="1.1"/>
+        </svg>
+      </span>
+      <span>{{- 'products.product.trust.fast_delivery' | t -}}</span>
+    </p>
+    <p class="product-trust-list__item">
+      <span class="product-trust-list__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 16" width="23" height="15" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8.5 3.2H20.2V12.8H8.5V3.2Z" stroke="currentColor" stroke-width="1.1"/>
+          <path d="M8.5 6.2H20.2" stroke="currentColor" stroke-width="1.1"/>
+          <path d="M5.8 8.8H1.8L4.2 6.2M1.8 8.8L4.2 11.4" stroke="currentColor" stroke-width="1.1" stroke-linecap="square" stroke-linejoin="miter"/>
+        </svg>
+      </span>
+      <span>{{- 'products.product.trust.hassle_free_returns' | t -}}</span>
+    </p>
+    <p class="product-trust-list__item">
+      <span class="product-trust-list__icon product-trust-list__icon--shield" aria-hidden="true">
+        <svg viewBox="0 0 17 19" width="17" height="19" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8.5 1.4L15.4 4.1V9.3C15.4 13.1 12.5 16.4 8.5 17.6C4.5 16.4 1.6 13.1 1.6 9.3V4.1L8.5 1.4Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+          <path d="M8.5 6.1V12.4M6.2 9.25H10.8" stroke="currentColor" stroke-width="1.1" stroke-linecap="square"/>
+        </svg>
+      </span>
+      <span>{{- 'products.product.trust.secure_payment' | t -}}</span>
+    </p>
+  </div>
+
+  <accordion-default class="accordion product-info-tabs">
+    <details class="accordion__section is-active" id="Details-description-{{ section.id }}" open>
+      <summary class="accordion__button product-info-tabs__btn js-btn" id="Details-Summary-description-{{ section.id }}">
+        <span>{{- 'products.product.tabs.description' | t -}}</span>
+        <span class="product-info-plus" aria-hidden="true"></span>
+      </summary>
+      <div class="accordion__body" id="Details-Content-description-{{ section.id }}">
+        <div class="accordion__body-inner rte">
+          {%- if product.description != blank -%}
+            {{- product.description -}}
+          {%- endif -%}
+        </div>
+      </div>
+    </details>
+
+    <details class="accordion__section" id="Details-delivery-{{ section.id }}">
+      <summary class="accordion__button product-info-tabs__btn js-btn" id="Details-Summary-delivery-{{ section.id }}">
+        <span>{{- 'products.product.tabs.delivery' | t -}}</span>
+        <span class="product-info-plus" aria-hidden="true"></span>
+      </summary>
+      <div class="accordion__body" id="Details-Content-delivery-{{ section.id }}">
+        <div class="accordion__body-inner rte">
+          {%- if delivery_html != blank -%}
+            {{- delivery_html -}}
+          {%- else -%}
+            <p>{{- 'products.product.delivery_fallback' | t -}}</p>
+          {%- endif -%}
+        </div>
+      </div>
+    </details>
+
+    <details class="accordion__section" id="Details-returns-{{ section.id }}">
+      <summary class="accordion__button product-info-tabs__btn js-btn" id="Details-Summary-returns-{{ section.id }}">
+        <span>{{- 'products.product.tabs.returns' | t -}}</span>
+        <span class="product-info-plus" aria-hidden="true"></span>
+      </summary>
+      <div class="accordion__body" id="Details-Content-returns-{{ section.id }}">
+        <div class="accordion__body-inner rte">
+          {%- if returns_html != blank -%}
+            {{- returns_html -}}
+          {%- else -%}
+            <p>{{- 'products.product.returns_fallback' | t -}}</p>
+          {%- endif -%}
+        </div>
+      </div>
+    </details>
+  </accordion-default>
+</div>
