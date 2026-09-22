@@ -1,0 +1,4 @@
+{%- if request.page_type == 'product' -%}
+  {{ 'reviews-language-selector.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'reviews-language-selector.js' | asset_url }}" defer="defer"></script>
+{%- endif -%}
