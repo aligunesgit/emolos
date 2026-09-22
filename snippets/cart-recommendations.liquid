@@ -35,10 +35,13 @@
       {%- if recommendations.performed and recommendations.products_count > 0 -%}
         {%- for recommendation in recommendations.products -%}
           {%- liquid
-            assign rec_price = recommendation.price_min
-            assign rec_compare = recommendation.compare_at_price_min
+            assign rec_price = recommendation.price_min | times: 1
+            assign rec_compare = recommendation.compare_at_price_min | times: 1
+            if rec_compare == 0
+              assign rec_compare = recommendation.compare_at_price | default: 0 | times: 1
+            endif
             assign sale_percent = 0
-            if rec_compare > rec_price
+            if rec_compare > rec_price and rec_compare > 0
               assign sale_percent = rec_compare | minus: rec_price | times: 100.0 | divided_by: rec_compare | round
             endif
 
@@ -62,16 +65,16 @@
           -%}
           <div class="cart-recommendations__item-wrapper swiper-slide">
             <a href="{{- recommendation.url -}}" class="cart-recommendations__item">
-              {%- if recommendation.featured_image -%}
+                  {%- if recommendation.featured_image -%}
                 <div class="cart-recommendations__item-media">
-                  {%- if sale_percent > 0 -%}
+                  <div class="media">
+                    {%- render 'image', image: recommendation.featured_image, image_url_width: 400 -%}
+                  </div>
+                  {%- if rec_compare > rec_price -%}
                     <span class="cart-recommendations__badge">
                       {{- 'products.product.badges.percent_off' | t: percent: sale_percent -}}
                     </span>
                   {%- endif -%}
-                  <div class="media">
-                    {%- render 'image', image: recommendation.featured_image, image_url_width: 400 -%}
-                  </div>
                 </div>
               {%- endif -%}
 
