@@ -52,6 +52,7 @@
   }
 
   function originalIframeSrc(iframe) {
+    if (!iframe) return '';
     if (iframe.dataset.emolosOriginalSrc) return iframe.dataset.emolosOriginalSrc;
     const src = iframe.getAttribute('src') || iframe.src || '';
     if (src && src.indexOf('loox.io') !== -1) {
@@ -68,8 +69,12 @@
     const current = langByCode(currentLang);
     wrap.innerHTML =
       '<button type="button" class="reviews-lang__btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Review language">' +
-      '<img class="reviews-lang__flag" alt="" width="22" height="16" src="' + flagUrl(current.flag) + '">' +
-      '<span class="reviews-lang__code">' + current.short + '</span>' +
+      '<img class="reviews-lang__flag" alt="" width="22" height="16" src="' +
+      flagUrl(current.flag) +
+      '">' +
+      '<span class="reviews-lang__code">' +
+      current.short +
+      '</span>' +
       '<svg class="reviews-lang__chevron" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 4.2 6 8l3.8-3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
       '</button><ul class="reviews-lang__menu" role="listbox" hidden></ul>';
 
@@ -83,8 +88,12 @@
       option.setAttribute('aria-selected', lang.code === currentLang ? 'true' : 'false');
       option.dataset.lang = lang.code;
       option.innerHTML =
-        '<img class="reviews-lang__flag" alt="" width="24" height="18" src="' + flagUrl(lang.flag) + '">' +
-        '<span>' + lang.label + '</span>';
+        '<img class="reviews-lang__flag" alt="" width="24" height="18" src="' +
+        flagUrl(lang.flag) +
+        '">' +
+        '<span>' +
+        lang.label +
+        '</span>';
       item.appendChild(option);
       menu.appendChild(item);
     });
@@ -196,7 +205,7 @@
     });
     if (!res.ok) throw new Error('widget html ' + res.status);
     const html = await res.text();
-    if (!html || html.indexOf('grid-item') === -1 && html.indexOf('main-text') === -1) {
+    if (!html || (html.indexOf('grid-item') === -1 && html.indexOf('main-text') === -1)) {
       throw new Error('widget html empty');
     }
     htmlCache.set(src, html);
@@ -206,38 +215,55 @@
     return html;
   }
 
+  function absolutize(root, base) {
+    root.querySelectorAll('[src], [href]').forEach((node) => {
+      ['src', 'href'].forEach((attr) => {
+        const value = node.getAttribute(attr);
+        if (!value || value.charAt(0) === '#' || value.indexOf('javascript:') === 0) return;
+        if (/^(https?:|data:|mailto:|tel:)/i.test(value)) return;
+        try {
+          node.setAttribute(attr, new URL(value, base).href);
+        } catch (e) {}
+      });
+    });
+  }
+
   function prepareDocument(html) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     Array.from(doc.querySelectorAll('script')).forEach((node) => node.remove());
-    if (!doc.querySelector('base')) {
-      const base = doc.createElement('base');
-      base.href = 'https://loox.io/';
-      doc.head.insertBefore(base, doc.head.firstChild);
-    }
-    const helper = doc.createElement('script');
-    helper.textContent =
-      '(function(){function h(){var x=document.documentElement.scrollHeight||document.body.scrollHeight;try{parent.postMessage({looxEmolosHeight:x},"*")}catch(e){}}document.addEventListener("click",function(e){var b=e.target.closest("[data-testid=\\"write-review-button\\"]");if(b&&parent.LOOX&&parent.LOOX.showReviewForm){e.preventDefault();parent.LOOX.showReviewForm();}});window.addEventListener("load",h);setTimeout(h,300);setTimeout(h,1200);})();';
-    doc.body.appendChild(helper);
+    absolutize(doc, 'https://loox.io/');
     return doc;
   }
 
-  function restoreIframe(iframe) {
-    const src = originalIframeSrc(iframe);
-    iframe.removeAttribute('srcdoc');
-    if (src) iframe.src = src;
-  }
-
-  function syncIframeHeight(iframe, height) {
-    if (!height) return;
-    iframe.style.height = height + 'px';
-    if (iframe.parentElement && iframe.parentElement.id === 'looxReviews') {
-      iframe.parentElement.style.height = height + 'px';
+  function showOriginalWidget(host) {
+    const iframe = host.querySelector('iframe');
+    const clone = host.querySelector('.reviews-lang-clone');
+    if (clone) clone.remove();
+    host.classList.remove('is-cloned', 'is-translating');
+    if (host.dataset.emolosHeight) host.style.height = host.dataset.emolosHeight;
+    if (!iframe) return;
+    if (iframe.hasAttribute('srcdoc')) {
+      iframe.removeAttribute('srcdoc');
+      const src = originalIframeSrc(iframe);
+      if (src) iframe.src = src;
     }
   }
 
-  async function renderTranslatedIframe(iframe, code) {
+  function bindCloneClicks(clone) {
+    clone.addEventListener('click', (event) => {
+      const write = event.target.closest('[data-testid="write-review-button"], .write-review, a[href*="write"]');
+      if (write && window.LOOX && typeof window.LOOX.showReviewForm === 'function') {
+        event.preventDefault();
+        window.LOOX.showReviewForm();
+      }
+    });
+  }
+
+  async function renderTranslatedClone(host, code) {
+    const iframe = host.querySelector('iframe');
     const src = originalIframeSrc(iframe);
-    if (!src) return;
+    if (!src) throw new Error('no iframe src');
+
     const html = await fetchWidgetHtml(src);
     const doc = prepareDocument(html);
     const nodes = collectTextNodes(doc);
@@ -247,7 +273,30 @@
         node.textContent = await translateText(original, code);
       })
     );
-    iframe.srcdoc = '<!DOCTYPE html>' + doc.documentElement.outerHTML;
+
+    const clone = document.createElement('div');
+    clone.className = 'reviews-lang-clone ' + (doc.body.className || '');
+
+    const assets = document.createElement('div');
+    assets.className = 'reviews-lang-clone__assets';
+    doc.querySelectorAll('head style, head link[rel="stylesheet"], head svg').forEach((node) => {
+      assets.appendChild(node.cloneNode(true));
+    });
+    clone.appendChild(assets);
+
+    const content = document.createElement('div');
+    content.className = 'reviews-lang-clone__content';
+    content.innerHTML = doc.body.innerHTML;
+    clone.appendChild(content);
+    bindCloneClicks(clone);
+
+    const old = host.querySelector('.reviews-lang-clone');
+    if (old) old.replaceWith(clone);
+    else iframe.parentNode.insertBefore(clone, iframe.nextSibling);
+
+    if (!host.dataset.emolosHeight) host.dataset.emolosHeight = host.style.height || '';
+    host.style.height = 'auto';
+    host.classList.add('is-cloned');
   }
 
   async function applyLanguage(code) {
@@ -255,40 +304,22 @@
     storeLang(code);
     syncSelector(code);
 
-    if (window.LOOX) {
-      window.LOOX.shopifyLocale = code;
-      window.LOOX.multilingual = true;
-    }
-
     const hosts = findHosts();
     translating = true;
     if (observer) observer.disconnect();
     document.querySelectorAll('.reviews-lang').forEach((wrap) => wrap.classList.add('is-busy'));
-    hosts.forEach((host) => host.classList.add('is-translating'));
 
     try {
       for (let i = 0; i < hosts.length; i++) {
-        const iframe = hosts[i].querySelector('iframe');
-        if (!iframe) continue;
-        originalIframeSrc(iframe);
-        if (code === 'en') restoreIframe(iframe);
-        else await renderTranslatedIframe(iframe, code);
+        hosts[i].querySelectorAll('iframe').forEach(originalIframeSrc);
+        if (code === 'en') showOriginalWidget(hosts[i]);
+        else await renderTranslatedClone(hosts[i], code);
       }
     } catch (e) {
-      findHosts().forEach((host) => {
-        const iframe = host.querySelector('iframe');
-        if (!iframe) return;
-        try {
-          const url = new URL(originalIframeSrc(iframe), window.location.origin);
-          url.searchParams.set('language', code);
-          iframe.removeAttribute('srcdoc');
-          iframe.src = url.toString();
-        } catch (err) {}
-      });
+      hosts.forEach(showOriginalWidget);
     } finally {
       translating = false;
       document.querySelectorAll('.reviews-lang').forEach((wrap) => wrap.classList.remove('is-busy'));
-      hosts.forEach((host) => host.classList.remove('is-translating'));
       if (observer && document.body) observer.observe(document.body, { childList: true, subtree: true });
     }
   }
@@ -337,15 +368,6 @@
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closeAll();
-  });
-
-  window.addEventListener('message', (event) => {
-    const data = event.data;
-    const height = data && (data.looxEmolosHeight || data.height);
-    if (!height) return;
-    document.querySelectorAll('#looxReviews iframe').forEach((iframe) => {
-      if (iframe.hasAttribute('srcdoc')) syncIframeHeight(iframe, height);
-    });
   });
 
   observer = new MutationObserver(() => {
