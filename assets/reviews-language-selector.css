@@ -140,6 +140,11 @@
   overflow: visible !important;
 }
 
+#looxReviews.is-translating iframe {
+  opacity: 0.45;
+  transition: opacity 0.2s ease;
+}
+
 @media screen and (max-width: 749px) {
   .reviews-lang-bar {
     margin-bottom: 1.2rem;

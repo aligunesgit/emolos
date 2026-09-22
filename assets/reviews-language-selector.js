@@ -9,17 +9,13 @@
     { code: 'no', label: 'Norwegian', short: 'NO', flag: 'no', title: 'Kundeanmeldelser' },
     { code: 'sv', label: 'Swedish', short: 'SV', flag: 'se', title: 'Kundrecensioner' }
   ];
-  const HOST_SELECTORS = ['#looxReviews', '.jdgm-rev-widg', '.jdgm-widget'];
-  const BODY_SELECTORS = [
-    '.loox-review-content',
-    '.loox-rev-content',
-    '[itemprop="reviewBody"]',
-    '.jdgm-rev__body',
-    '.grid-item-content',
-    '.grid-item p'
+  const TEXT_SELECTORS = [
+    '[data-testid$="-text"]',
+    '.pre-wrap.main-text',
+    '.main-text'
   ];
-
-  const cache = new Map();
+  const htmlCache = new Map();
+  const translationCache = new Map();
   let currentLang = readStoredLang();
   let translating = false;
   let observer;
@@ -46,41 +42,36 @@
     return 'https://flagcdn.com/w40/' + country + '.png';
   }
 
-  function findHosts(root) {
-    const found = [];
-    HOST_SELECTORS.forEach((selector) => {
-      root.querySelectorAll(selector).forEach((node) => {
-        if (found.includes(node)) return;
-        if (!isUsableHost(node)) return;
-        found.push(node);
-      });
-    });
-    return found;
+  function findHosts() {
+    return Array.from(document.querySelectorAll('#looxReviews.loox-widget, .jdgm-rev-widg')).filter(isUsableHost);
   }
 
   function isUsableHost(host) {
     if (host.querySelector('iframe')) return true;
-    if (host.querySelector('.jdgm-rev, .grid-item, [itemprop="review"]')) return true;
-    return (host.textContent || '').trim().length > 40;
+    return host.getBoundingClientRect().height > 40;
+  }
+
+  function originalIframeSrc(iframe) {
+    if (iframe.dataset.emolosOriginalSrc) return iframe.dataset.emolosOriginalSrc;
+    const src = iframe.getAttribute('src') || iframe.src || '';
+    if (src && src.indexOf('loox.io') !== -1) {
+      iframe.dataset.emolosOriginalSrc = src;
+      return src;
+    }
+    return src;
   }
 
   function buildSelector() {
     const wrap = document.createElement('div');
     wrap.className = 'reviews-lang';
     wrap.dataset.lang = currentLang;
-
     const current = langByCode(currentLang);
     wrap.innerHTML =
       '<button type="button" class="reviews-lang__btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Review language">' +
-      '<img class="reviews-lang__flag" alt="" width="22" height="16" src="' +
-      flagUrl(current.flag) +
-      '">' +
-      '<span class="reviews-lang__code">' +
-      current.short +
-      '</span>' +
+      '<img class="reviews-lang__flag" alt="" width="22" height="16" src="' + flagUrl(current.flag) + '">' +
+      '<span class="reviews-lang__code">' + current.short + '</span>' +
       '<svg class="reviews-lang__chevron" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 4.2 6 8l3.8-3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-      '</button>' +
-      '<ul class="reviews-lang__menu" role="listbox" hidden></ul>';
+      '</button><ul class="reviews-lang__menu" role="listbox" hidden></ul>';
 
     const menu = wrap.querySelector('.reviews-lang__menu');
     LANGUAGES.forEach((lang) => {
@@ -92,16 +83,11 @@
       option.setAttribute('aria-selected', lang.code === currentLang ? 'true' : 'false');
       option.dataset.lang = lang.code;
       option.innerHTML =
-        '<img class="reviews-lang__flag" alt="" width="24" height="18" src="' +
-        flagUrl(lang.flag) +
-        '">' +
-        '<span>' +
-        lang.label +
-        '</span>';
+        '<img class="reviews-lang__flag" alt="" width="24" height="18" src="' + flagUrl(lang.flag) + '">' +
+        '<span>' + lang.label + '</span>';
       item.appendChild(option);
       menu.appendChild(item);
     });
-
     return wrap;
   }
 
@@ -145,39 +131,20 @@
     if (menu) menu.hidden = !shouldOpen;
   }
 
-  function setIframeLanguage(host, code) {
-    const iframe = host.querySelector('iframe');
-    if (!iframe || !iframe.src) return;
-    try {
-      const url = new URL(iframe.src, window.location.origin);
-      url.searchParams.set('language', code);
-      url.searchParams.set('locale', code);
-      const next = url.toString();
-      if (iframe.src !== next) iframe.src = next;
-    } catch (e) {}
-  }
-
-  function collectBodies(host) {
+  function collectTextNodes(doc) {
     const nodes = [];
-    BODY_SELECTORS.forEach((selector) => {
-      host.querySelectorAll(selector).forEach((node) => {
-        if (node.closest('.reviews-lang-bar')) return;
-        if (!nodes.includes(node) && (node.textContent || '').trim().length > 1) {
-          nodes.push(node);
-        }
+    TEXT_SELECTORS.forEach((selector) => {
+      doc.querySelectorAll(selector).forEach((node) => {
+        const text = (node.textContent || '').trim();
+        if (text && !nodes.includes(node)) nodes.push(node);
       });
     });
     return nodes;
   }
 
-  function rememberOriginal(node) {
-    if (!node.dataset.emolosOriginal) node.dataset.emolosOriginal = node.textContent;
-    return node.dataset.emolosOriginal;
-  }
-
   async function translateText(text, target) {
     const key = target + '::' + text;
-    if (cache.has(key)) return cache.get(key);
+    if (translationCache.has(key)) return translationCache.get(key);
     if (!text || target === 'en') return text;
 
     const encoded = encodeURIComponent(text.slice(0, 900));
@@ -210,8 +177,77 @@
       } catch (err) {}
     }
 
-    cache.set(key, translated);
+    translationCache.set(key, translated);
     return translated;
+  }
+
+  async function fetchWidgetHtml(src) {
+    if (htmlCache.has(src)) return htmlCache.get(src);
+    try {
+      const stored = sessionStorage.getItem('emolos_loox_html:' + src);
+      if (stored) {
+        htmlCache.set(src, stored);
+        return stored;
+      }
+    } catch (e) {}
+
+    const res = await fetch('https://r.jina.ai/' + src, {
+      headers: { 'X-Return-Format': 'html', Accept: 'text/html' }
+    });
+    if (!res.ok) throw new Error('widget html ' + res.status);
+    const html = await res.text();
+    if (!html || html.indexOf('grid-item') === -1 && html.indexOf('main-text') === -1) {
+      throw new Error('widget html empty');
+    }
+    htmlCache.set(src, html);
+    try {
+      sessionStorage.setItem('emolos_loox_html:' + src, html);
+    } catch (e) {}
+    return html;
+  }
+
+  function prepareDocument(html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    Array.from(doc.querySelectorAll('script')).forEach((node) => node.remove());
+    if (!doc.querySelector('base')) {
+      const base = doc.createElement('base');
+      base.href = 'https://loox.io/';
+      doc.head.insertBefore(base, doc.head.firstChild);
+    }
+    const helper = doc.createElement('script');
+    helper.textContent =
+      '(function(){function h(){var x=document.documentElement.scrollHeight||document.body.scrollHeight;try{parent.postMessage({looxEmolosHeight:x},"*")}catch(e){}}document.addEventListener("click",function(e){var b=e.target.closest("[data-testid=\\"write-review-button\\"]");if(b&&parent.LOOX&&parent.LOOX.showReviewForm){e.preventDefault();parent.LOOX.showReviewForm();}});window.addEventListener("load",h);setTimeout(h,300);setTimeout(h,1200);})();';
+    doc.body.appendChild(helper);
+    return doc;
+  }
+
+  function restoreIframe(iframe) {
+    const src = originalIframeSrc(iframe);
+    iframe.removeAttribute('srcdoc');
+    if (src) iframe.src = src;
+  }
+
+  function syncIframeHeight(iframe, height) {
+    if (!height) return;
+    iframe.style.height = height + 'px';
+    if (iframe.parentElement && iframe.parentElement.id === 'looxReviews') {
+      iframe.parentElement.style.height = height + 'px';
+    }
+  }
+
+  async function renderTranslatedIframe(iframe, code) {
+    const src = originalIframeSrc(iframe);
+    if (!src) return;
+    const html = await fetchWidgetHtml(src);
+    const doc = prepareDocument(html);
+    const nodes = collectTextNodes(doc);
+    await Promise.all(
+      nodes.map(async (node) => {
+        const original = (node.textContent || '').trim();
+        node.textContent = await translateText(original, code);
+      })
+    );
+    iframe.srcdoc = '<!DOCTYPE html>' + doc.documentElement.outerHTML;
   }
 
   async function applyLanguage(code) {
@@ -224,38 +260,46 @@
       window.LOOX.multilingual = true;
     }
 
-    const hosts = findHosts(document);
+    const hosts = findHosts();
     translating = true;
     if (observer) observer.disconnect();
     document.querySelectorAll('.reviews-lang').forEach((wrap) => wrap.classList.add('is-busy'));
+    hosts.forEach((host) => host.classList.add('is-translating'));
 
     try {
       for (let i = 0; i < hosts.length; i++) {
-        setIframeLanguage(hosts[i], code);
-        const bodies = collectBodies(hosts[i]);
-        for (let j = 0; j < bodies.length; j++) {
-          const node = bodies[j];
-          if (node.dataset.emolosLang === code) continue;
-          const original = rememberOriginal(node);
-          node.textContent = code === 'en' ? original : await translateText(original, code);
-          node.dataset.emolosLang = code;
-        }
+        const iframe = hosts[i].querySelector('iframe');
+        if (!iframe) continue;
+        originalIframeSrc(iframe);
+        if (code === 'en') restoreIframe(iframe);
+        else await renderTranslatedIframe(iframe, code);
       }
+    } catch (e) {
+      findHosts().forEach((host) => {
+        const iframe = host.querySelector('iframe');
+        if (!iframe) return;
+        try {
+          const url = new URL(originalIframeSrc(iframe), window.location.origin);
+          url.searchParams.set('language', code);
+          iframe.removeAttribute('srcdoc');
+          iframe.src = url.toString();
+        } catch (err) {}
+      });
     } finally {
       translating = false;
       document.querySelectorAll('.reviews-lang').forEach((wrap) => wrap.classList.remove('is-busy'));
-      if (observer && document.body) {
-        observer.observe(document.body, { childList: true, subtree: true });
-      }
+      hosts.forEach((host) => host.classList.remove('is-translating'));
+      if (observer && document.body) observer.observe(document.body, { childList: true, subtree: true });
     }
   }
 
   function mountHost(host) {
     if (!host || host.querySelector(':scope > .reviews-lang-bar')) return;
+    const iframe = host.querySelector('iframe');
+    if (iframe) originalIframeSrc(iframe);
 
     const bar = document.createElement('div');
     bar.className = 'reviews-lang-bar';
-
     const heading = document.createElement('h2');
     heading.className = 'reviews-lang-bar__title';
     heading.textContent = langByCode(currentLang).title;
@@ -265,7 +309,7 @@
   }
 
   function mountAll() {
-    findHosts(document).forEach(mountHost);
+    findHosts().forEach(mountHost);
     if (currentLang !== 'en') applyLanguage(currentLang);
   }
 
@@ -295,11 +339,20 @@
     if (event.key === 'Escape') closeAll();
   });
 
+  window.addEventListener('message', (event) => {
+    const data = event.data;
+    const height = data && (data.looxEmolosHeight || data.height);
+    if (!height) return;
+    document.querySelectorAll('#looxReviews iframe').forEach((iframe) => {
+      if (iframe.hasAttribute('srcdoc')) syncIframeHeight(iframe, height);
+    });
+  });
+
   observer = new MutationObserver(() => {
     if (translating) return;
     window.clearTimeout(observer.emolosTimer);
     observer.emolosTimer = window.setTimeout(() => {
-      findHosts(document).forEach(mountHost);
+      findHosts().forEach(mountHost);
     }, 200);
   });
 
