@@ -475,6 +475,7 @@
                   {%- endform -%}
 
                 </product-form>
+                {%- render 'product-pdp-lower', product: product, section: section -%}
                 {%- when 'description' -%}
                   {% if block.settings.behaviour == 'plain' %}
                     {%- if product.description != blank -%}
