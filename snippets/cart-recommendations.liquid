@@ -44,18 +44,20 @@
 
             assign rating_value = 0
             if recommendation.metafields.reviews.rating.value.rating != blank
-              assign rating_value = recommendation.metafields.reviews.rating.value.rating
+              assign rating_value = recommendation.metafields.reviews.rating.value.rating | plus: 0
             elsif recommendation.metafields.loox.avg_rating != blank
-              assign rating_value = recommendation.metafields.loox.avg_rating
+              assign rating_value = recommendation.metafields.loox.avg_rating | plus: 0
             endif
             assign rating_filled = rating_value | round
             if rating_filled > 5
               assign rating_filled = 5
             endif
 
-            assign review_count = recommendation.metafields.loox.num_reviews
-            if review_count == blank
-              assign review_count = recommendation.metafields.reviews.rating_count
+            assign review_count = 0
+            if recommendation.metafields.loox.num_reviews != blank
+              assign review_count = recommendation.metafields.loox.num_reviews | plus: 0
+            elsif recommendation.metafields.reviews.rating_count != blank
+              assign review_count = recommendation.metafields.reviews.rating_count | plus: 0
             endif
           -%}
           <div class="cart-recommendations__item-wrapper swiper-slide">
@@ -90,7 +92,7 @@
                   {%- endif -%}
                 </p>
 
-                {%- if rating_value > 0 or review_count != blank -%}
+                {%- if rating_value > 0 or review_count > 0 -%}
                   <div class="cart-recommendations__rating" aria-label="{{- rating_value -}} / 5">
                     {%- for i in (1..5) -%}
                       <span class="cart-recommendations__star{% if i <= rating_filled %} is-filled{% endif %}" aria-hidden="true">
@@ -99,7 +101,7 @@
                         </svg>
                       </span>
                     {%- endfor -%}
-                    {%- if review_count != blank and review_count != 0 -%}
+                    {%- if review_count > 0 -%}
                       <span class="cart-recommendations__reviews">
                         {{- 'products.product.reviews_count' | t: count: review_count -}}
                       </span>
