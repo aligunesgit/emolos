@@ -70,15 +70,17 @@
 .cart-recommendations__item-media {
   position: relative;
   width: 100%;
+  overflow: hidden;
   background: #ececec;
 }
 
 .cart-recommendations__item-media .media {
   padding-block-start: 125%;
+  overflow: hidden;
 }
 
 .cart-recommendations__item-media .media img {
-  object-fit: contain;
+  object-fit: cover;
   z-index: 0;
 }
 
@@ -123,14 +125,14 @@
   gap: 0.4rem;
   margin: 0.4rem 0 0;
   font-family: var(--font-body-family);
-  font-size: 1.4rem;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.3;
 }
 
 .cart-recommendations__item-price ins,
 .cart-recommendations__item-price .glc-money {
-  font-size: 1.4rem;
+  font-size: 14px;
 }
 
 .cart-recommendations__item-price ins,
@@ -143,13 +145,13 @@
 .cart-recommendations__item-price del .glc-money {
   margin: 0;
   color: rgba(17, 17, 17, 0.55);
-  font-size: 1.4rem;
+  font-size: 14px;
   text-decoration: line-through;
 }
 
 .cart-recommendations__sale-label {
   color: #d72c0d;
-  font-size: 1.4rem;
+  font-size: 14px;
 }
 
 .cart-recommendations__rating {
