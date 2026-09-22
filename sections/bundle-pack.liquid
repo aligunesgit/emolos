@@ -1,0 +1,139 @@
+{{ 'bundle-pack.css' | asset_url | stylesheet_tag }}
+<script src="{{- 'bundle-pack.js' | asset_url -}}" defer="defer"></script>
+
+{%- liquid
+  assign pack_size = 3
+  assign pack_percent = 30
+  assign pack_collection = section.settings.collection
+  if pack_collection == blank
+    assign pack_products = collections.all.products
+  else
+    assign pack_products = pack_collection.products
+  endif
+  assign pack_limit = section.settings.products_limit | default: 48
+-%}
+
+<bundle-pack
+  class="bundle-pack"
+  data-pack-size="{{- pack_size -}}"
+  data-pack-percent="{{- pack_percent -}}"
+  data-money-format="{{- shop.money_format | escape -}}"
+  data-add-url="{{- routes.cart_add_url -}}"
+  data-cart-url="{{- routes.cart_url -}}"
+  data-discount-code="{{- section.settings.discount_code | escape -}}"
+>
+  <div class="bundle-pack__header">
+    <p class="bundle-pack__kicker">{{- 'products.bundle.kicker' | t -}}</p>
+    <h1 class="bundle-pack__title">{{- section.settings.heading | default: 'UNLOCK 30% OFF' -}}</h1>
+    {%- if section.settings.subheading != blank -%}
+      <p class="bundle-pack__sub">{{- section.settings.subheading -}}</p>
+    {%- else -%}
+      <p class="bundle-pack__sub">{{- 'products.bundle.subheading' | t: count: pack_size, percent: pack_percent -}}</p>
+    {%- endif -%}
+  </div>
+
+  <div class="bundle-pack__grid">
+    {%- for product in pack_products limit: pack_limit -%}
+      {%- assign first_available = product.selected_or_first_available_variant -%}
+      {%- if first_available == blank or first_available.available == false -%}
+        {%- continue -%}
+      {%- endif -%}
+      <article class="bundle-pack__card" data-product-id="{{- product.id -}}">
+        <a class="bundle-pack__image" href="{{- product.url -}}">
+          {%- if product.featured_image -%}
+            <img
+              src="{{- product.featured_image | image_url: width: 700 -}}"
+              alt="{{- product.featured_image.alt | default: product.title | escape -}}"
+              width="{{- product.featured_image.width -}}"
+              height="{{- product.featured_image.height -}}"
+              loading="lazy"
+            >
+          {%- endif -%}
+        </a>
+        <h2 class="bundle-pack__name">{{- product.title -}}</h2>
+        <p class="bundle-pack__price">{{- first_available.price | money -}}</p>
+        {%- if product.has_only_default_variant -%}
+          <input type="hidden" data-bundle-variant value="{{- first_available.id -}}" data-price="{{- first_available.price -}}" data-title="{{- product.title | escape -}}" data-image="{{- product.featured_image | image_url: width: 160 -}}">
+        {%- else -%}
+          <label class="visually-hidden" for="BundleSize-{{ section.id }}-{{ product.id }}">{{- 'products.product.product_variants' | t -}}</label>
+          <select
+            id="BundleSize-{{ section.id }}-{{ product.id }}"
+            class="bundle-pack__select"
+            data-bundle-variant
+            data-title="{{- product.title | escape -}}"
+            data-image="{{- product.featured_image | image_url: width: 160 -}}"
+          >
+            {%- for variant in product.variants -%}
+              {%- if variant.available -%}
+                <option
+                  value="{{- variant.id -}}"
+                  data-price="{{- variant.price -}}"
+                  {% if variant.id == first_available.id %}selected{% endif %}
+                >
+                  {{- variant.title -}}
+                </option>
+              {%- endif -%}
+            {%- endfor -%}
+          </select>
+        {%- endif -%}
+        <button type="button" class="bundle-pack__add" data-bundle-add>
+          {{- 'actions.add' | t -}}
+        </button>
+      </article>
+    {%- endfor -%}
+  </div>
+
+  <div class="bundle-pack__bar" data-bundle-bar>
+    <p class="bundle-pack__bar-title">{{- 'products.bundle.bar_title' | t: count: pack_size -}}</p>
+    <div class="bundle-pack__slots" data-bundle-slots></div>
+    <div class="bundle-pack__totals">
+      <span class="bundle-pack__compare" data-bundle-compare></span>
+      <span class="bundle-pack__sale" data-bundle-sale></span>
+    </div>
+    <button type="button" class="bundle-pack__checkout" data-bundle-checkout disabled>
+      {{- 'products.product.add_to_cart' | t -}}
+    </button>
+  </div>
+</bundle-pack>
+
+{% schema %}
+{
+  "name": "3 item pack",
+  "tag": "section",
+  "class": "section-bundle-pack",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "UNLOCK 30% OFF"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Pack collection",
+      "info": "Leave empty to use all products."
+    },
+    {
+      "type": "range",
+      "id": "products_limit",
+      "min": 8,
+      "max": 50,
+      "step": 1,
+      "label": "Products to show",
+      "default": 24
+    },
+    {
+      "type": "text",
+      "id": "discount_code",
+      "label": "Discount code",
+      "info": "Optional. After adding 3 items the customer is sent to /discount/CODE?redirect=/cart. Prefer a Shopify automatic discount: buy 3 items, get 30% off."
+    }
+  ]
+}
+{% endschema %}
