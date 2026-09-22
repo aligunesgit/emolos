@@ -4,6 +4,26 @@
   align-items: flex-start;
 }
 
+.cart-item__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.2rem;
+}
+
+.cart-item__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cart-item__options {
+  margin: 0.4rem 0 0;
+}
+
+.cart-item__option {
+  margin: 0;
+}
+
 .cart-item + .cart-item {
   margin-block-start: 2.4rem;
 }
