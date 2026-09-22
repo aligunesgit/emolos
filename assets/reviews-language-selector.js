@@ -43,12 +43,9 @@
   }
 
   function findHosts() {
-    return Array.from(document.querySelectorAll('#looxReviews.loox-widget, .jdgm-rev-widg')).filter(isUsableHost);
-  }
-
-  function isUsableHost(host) {
-    if (host.querySelector('iframe')) return true;
-    return host.getBoundingClientRect().height > 40;
+    return Array.from(document.querySelectorAll('#looxReviews.loox-widget')).filter(function (host) {
+      return host.querySelector('iframe');
+    });
   }
 
   function originalIframeSrc(iframe) {
@@ -192,13 +189,6 @@
 
   async function fetchWidgetHtml(src) {
     if (htmlCache.has(src)) return htmlCache.get(src);
-    try {
-      const stored = sessionStorage.getItem('emolos_loox_html:' + src);
-      if (stored) {
-        htmlCache.set(src, stored);
-        return stored;
-      }
-    } catch (e) {}
 
     const res = await fetch('https://r.jina.ai/' + src, {
       headers: { 'X-Return-Format': 'html', Accept: 'text/html' }
@@ -209,9 +199,6 @@
       throw new Error('widget html empty');
     }
     htmlCache.set(src, html);
-    try {
-      sessionStorage.setItem('emolos_loox_html:' + src, html);
-    } catch (e) {}
     return html;
   }
 
@@ -232,41 +219,56 @@
     const doc = new DOMParser().parseFromString(html, 'text/html');
     Array.from(doc.querySelectorAll('script')).forEach((node) => node.remove());
     absolutize(doc, 'https://loox.io/');
+    if (!doc.querySelector('base')) {
+      const base = doc.createElement('base');
+      base.href = 'https://loox.io/';
+      doc.head.insertBefore(base, doc.head.firstChild);
+    }
     return doc;
   }
 
+  function looxIframe(host) {
+    return host.querySelector('iframe#looxReviewsFrame, iframe[src*="loox.io"], iframe[data-emolos-original-src]');
+  }
+
   function showOriginalWidget(host) {
-    const iframe = host.querySelector('iframe');
-    const clone = host.querySelector('.reviews-lang-clone');
+    host.classList.remove('is-cloned');
+    const clone = host.querySelector('.reviews-lang-clone-frame');
     if (clone) clone.remove();
-    host.classList.remove('is-cloned', 'is-translating');
-    if (host.dataset.emolosHeight) host.style.height = host.dataset.emolosHeight;
+    const iframe = looxIframe(host);
     if (!iframe) return;
     if (iframe.hasAttribute('srcdoc')) {
       iframe.removeAttribute('srcdoc');
       const src = originalIframeSrc(iframe);
       if (src) iframe.src = src;
     }
+    if (host.dataset.emolosHeight) host.style.height = host.dataset.emolosHeight;
   }
 
-  function bindCloneClicks(clone) {
-    clone.addEventListener('click', (event) => {
-      const write = event.target.closest('[data-testid="write-review-button"], .write-review, a[href*="write"]');
-      if (write && window.LOOX && typeof window.LOOX.showReviewForm === 'function') {
-        event.preventDefault();
-        window.LOOX.showReviewForm();
-      }
+  function waitForFrame(frame) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('clone timeout')), 8000);
+      frame.addEventListener(
+        'load',
+        function onLoad() {
+          clearTimeout(timer);
+          resolve();
+        },
+        { once: true }
+      );
     });
   }
 
   async function renderTranslatedClone(host, code) {
-    const iframe = host.querySelector('iframe');
+    const iframe = looxIframe(host);
     const src = originalIframeSrc(iframe);
     if (!src) throw new Error('no iframe src');
 
     const html = await fetchWidgetHtml(src);
     const doc = prepareDocument(html);
     const nodes = collectTextNodes(doc);
+    if (!nodes.length) throw new Error('no review text');
+
     await Promise.all(
       nodes.map(async (node) => {
         const original = (node.textContent || '').trim();
@@ -274,25 +276,29 @@
       })
     );
 
-    const clone = document.createElement('div');
-    clone.className = 'reviews-lang-clone ' + (doc.body.className || '');
+    let frame = host.querySelector('.reviews-lang-clone-frame');
+    if (!frame) {
+      frame = document.createElement('iframe');
+      frame.className = 'reviews-lang-clone-frame';
+      frame.setAttribute('title', 'Translated reviews');
+      frame.setAttribute('sandbox', 'allow-same-origin allow-popups');
+      iframe.parentNode.insertBefore(frame, iframe.nextSibling);
+    }
 
-    const assets = document.createElement('div');
-    assets.className = 'reviews-lang-clone__assets';
-    doc.querySelectorAll('head style, head link[rel="stylesheet"], head svg').forEach((node) => {
-      assets.appendChild(node.cloneNode(true));
-    });
-    clone.appendChild(assets);
+    const loaded = waitForFrame(frame);
+    frame.srcdoc = '<!DOCTYPE html>' + doc.documentElement.outerHTML;
+    await loaded;
 
-    const content = document.createElement('div');
-    content.className = 'reviews-lang-clone__content';
-    content.innerHTML = doc.body.innerHTML;
-    clone.appendChild(content);
-    bindCloneClicks(clone);
+    const cloneDoc = frame.contentDocument;
+    const cloneText = cloneDoc && cloneDoc.body ? (cloneDoc.body.innerText || '').trim() : '';
+    if (cloneText.length < 8) throw new Error('empty clone');
 
-    const old = host.querySelector('.reviews-lang-clone');
-    if (old) old.replaceWith(clone);
-    else iframe.parentNode.insertBefore(clone, iframe.nextSibling);
+    const height = Math.max(
+      cloneDoc.documentElement.scrollHeight || 0,
+      cloneDoc.body.scrollHeight || 0,
+      400
+    );
+    frame.style.height = height + 'px';
 
     if (!host.dataset.emolosHeight) host.dataset.emolosHeight = host.style.height || '';
     host.style.height = 'auto';
@@ -306,12 +312,10 @@
 
     const hosts = findHosts();
     translating = true;
-    if (observer) observer.disconnect();
     document.querySelectorAll('.reviews-lang').forEach((wrap) => wrap.classList.add('is-busy'));
 
     try {
       for (let i = 0; i < hosts.length; i++) {
-        hosts[i].querySelectorAll('iframe').forEach(originalIframeSrc);
         if (code === 'en') showOriginalWidget(hosts[i]);
         else await renderTranslatedClone(hosts[i], code);
       }
@@ -320,13 +324,12 @@
     } finally {
       translating = false;
       document.querySelectorAll('.reviews-lang').forEach((wrap) => wrap.classList.remove('is-busy'));
-      if (observer && document.body) observer.observe(document.body, { childList: true, subtree: true });
     }
   }
 
   function mountHost(host) {
     if (!host || host.querySelector(':scope > .reviews-lang-bar')) return;
-    const iframe = host.querySelector('iframe');
+    const iframe = looxIframe(host);
     if (iframe) originalIframeSrc(iframe);
 
     const bar = document.createElement('div');
@@ -341,7 +344,6 @@
 
   function mountAll() {
     findHosts().forEach(mountHost);
-    if (currentLang !== 'en') applyLanguage(currentLang);
   }
 
   document.addEventListener('click', (event) => {
@@ -373,14 +375,16 @@
   observer = new MutationObserver(() => {
     if (translating) return;
     window.clearTimeout(observer.emolosTimer);
-    observer.emolosTimer = window.setTimeout(() => {
-      findHosts().forEach(mountHost);
-    }, 200);
+    observer.emolosTimer = window.setTimeout(mountAll, 200);
   });
 
   function start() {
-    mountAll();
-    if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+    try {
+      storeLang('en');
+      currentLang = 'en';
+      mountAll();
+      if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+    } catch (e) {}
   }
 
   if (document.readyState === 'loading') {

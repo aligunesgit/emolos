@@ -140,9 +140,30 @@
   overflow: visible !important;
 }
 
-#looxReviews.is-translating iframe {
-  opacity: 0.45;
-  transition: opacity 0.2s ease;
+#looxReviews.is-cloned {
+  height: auto !important;
+}
+
+#looxReviews.is-cloned > iframe#looxReviewsFrame {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.reviews-lang-clone-frame {
+  display: none;
+  width: 100%;
+  min-height: 40rem;
+  border: 0;
+  background: #fff;
+}
+
+#looxReviews.is-cloned > .reviews-lang-clone-frame {
+  display: block;
 }
 
 @media screen and (max-width: 749px) {
