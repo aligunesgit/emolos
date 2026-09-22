@@ -9,24 +9,50 @@
     { code: 'no', label: 'Norwegian', short: 'NO', flag: 'no', title: 'Kundeanmeldelser' },
     { code: 'sv', label: 'Swedish', short: 'SV', flag: 'se', title: 'Kundrecensioner' }
   ];
-  const TEXT_SELECTORS = [
-    '[data-testid$="-text"]',
-    '.pre-wrap.main-text',
-    '.main-text'
-  ];
+  const I18N = {
+    write: {
+      en: 'Write a review',
+      de: 'Bewertung schreiben',
+      es: 'Escribir una reseña',
+      fr: 'Écrire un avis',
+      nl: 'Schrijf een review',
+      no: 'Skriv en anmeldelse',
+      sv: 'Skriv en recension'
+    },
+    verified: {
+      en: 'Verified',
+      de: 'Verifiziert',
+      es: 'Verificado',
+      fr: 'Vérifié',
+      nl: 'Geverifieerd',
+      no: 'Verifisert',
+      sv: 'Verifierad'
+    },
+    itemType: {
+      en: 'Item type:',
+      de: 'Artikeltyp:',
+      es: 'Tipo de artículo:',
+      fr: 'Type d’article :',
+      nl: 'Artikeltype:',
+      no: 'Varetype:',
+      sv: 'Artikeltyp:'
+    },
+    reviews: {
+      en: 'Reviews',
+      de: 'Bewertungen',
+      es: 'Reseñas',
+      fr: 'Avis',
+      nl: 'Reviews',
+      no: 'Anmeldelser',
+      sv: 'Recensioner'
+    }
+  };
+
   const htmlCache = new Map();
   const translationCache = new Map();
-  let currentLang = readStoredLang();
+  let currentLang = 'en';
   let translating = false;
   let observer;
-
-  function readStoredLang() {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored && LANGUAGES.some((lang) => lang.code === stored)) return stored;
-    } catch (e) {}
-    return 'en';
-  }
 
   function storeLang(code) {
     try {
@@ -38,14 +64,28 @@
     return LANGUAGES.find((lang) => lang.code === code) || LANGUAGES[0];
   }
 
+  function t(key, code) {
+    return (I18N[key] && I18N[key][code]) || I18N[key].en;
+  }
+
   function flagUrl(country) {
     return 'https://flagcdn.com/w40/' + country + '.png';
+  }
+
+  function esc(value) {
+    return String(value || '').replace(/[&<>"']/g, function (char) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char];
+    });
   }
 
   function findHosts() {
     return Array.from(document.querySelectorAll('#looxReviews.loox-widget')).filter(function (host) {
       return host.querySelector('iframe');
     });
+  }
+
+  function looxIframe(host) {
+    return host.querySelector('iframe#looxReviewsFrame, iframe[src*="loox.io"], iframe[data-emolos-original-src]');
   }
 
   function originalIframeSrc(iframe) {
@@ -137,17 +177,6 @@
     if (menu) menu.hidden = !shouldOpen;
   }
 
-  function collectTextNodes(doc) {
-    const nodes = [];
-    TEXT_SELECTORS.forEach((selector) => {
-      doc.querySelectorAll(selector).forEach((node) => {
-        const text = (node.textContent || '').trim();
-        if (text && !nodes.includes(node)) nodes.push(node);
-      });
-    });
-    return nodes;
-  }
-
   async function translateText(text, target) {
     const key = target + '::' + text;
     if (translationCache.has(key)) return translationCache.get(key);
@@ -189,55 +218,170 @@
 
   async function fetchWidgetHtml(src) {
     if (htmlCache.has(src)) return htmlCache.get(src);
-
     const res = await fetch('https://r.jina.ai/' + src, {
       headers: { 'X-Return-Format': 'html', Accept: 'text/html' }
     });
     if (!res.ok) throw new Error('widget html ' + res.status);
     const html = await res.text();
-    if (!html || (html.indexOf('grid-item') === -1 && html.indexOf('main-text') === -1)) {
-      throw new Error('widget html empty');
-    }
+    if (!html || html.length < 200) throw new Error('widget html empty');
     htmlCache.set(src, html);
     return html;
   }
 
-  function absolutize(root, base) {
-    root.querySelectorAll('[src], [href]').forEach((node) => {
-      ['src', 'href'].forEach((attr) => {
-        const value = node.getAttribute(attr);
-        if (!value || value.charAt(0) === '#' || value.indexOf('javascript:') === 0) return;
-        if (/^(https?:|data:|mailto:|tel:)/i.test(value)) return;
-        try {
-          node.setAttribute(attr, new URL(value, base).href);
-        } catch (e) {}
+  function safeImage(src) {
+    try {
+      const url = new URL(src, 'https://loox.io');
+      if (url.protocol !== 'https:') return '';
+      if (!/(^|\.)loox\.io$/i.test(url.hostname)) return '';
+      return url.href;
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function parseWidget(html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const avg = ((doc.querySelector('[data-testid="rating-summary-avg"]') || {}).textContent || '').trim() || '0';
+    const countLabel = ((doc.querySelector('[data-testid="rating-summary-count"]') || {}).textContent || '').trim();
+    const dist = [5, 4, 3, 2, 1].map(function (star) {
+      const el = doc.querySelector('[data-testid="rating-filter-button-stars_' + star + '"]');
+      return parseInt(((el && el.textContent) || '0').replace(/\D/g, ''), 10) || 0;
+    });
+
+    const texts = Array.from(doc.querySelectorAll('[data-testid$="-text"], .pre-wrap.main-text, .main-text'));
+    const seen = new Set();
+    const reviews = [];
+
+    texts.forEach(function (textEl) {
+      const body = (textEl.textContent || '').trim();
+      if (!body || seen.has(body)) return;
+      seen.add(body);
+
+      const testId = textEl.getAttribute('data-testid') || '';
+      const id = testId.replace(/-text$/, '');
+      const root =
+        textEl.closest('.grid-item-wrap, .grid-item, .box') || textEl.parentElement;
+      const titleEl = (id && doc.querySelector('[data-testid="' + id + '-title"]')) ||
+        (root && root.querySelector('[data-testid$="-title"], .title, .block.title'));
+      const dateEl = (id && doc.querySelector('[data-testid="' + id + '-date"]')) ||
+        (root && root.querySelector('[data-testid$="-date"], .time, .block.time'));
+      const starRoot = (id && doc.querySelector('[data-testid="' + id + '-stars"]')) || root;
+      const stars = starRoot ? starRoot.querySelectorAll('[data-lx-fill="full"], .loox-icon.star').length : 5;
+      const images = root
+        ? Array.from(root.querySelectorAll('img'))
+            .map(function (img) {
+              return safeImage(img.getAttribute('src') || img.getAttribute('data-src') || '');
+            })
+            .filter(Boolean)
+        : [];
+      const blob = ((root && root.textContent) || '');
+      const itemTypeMatch = blob.match(/Item type:\s*([^\n]+)/i);
+      reviews.push({
+        name: ((titleEl && titleEl.textContent) || '').trim(),
+        date: ((dateEl && dateEl.textContent) || '').trim(),
+        text: body,
+        stars: stars || 5,
+        images: images,
+        verified: /verified/i.test(blob),
+        itemType: itemTypeMatch ? itemTypeMatch[1].trim() : ''
       });
     });
+
+    return { avg: avg, countLabel: countLabel, dist: dist, reviews: reviews };
   }
 
-  function prepareDocument(html) {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    Array.from(doc.querySelectorAll('script')).forEach((node) => node.remove());
-    absolutize(doc, 'https://loox.io/');
-    if (!doc.querySelector('base')) {
-      const base = doc.createElement('base');
-      base.href = 'https://loox.io/';
-      doc.head.insertBefore(base, doc.head.firstChild);
+  function starsHtml(count) {
+    let html = '<span class="rlo-stars" aria-hidden="true">';
+    for (let i = 1; i <= 5; i++) {
+      html += '<span class="rlo-star' + (i <= count ? ' is-on' : '') + '">★</span>';
     }
-    return doc;
+    return html + '</span>';
   }
 
-  function looxIframe(host) {
-    return host.querySelector('iframe#looxReviewsFrame, iframe[src*="loox.io"], iframe[data-emolos-original-src]');
+  function renderOverlay(data, code) {
+    const maxBar = Math.max.apply(null, data.dist.concat([1]));
+    const countNumber = parseInt((data.countLabel || '').replace(/\D/g, ''), 10);
+    const countText = isNaN(countNumber)
+      ? data.countLabel
+      : countNumber + ' ' + t('reviews', code);
+
+    let bars = '';
+    data.dist.forEach(function (num, index) {
+      const star = 5 - index;
+      const width = Math.max(2, Math.round((num / maxBar) * 100));
+      bars +=
+        '<div class="rlo-bar">' +
+        starsHtml(star) +
+        '<span class="rlo-bar__track"><span class="rlo-bar__fill" style="width:' +
+        (num ? width : 0) +
+        '%"></span></span>' +
+        '<span class="rlo-bar__n">(' +
+        num +
+        ')</span></div>';
+    });
+
+    let cards = '';
+    data.reviews.forEach(function (review) {
+      const imgs = review.images
+        .map(function (src) {
+          return '<img class="rlo-card__img" src="' + esc(src) + '" alt="">';
+        })
+        .join('');
+      cards +=
+        '<article class="rlo-card' +
+        (review.images.length ? ' has-photo' : '') +
+        '">' +
+        imgs +
+        '<div class="rlo-card__body">' +
+        '<div class="rlo-card__name">' +
+        esc(review.name) +
+        (review.verified
+          ? ' <span class="rlo-card__verified">✔ ' + esc(t('verified', code)) + '</span>'
+          : '') +
+        '</div>' +
+        (review.date ? '<div class="rlo-card__date">' + esc(review.date) + '</div>' : '') +
+        starsHtml(review.stars) +
+        '<p class="rlo-card__text">' +
+        esc(review.text) +
+        '</p>' +
+        (review.itemType
+          ? '<div class="rlo-card__meta">' +
+            esc(t('itemType', code)) +
+            ' ' +
+            esc(review.itemType) +
+            '</div>'
+          : '') +
+        '</div></article>';
+    });
+
+    return (
+      '<div class="rlo">' +
+      '<div class="rlo-head">' +
+      '<div class="rlo-score"><span class="rlo-score__star">★</span><span class="rlo-score__n">' +
+      esc(data.avg) +
+      '</span><div class="rlo-score__count">' +
+      esc(countText) +
+      '</div></div>' +
+      '<div class="rlo-bars">' +
+      bars +
+      '</div>' +
+      '<button type="button" class="rlo-write">' +
+      esc(t('write', code)) +
+      '</button></div>' +
+      '<div class="rlo-grid">' +
+      cards +
+      '</div></div>'
+    );
   }
 
   function showOriginalWidget(host) {
     host.classList.remove('is-cloned');
+    const overlay = host.querySelector('.reviews-lang-overlay');
+    if (overlay) overlay.remove();
     const clone = host.querySelector('.reviews-lang-clone-frame');
     if (clone) clone.remove();
     const iframe = looxIframe(host);
-    if (!iframe) return;
-    if (iframe.hasAttribute('srcdoc')) {
+    if (iframe && iframe.hasAttribute('srcdoc')) {
       iframe.removeAttribute('srcdoc');
       const src = originalIframeSrc(iframe);
       if (src) iframe.src = src;
@@ -245,60 +389,33 @@
     if (host.dataset.emolosHeight) host.style.height = host.dataset.emolosHeight;
   }
 
-  function waitForFrame(frame) {
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error('clone timeout')), 8000);
-      frame.addEventListener(
-        'load',
-        function onLoad() {
-          clearTimeout(timer);
-          resolve();
-        },
-        { once: true }
-      );
-    });
-  }
-
-  async function renderTranslatedClone(host, code) {
+  async function renderTranslatedOverlay(host, code) {
     const iframe = looxIframe(host);
     const src = originalIframeSrc(iframe);
     if (!src) throw new Error('no iframe src');
 
     const html = await fetchWidgetHtml(src);
-    const doc = prepareDocument(html);
-    const nodes = collectTextNodes(doc);
-    if (!nodes.length) throw new Error('no review text');
+    const parsed = parseWidget(html);
+    if (!parsed.reviews.length) throw new Error('no reviews');
 
     await Promise.all(
-      nodes.map(async (node) => {
-        const original = (node.textContent || '').trim();
-        node.textContent = await translateText(original, code);
+      parsed.reviews.map(async function (review) {
+        review.text = await translateText(review.text, code);
       })
     );
 
-    let frame = host.querySelector('.reviews-lang-clone-frame');
-    if (!frame) {
-      frame = document.createElement('iframe');
-      frame.className = 'reviews-lang-clone-frame';
-      frame.setAttribute('title', 'Translated reviews');
-      frame.setAttribute('sandbox', 'allow-same-origin allow-popups');
-      iframe.parentNode.insertBefore(frame, iframe.nextSibling);
+    let overlay = host.querySelector('.reviews-lang-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'reviews-lang-overlay';
+      iframe.parentNode.insertBefore(overlay, iframe.nextSibling);
+      overlay.addEventListener('click', function (event) {
+        if (event.target.closest('.rlo-write') && window.LOOX && window.LOOX.showReviewForm) {
+          window.LOOX.showReviewForm();
+        }
+      });
     }
-
-    const loaded = waitForFrame(frame);
-    frame.srcdoc = '<!DOCTYPE html>' + doc.documentElement.outerHTML;
-    await loaded;
-
-    const cloneDoc = frame.contentDocument;
-    const cloneText = cloneDoc && cloneDoc.body ? (cloneDoc.body.innerText || '').trim() : '';
-    if (cloneText.length < 8) throw new Error('empty clone');
-
-    const height = Math.max(
-      cloneDoc.documentElement.scrollHeight || 0,
-      cloneDoc.body.scrollHeight || 0,
-      400
-    );
-    frame.style.height = height + 'px';
+    overlay.innerHTML = renderOverlay(parsed, code);
 
     if (!host.dataset.emolosHeight) host.dataset.emolosHeight = host.style.height || '';
     host.style.height = 'auto';
@@ -312,18 +429,22 @@
 
     const hosts = findHosts();
     translating = true;
-    document.querySelectorAll('.reviews-lang').forEach((wrap) => wrap.classList.add('is-busy'));
+    document.querySelectorAll('.reviews-lang').forEach(function (wrap) {
+      wrap.classList.add('is-busy');
+    });
 
     try {
       for (let i = 0; i < hosts.length; i++) {
         if (code === 'en') showOriginalWidget(hosts[i]);
-        else await renderTranslatedClone(hosts[i], code);
+        else await renderTranslatedOverlay(hosts[i], code);
       }
     } catch (e) {
       hosts.forEach(showOriginalWidget);
     } finally {
       translating = false;
-      document.querySelectorAll('.reviews-lang').forEach((wrap) => wrap.classList.remove('is-busy'));
+      document.querySelectorAll('.reviews-lang').forEach(function (wrap) {
+        wrap.classList.remove('is-busy');
+      });
     }
   }
 
@@ -346,7 +467,7 @@
     findHosts().forEach(mountHost);
   }
 
-  document.addEventListener('click', (event) => {
+  document.addEventListener('click', function (event) {
     const btn = event.target.closest('.reviews-lang__btn');
     if (btn) {
       event.preventDefault();
@@ -368,11 +489,11 @@
     if (!event.target.closest('.reviews-lang')) closeAll();
   });
 
-  document.addEventListener('keydown', (event) => {
+  document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') closeAll();
   });
 
-  observer = new MutationObserver(() => {
+  observer = new MutationObserver(function () {
     if (translating) return;
     window.clearTimeout(observer.emolosTimer);
     observer.emolosTimer = window.setTimeout(mountAll, 200);
