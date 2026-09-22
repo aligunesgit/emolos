@@ -38,32 +38,32 @@
       aria-label="{{- 'cart.title' | t -}}"
       tabindex="-1"
     >
-      <button
-        class="cart-drawer__close svg-color-inherit"
-        type="button"
-        onclick="this.closest('cart-drawer').close()"
-        aria-label="{{- 'actions.close' | t -}}"
-        tabindex="-1"
-        data-drawer-close
-      >
-        {% render 'icon', icon_name: 'theme-arrow-close' %}
-      </button>
-
       <div class="cart-drawer__head">
-        <p class="cart-drawer__title h2">
-          {{- 'cart.title' | t -}}
+        <p class="cart-drawer__title" id="CartDrawer-Title">
+          {{- 'cart.title' | t -}} ({{ cart.item_count }})
         </p>
+
+        <button
+          class="cart-drawer__close svg-color-inherit"
+          type="button"
+          onclick="this.closest('cart-drawer').close()"
+          aria-label="{{- 'actions.close' | t -}}"
+          tabindex="-1"
+          data-drawer-close
+        >
+          {% render 'icon', icon_name: 'theme-close' %}
+        </button>
       </div>
 
       <div class="cart-drawer__body{% if section.settings.sticky_checkout_button %} cart-drawer__body--pb-none{% endif %}" id="CartDrawer-Body" data-cart-body>
         {%- if cart == empty -%}
           <div class="cart-drawer__empty">
-            <p class="cart-drawer__empty-text h4">{{- 'cart.empty' | t -}}</p>
+            <p class="cart-drawer__empty-text">{{- 'cart.empty' | t -}}</p>
 
             {%-
               liquid
               assign value = 'cart.continue_shopping' | t
-              render 'button', type: 'link', href: section.settings.button_url, value: value, style: 'solid', fullwidth: true, class: 'button'
+              render 'button', type: 'link', href: section.settings.button_url, value: value, style: 'solid', fullwidth: true, class: 'button cart-drawer__checkout'
               assign value = nil
             -%}
           </div>
@@ -82,16 +82,14 @@
               <div class="cart-drawer__contents" id="CartDrawer-CartItems">
                 <div class="cart-drawer__items">
                   {%- for line_item in cart.items -%}
-                    {%- render 'line-item', line_item: line_item -%}
+                    {%- render 'line-item', line_item: line_item, in_drawer: true -%}
                   {%- endfor -%}
                 </div>
               </div>
             </form>
           </cart-drawer-items>
 
-          {%- if settings.enable_cart_upsell -%}
-            {%- render 'cart-recommendations', class: 'cart-drawer__recommendations' -%}
-          {%- endif -%}
+          {%- render 'cart-recommendations', class: 'cart-drawer__recommendations' -%}
 
           <div class="cart-drawer__summary{% if section.settings.sticky_checkout_button %} cart-drawer__summary--sticky{% endif %}">
             <form
@@ -101,15 +99,13 @@
               method="post"
             >
               <div id="cart-summary">
-                {%- render 'shipping-bar', class: 'cart-drawer__bar' -%}
-
-                <div class="cart-drawer__summary-total h4">
+                <div class="cart-drawer__summary-total">
                   <span>
                     {{- 'cart.subtotal' | t -}}:
                   </span>
 
                   <span>
-                    {{- cart.total_price | money_with_currency -}}
+                    {{- cart.total_price | money -}}
                   </span>
                 </div>
 
@@ -127,28 +123,18 @@
                   </ul>
                 {%- endif -%}
 
+                <p class="cart-drawer__summary-tax">
+                  {{- 'cart.shipping_and_discounts_at_checkout' | t -}}
+                </p>
+
                 <div class="cart-drawer__summary-actions">
                   {%-
                     liquid
                     assign value = 'cart.checkout' | t
-                    render 'button', type: 'submit', name: 'checkout', value: value, style: 'solid', fullwidth: true, class: 'button'
-                    assign value = 'cart.view_cart' | t
-                    render 'button', type: 'link', value: value, href: routes.cart_url, fullwidth: true, class: 'button', button_style: 'button--outlined'
+                    render 'button', type: 'submit', name: 'checkout', value: value, style: 'solid', fullwidth: true, class: 'button cart-drawer__checkout'
                     assign value = nil
                   -%}
                 </div>
-
-                <p class="cart-drawer__summary-tax center">
-                  {%- if cart.taxes_included and shop.shipping_policy.body != blank -%}
-                    {{ 'cart.taxes_included_and_shipping_policy_html' | t: link: shop.shipping_policy.url }}
-                  {%- elsif cart.taxes_included -%}
-                    {{ 'cart.taxes_included_but_shipping_at_checkout' | t }}
-                  {%- elsif shop.shipping_policy.body != blank -%}
-                    {{ 'cart.taxes_and_shipping_policy_at_checkout_html' | t: link: shop.shipping_policy.url }}
-                  {%- else -%}
-                    {{ 'cart.taxes_and_shipping_at_checkout' | t }}
-                  {%- endif -%}
-                </p>
               </div>
             </form>
           </div>
