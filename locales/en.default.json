@@ -376,7 +376,7 @@
   },
   "cart": {
     "title": "Your Cart",
-    "empty": "Your Cart Is Empty",
+    "empty": "Your cart is empty",
     "continue_shopping": "Continue shopping",
     "remove": "Remove",
     "subtotal": "Subtotal",
