@@ -1,67 +1,112 @@
-{% comment %} {{- 'swiper-bundle.min.css' | asset_url | stylesheet_tag -}} {% endcomment %}
-
-{% comment %} <script src="{{- 'swiper-bundle.min.js' | asset_url -}}" defer="defer"></script> {% endcomment %}
-
 <cart-recommendations
   class="cart-recommendations hidden {{ class }}"
-  data-url="{{- routes.product_recommendations_url -}}?section_id={{- section.id -}}&product_id={{- cart.items[0].product_id -}}&limit=6&intent=complementary"
+  data-url="{{- routes.product_recommendations_url -}}?section_id={{- section.id -}}&product_id={{- cart.items[0].product_id -}}&limit=8&intent=related"
 >
-  {%- if settings.cart_upsell_title != blank -%}
-    <h5 class="cart-recommendations__title h4{% if template.name == 'cart' %} heading-static{% endif %}">
-      {{- settings.cart_upsell_title | escape -}}
+  <div class="cart-recommendations__head">
+    <h5 class="cart-recommendations__title">
+      {{- 'cart.you_may_like' | t -}}
     </h5>
-  {%- endif -%}
+    <div class="cart-recommendations__nav">
+      <button
+        class="cart-recommendations__arrow cart-recommendations__arrow--prev"
+        type="button"
+        data-rec-prev
+        aria-label="{{- 'actions.previous' | t -}}"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M10.5 3L5.5 8L10.5 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </button>
+      <button
+        class="cart-recommendations__arrow cart-recommendations__arrow--next"
+        type="button"
+        data-rec-next
+        aria-label="{{- 'actions.next' | t -}}"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M5.5 3L10.5 8L5.5 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
 
   <div class="cart-recommendations__body swiper">
     <div class="cart-recommendations__items swiper-wrapper" data-recommendations>
       {%- if recommendations.performed and recommendations.products_count > 0 -%}
         {%- for recommendation in recommendations.products -%}
+          {%- liquid
+            assign rec_price = recommendation.price_min
+            assign rec_compare = recommendation.compare_at_price_min
+            assign sale_percent = 0
+            if rec_compare > rec_price
+              assign sale_percent = rec_compare | minus: rec_price | times: 100.0 | divided_by: rec_compare | round
+            endif
+
+            assign rating_value = 0
+            if recommendation.metafields.reviews.rating.value.rating != blank
+              assign rating_value = recommendation.metafields.reviews.rating.value.rating
+            elsif recommendation.metafields.loox.avg_rating != blank
+              assign rating_value = recommendation.metafields.loox.avg_rating
+            endif
+            assign rating_filled = rating_value | round
+            if rating_filled > 5
+              assign rating_filled = 5
+            endif
+
+            assign review_count = recommendation.metafields.loox.num_reviews
+            if review_count == blank
+              assign review_count = recommendation.metafields.reviews.rating_count
+            endif
+          -%}
           <div class="cart-recommendations__item-wrapper swiper-slide">
             <a href="{{- recommendation.url -}}" class="cart-recommendations__item">
-            {%- if recommendation.featured_image -%}
-              <div class="cart-recommendations__item-media">
-                <div class="media">
-                  {%- render 'image', image: recommendation.featured_image -%}
+              {%- if recommendation.featured_image -%}
+                <div class="cart-recommendations__item-media">
+                  {%- if sale_percent > 0 -%}
+                    <span class="cart-recommendations__badge">
+                      {{- 'products.product.badges.percent_off' | t: percent: sale_percent -}}
+                    </span>
+                  {%- endif -%}
+                  <div class="media">
+                    {%- render 'image', image: recommendation.featured_image, image_url_width: 400 -%}
+                  </div>
                 </div>
-              </div>
-            {%- endif -%}
+              {%- endif -%}
 
-            <div class="cart-recommendations__item-details">
-              <h6 class="cart-recommendations__item-title h6">
-                {{- recommendation.title | escape -}}
-              </h6>
+              <div class="cart-recommendations__item-details">
+                <h6 class="cart-recommendations__item-title">
+                  {{- recommendation.title | escape -}}
+                </h6>
 
-              <p class="cart-recommendations__item-price">
-                {%- if recommendation.compare_at_price_min > recommendation.price_min -%}
-                  <span class="visually-hidden">
-                    {{- 'products.product.price.regular_price' | t -}}
-                  </span>
-                  <del>
-                    {{- recommendation.compare_at_price_min | money -}}
-                  </del>
+                <p class="cart-recommendations__item-price">
+                  {%- if rec_compare > rec_price -%}
+                    <span class="visually-hidden">{{- 'products.product.price.sale_price' | t -}}</span>
+                    <ins>{{- rec_price | money -}}</ins>
+                    <span class="visually-hidden">{{- 'products.product.price.regular_price' | t -}}</span>
+                    <del>{{- rec_compare | money -}}</del>
+                    <span class="cart-recommendations__sale-label">{{- 'products.product.price.sale_badge' | t -}}</span>
+                  {%- else -%}
+                    {{- rec_price | money -}}
+                  {%- endif -%}
+                </p>
 
-                  <span class="visually-hidden">
-                    {{- 'products.product.price.sale_price' | t -}}
-                  </span>
-                  <ins>
-                    {{- recommendation.price_min | money -}}
-                  </ins>
-                {%- else -%}
-                  <span class="visually-hidden">
-                    {{- 'products.product.price.regular_price' | t -}}
-                  </span>
-                  {{- recommendation.price_min | money -}}
+                {%- if rating_value > 0 or review_count != blank -%}
+                  <div class="cart-recommendations__rating" aria-label="{{- rating_value -}} / 5">
+                    {%- for i in (1..5) -%}
+                      <span class="cart-recommendations__star{% if i <= rating_filled %} is-filled{% endif %}" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M6 0.8L7.35 4.35L11.2 4.65L8.3 7.2L9.15 11L6 9.05L2.85 11L3.7 7.2L0.8 4.65L4.65 4.35L6 0.8Z" fill="currentColor"></path>
+                        </svg>
+                      </span>
+                    {%- endfor -%}
+                    {%- if review_count != blank and review_count != 0 -%}
+                      <span class="cart-recommendations__reviews">
+                        {{- 'products.product.reviews_count' | t: count: review_count -}}
+                      </span>
+                    {%- endif -%}
+                  </div>
                 {%- endif -%}
-
-              </p>
-            </div>
-            <button
-              class="quick-cart-modal__trigger quick-cart-modal__trigger--recommendations"
-              data-product-url="{{ recommendation.url }}"
-              aria-label="Quick view {{ recommendation.title }}"
-            >
-              {% render 'icon', icon_name: 'theme-quantity-plus' %}
-            </button>
+              </div>
             </a>
           </div>
         {%- endfor -%}
