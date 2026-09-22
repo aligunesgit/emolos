@@ -1,0 +1,151 @@
+.reviews-lang-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  width: 100%;
+  position: relative;
+  z-index: 8;
+  margin: 0 0 1.6rem;
+  padding: 0;
+}
+
+.reviews-lang-bar__title {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-heading-family);
+  font-size: clamp(2.4rem, 3vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: #1b1b32;
+}
+
+.reviews-lang {
+  position: relative;
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  font-family: var(--font-body-family);
+  z-index: 12;
+}
+
+.reviews-lang__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.4rem 0.2rem 0.4rem 0.4rem;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #1b1b32;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.reviews-lang__btn:focus-visible {
+  outline: 2px solid #1b1b32;
+  outline-offset: 3px;
+}
+
+.reviews-lang__flag {
+  width: 2.2rem;
+  height: 1.6rem;
+  object-fit: cover;
+  border-radius: 0.2rem;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  display: block;
+  flex-shrink: 0;
+}
+
+.reviews-lang__code {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.reviews-lang__chevron {
+  width: 1.2rem;
+  height: 1.2rem;
+  display: block;
+  transition: transform 0.18s ease;
+}
+
+.reviews-lang.is-open .reviews-lang__chevron {
+  transform: rotate(180deg);
+}
+
+.reviews-lang__menu {
+  position: absolute;
+  top: calc(100% + 0.8rem);
+  inset-inline-end: 0;
+  min-width: 22.4rem;
+  margin: 0;
+  padding: 0.6rem 0;
+  list-style: none;
+  background: #fff;
+  border-radius: 1.2rem;
+  box-shadow: 0 1.2rem 3.2rem rgba(17, 17, 34, 0.16), 0 0 0 1px rgba(17, 17, 34, 0.04);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-0.4rem);
+  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+  z-index: 30;
+}
+
+.reviews-lang.is-open .reviews-lang__menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: none;
+}
+
+.reviews-lang__option {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  width: 100%;
+  padding: 1.2rem 1.6rem;
+  border: 0;
+  background: transparent;
+  color: #1b1b32;
+  font-size: 1.6rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: start;
+  cursor: pointer;
+}
+
+.reviews-lang__option:hover {
+  background: #f6f7fa;
+}
+
+.reviews-lang__option.is-active {
+  background: #eceef3;
+}
+
+.reviews-lang__option .reviews-lang__flag {
+  width: 2.4rem;
+  height: 1.8rem;
+}
+
+.reviews-lang.is-busy .reviews-lang__btn {
+  opacity: 0.55;
+}
+
+#looxReviews.loox-widget,
+.loox-widget#looxReviews {
+  overflow: visible !important;
+}
+
+@media screen and (max-width: 749px) {
+  .reviews-lang-bar {
+    margin-bottom: 1.2rem;
+  }
+
+  .reviews-lang__menu {
+    min-width: 20rem;
+  }
+}
