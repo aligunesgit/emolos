@@ -2,19 +2,53 @@
   display: block;
 }
 
-.cart-recommendations__title {
-  letter-spacing: 0;
-  margin: 0 0 2.4rem;
+.cart-recommendations__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  margin: 0 0 1.2rem;
 }
 
-.cart-recommendations__title,
+.cart-recommendations__title {
+  margin: 0;
+  color: #111;
+  font-family: var(--font-body-family);
+  font-size: 1.4rem;
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.cart-recommendations__nav {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.cart-recommendations__arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  color: #111;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.cart-recommendations__arrow.swiper-button-disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
 .cart-recommendations__item-title,
 .cart-recommendations__item-price {
-  color: rgb(var(--color-heading-text));
-}
-
-.cart-recommendations__item-price {
-  font-size: var(--font-size-static-xs);
+  color: #111;
 }
 
 .cart-recommendations__item-wrapper {
@@ -22,53 +56,139 @@
 }
 
 .cart-recommendations__item-wrapper.swiper-slide {
-  width: 30rem;
+  width: auto;
+  height: auto;
 }
 
 .cart-recommendations__item {
   display: flex;
-  align-items: center;
-  padding: 0.8rem;
-  border: 0.1rem solid rgba(var(--color-border), var(--alpha-border));
+  flex-direction: column;
+  align-items: flex-start;
   text-decoration: none;
   color: inherit;
 }
 
 .cart-recommendations__item-media {
-  width: 7rem;
+  position: relative;
+  width: 100%;
+  background: #ececec;
 }
 
 .cart-recommendations__item-media .media {
-  padding-block-start: calc(96 / 70 * 100%);
+  padding-block-start: 133.333%;
+}
+
+.cart-recommendations__badge {
+  position: absolute;
+  top: 0.8rem;
+  left: 0.8rem;
+  z-index: 1;
+  padding: 0.3rem 0.5rem;
+  background: #111;
+  color: #fff;
+  font-family: var(--font-body-family);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
 }
 
 .cart-recommendations__item-details {
-  flex: 1;
-  padding-inline-start: 0.8rem;
+  width: 100%;
+  padding: 1rem 0 0;
 }
 
 .cart-recommendations__item-title {
-  margin: 0 0 0.8rem;
+  margin: 0;
+  color: #111;
+  font-family: var(--font-heading-family);
+  font-size: 1.1rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .cart-recommendations__item-price {
-  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0.4rem 0 0;
+  font-family: var(--font-body-family);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.3;
 }
+
 .cart-recommendations__item-price del {
-  margin-inline-end: 0.4rem;
+  margin: 0;
+  color: #9a9a9a;
+  text-decoration: line-through;
 }
+
 .cart-recommendations__item-price ins {
-  color: var(--color-error);
+  color: #111;
   text-decoration: none;
 }
 
-.cart-recommendations__item-wrapper .quick-cart-modal__trigger svg {
+.cart-recommendations__sale-label {
+  color: #111;
+}
+
+.cart-recommendations__rating {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem;
+  margin: 0.5rem 0 0;
+  color: #111;
+  line-height: 1;
+}
+
+.cart-recommendations__star {
+  display: flex;
+  color: rgba(17, 17, 17, 0.25);
+}
+
+.cart-recommendations__star.is-filled {
+  color: #111;
+}
+
+.cart-recommendations__star svg {
+  display: block;
   width: 1.1rem;
   height: 1.1rem;
 }
 
-@media screen and (min-width: 990px) {
-  .cart-recommendations__item-wrapper.swiper-slide {
-    width: 36rem;
+.cart-recommendations__reviews {
+  margin-inline-start: 0.35rem;
+  color: #111;
+  font-family: var(--font-body-family);
+  font-size: 1.1rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.cart-drawer__recommendations {
+  padding: 1.6rem 1.6rem 2rem;
+  background: #f5f5f5;
+}
+
+.cart-drawer__recommendations .swiper {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.cart__recommendations {
+  margin-block-start: 3.2rem;
+}
+
+@media screen and (min-width: 750px) {
+  .cart-drawer__recommendations {
+    padding: 1.8rem 2rem 2.2rem;
   }
 }
