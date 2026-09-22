@@ -5,6 +5,11 @@ const sectionsToRender = [
     selector: '#shopify-section-cart-counter'
   },
   {
+    id: '#CartDrawer-Title',
+    section: 'cart-drawer',
+    selector: '#shopify-section-cart-drawer #CartDrawer-Title'
+  },
+  {
     id: '#CartDrawer-Body',
     section: 'cart-drawer',
     selector: '#shopify-section-cart-drawer #CartDrawer-Body'
@@ -89,6 +94,7 @@ class CartDrawer extends HTMLElement {
   renderContents(response, open = true) {
     this.getSectionsToRender()?.forEach(section => {
       const sectionElement = document.querySelector(section.id);
+      if (!sectionElement || !response.sections?.[section.section]) return;
       sectionElement.innerHTML = this.getSectionInnerHTML(
         response.sections[section.section],
         section.selector
@@ -106,9 +112,10 @@ class CartDrawer extends HTMLElement {
   }
 
   getSectionInnerHTML(html, selector) {
-    return new DOMParser()
+    const el = new DOMParser()
       .parseFromString(html, 'text/html')
-      .querySelector(selector).innerHTML;
+      .querySelector(selector);
+    return el ? el.innerHTML : '';
   }
 
   focusOnCartDrawer() {
