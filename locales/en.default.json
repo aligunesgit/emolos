@@ -527,11 +527,26 @@
         "per_unit_html": "{{ price }} / unit"
       },
       "tabs": {
-        "description": "Description",
+        "description": "DESCRIPTION",
         "specs": "Specs",
         "fit_guide": "Fit guide",
-        "size_guide": "Size guide"
+        "size_guide": "Size guide",
+        "delivery": "DELIVERY",
+        "returns": "RETURNS"
       },
+      "unlock_offer": "UNLOCK 30% OFF",
+      "bundle": {
+        "kicker": "3 item pack",
+        "subheading": "Add {{ count }} items and unlock {{ percent }}% off.",
+        "bar_title": "{{ count }} item pack"
+      },
+      "trust": {
+        "fast_delivery": "Fast Delivery",
+        "hassle_free_returns": "Hassle Free Returns",
+        "secure_payment": "Secure Payment Methods"
+      },
+      "delivery_fallback": "UK Standard Delivery 2–3 days. Free UK delivery over the current threshold. International options are calculated at checkout.",
+      "returns_fallback": "We offer a 14 day return period from the date that you have received your order. Items must be unworn, unwashed, and returned with original tags attached.",
       "show_full_product": "Shop Full Product",
       "badges": {
         "sold_out": "Sold out",
