@@ -2,13 +2,14 @@
     Renders line item
     Accepts:
     - line_item {Object} Liquid line_item object
+    - in_drawer {Boolean} Cart drawer layout (unit prices, no remove link)
     Usage:
     {%- render 'line-item', line_item: cart.items[0] -%}
 {% endcomment %}
 
 {%- assign line_item_index = line_item.index | plus: 1 -%}
 
-<div class="cart-item" id="CartItem-{{- line_item_index -}}">
+<div class="cart-item{% if in_drawer %} cart-item--drawer{% endif %}" id="CartItem-{{- line_item_index -}}">
   <div class="cart-item__media">
     {%- if line_item.image -%}
       <a href="{{- line_item.url -}}" class="cart-item__link">
@@ -21,97 +22,105 @@
   </div>
 
   <div class="cart-item__details">
-    <h3 class="cart-item__title h5 heading-static">
-      <a href="{{- line_item.url -}}" class="full-unstyled-link" role="button">
-        {{- line_item.product.title | escape -}}
-      </a>
-    </h3>
+    <div class="cart-item__top">
+      <div class="cart-item__info">
+        <h3 class="cart-item__title h5 heading-static">
+          <a href="{{- line_item.url -}}" class="full-unstyled-link" role="button">
+            {{- line_item.product.title | escape -}}
+          </a>
+        </h3>
 
-    {%- unless line_item.product.has_only_default_variant -%}
-      <dl>
-        {%- for option in line_item.options_with_values -%}
-          <dt>{{- option.name -}}: </dt>
-          <dd>{{- option.value -}}</dd>
-          {%- unless forloop.last -%}
-            {{- ' / ' -}}
-          {%- endunless -%}
-        {%- endfor -%}
-      </dl>
-    {%- endunless -%}
+        {%- unless line_item.product.has_only_default_variant -%}
+          <div class="cart-item__options">
+            {%- for option in line_item.options_with_values -%}
+              {%- assign option_key = option.name | downcase -%}
+              {%- if option_key == 'size' or option_key == 'beden' or option_key == 'taille' or option_key == 'größe' or option_key == 'talla' -%}
+                <p class="cart-item__option">{{- option.name -}}: {{ option.value -}}</p>
+              {%- else -%}
+                <p class="cart-item__option">{{- option.value -}}</p>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        {%- endunless -%}
 
-    {%- if line_item.properties.size != 0 -%}
-      <dl>
-        {%- for property in line_item.properties -%}
-          {%- assign property_first_char = property.first | slice: 0 -%}
-          {%- if property.last != blank and property_first_char != '_' -%}
-            <div>
-              <dt>{{ property.first }}: </dt>
-              <dd>
-                {%- if property.last contains '/uploads/' -%}
-                  <a href="{{- property.last -}}" class="link" target="_blank" role="button">
-                    {{- property.last | split: '/' | last -}}
-                  </a>
-                {%- else -%}
-                  {{- property.last -}}
-                {%- endif -%}
-              </dd>
-            </div>
-          {%- endif -%}
-        {%- endfor -%}
-      </dl>
-    {%- endif -%}
+        {%- if line_item.properties.size != 0 -%}
+          <dl>
+            {%- for property in line_item.properties -%}
+              {%- assign property_first_char = property.first | slice: 0 -%}
+              {%- if property.last != blank and property_first_char != '_' -%}
+                <div>
+                  <dt>{{ property.first }}: </dt>
+                  <dd>
+                    {%- if property.last contains '/uploads/' -%}
+                      <a href="{{- property.last -}}" class="link" target="_blank" role="button">
+                        {{- property.last | split: '/' | last -}}
+                      </a>
+                    {%- else -%}
+                      {{- property.last -}}
+                    {%- endif -%}
+                  </dd>
+                </div>
+              {%- endif -%}
+            {%- endfor -%}
+          </dl>
+        {%- endif -%}
 
-    {%- if line_item.selling_plan_allocation != nil -%}
-      <p class="cart-item__plan">{{- line_item.selling_plan_allocation.selling_plan.name -}}</p>
-    {%- endif -%}
+        {%- if line_item.selling_plan_allocation != nil -%}
+          <p class="cart-item__plan">{{- line_item.selling_plan_allocation.selling_plan.name -}}</p>
+        {%- endif -%}
+      </div>
 
-    <div class="cart-item__price">
-      {% liquid
-        assign original_line_price = line_item.variant.compare_at_price | times: line_item.quantity
-        assign final_line_price = line_item.variant.price | times: line_item.quantity
-        assign final_price = line_item.final_line_price
-      %}
+      <div class="cart-item__price">
+        {% liquid
+          if in_drawer
+            assign display_price = line_item.final_price
+            assign display_compare = line_item.variant.compare_at_price | default: line_item.original_price
+          else
+            assign display_price = line_item.final_line_price
+            assign display_compare = line_item.variant.compare_at_price | times: line_item.quantity
+            if line_item.line_level_total_discount > 0
+              assign display_compare = line_item.original_line_price
+            endif
+          endif
+        %}
 
-      {%- if original_line_price > final_line_price or line_item.line_level_total_discount > 0 -%}
-        <div class="cart-item__discounted-prices">
-          <span class="visually-hidden">
-            {{- 'products.product.price.regular_price' | t -}}
-          </span>
-          <del>
-            {%- if line_item.line_level_total_discount > 0 -%}
-              {{- final_line_price | money -}}
-            {% else %}
-              {{- original_line_price | money -}}
-            {% endif %}
-          </del>
+        {%- if display_compare > display_price -%}
+          <div class="cart-item__discounted-prices">
+            <span class="visually-hidden">
+              {{- 'products.product.price.sale_price' | t -}}
+            </span>
+            <ins>
+              {{- display_price | money -}}
+            </ins>
 
-          <span class="visually-hidden">
-            {{- 'products.product.price.sale_price' | t -}}
-          </span>
-          <ins class="color-red">
-            {{- final_price | money -}}
-          </ins>
-        </div>
-      {%- else -%}
-        {{- line_item.original_line_price | money -}}
-      {%- endif -%}
+            <span class="visually-hidden">
+              {{- 'products.product.price.regular_price' | t -}}
+            </span>
+            <del>
+              {{- display_compare | money -}}
+            </del>
+          </div>
+        {%- else -%}
+          {{- display_price | money -}}
+        {%- endif -%}
 
-      {%- if line_item.variant.available and line_item.unit_price_measurement -%}
-        <div>
-          <span class="visually-hidden">
-            {{- 'products.product.price.unit_price' | t -}}
-          </span>
-          {{- line_item.variant.unit_price | money -}}
+        {%- if line_item.variant.available and line_item.unit_price_measurement -%}
+          <div>
+            <span class="visually-hidden">
+              {{- 'products.product.price.unit_price' | t -}}
+            </span>
+            {{- line_item.variant.unit_price | money -}}
 
-          <span aria-hidden="true">/</span>
+            <span aria-hidden="true">/</span>
 
-          {%- if line_item.variant.unit_price_measurement.reference_value != 1 -%}
-            {{- line_item.variant.unit_price_measurement.reference_value -}}
-          {%- endif -%}
+            {%- if line_item.variant.unit_price_measurement.reference_value != 1 -%}
+              {{- line_item.variant.unit_price_measurement.reference_value -}}
+            {%- endif -%}
 
-          {{ line_item.variant.unit_price_measurement.reference_unit }}
-        </div>
-      {%- endif -%}
+            {{ line_item.variant.unit_price_measurement.reference_unit }}
+          </div>
+        {%- endif -%}
+      </div>
     </div>
 
     {%- if line_item.discounts -%}
@@ -138,12 +147,14 @@
       -%}
     </div>
 
-    <cart-remove-button
-      id="Remove-{{- line_item_index -}}"
-      data-index="{{- line_item_index -}}"
-    >
-      <a href="{{- line_item.url_to_remove -}}" role="button">{{- 'cart.remove' | t -}}</a>
-    </cart-remove-button>
+    {%- unless in_drawer -%}
+      <cart-remove-button
+        id="Remove-{{- line_item_index -}}"
+        data-index="{{- line_item_index -}}"
+      >
+        <a href="{{- line_item.url_to_remove -}}" role="button">{{- 'cart.remove' | t -}}</a>
+      </cart-remove-button>
+    {%- endunless -%}
 
     <p class="cart-item__error color-red" role="alert" data-line-item-error data-line="{{- line_item_index -}}"></p>
   </div>
