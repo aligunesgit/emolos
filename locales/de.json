@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "actions": {
     "add": "Hinzufügen",
@@ -477,6 +486,8 @@
     "continue_shopping": "Einkauf fortsetzen",
     "remove": "Entfernen",
     "subtotal": "Zwischensumme",
+    "you_may_like": "You may like",
+    "shipping_and_discounts_at_checkout": "Shipping and discounts calculated at checkout.",
     "taxes_and_shipping_at_checkout": "Steuer und Versand beim Bezahlen berechnet",
     "taxes_included_and_shipping_policy_html": "Steuer inbegriffen. <a href=\"{{ link }}\">Versand</a> wird beim Bezahlen berechnet.",
     "taxes_included_but_shipping_at_checkout": "Steuer inbegriffen",
