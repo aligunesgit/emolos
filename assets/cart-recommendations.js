@@ -64,9 +64,15 @@ class CartRecommendations extends HTMLElement {
     }
 
     this.slider = new Swiper(el, {
-      slidesPerView: 2.15,
-      spaceBetween: 10,
+      slidesPerView: 2.05,
+      spaceBetween: 16,
       watchOverflow: true,
+      breakpoints: {
+        750: {
+          slidesPerView: 2.15,
+          spaceBetween: 16
+        }
+      },
       navigation: {
         nextEl: this.querySelector('[data-rec-next]'),
         prevEl: this.querySelector('[data-rec-prev]')
