@@ -115,24 +115,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4.8rem;
-  height: 4.8rem;
-  margin: 0 0 2.4rem;
+  width: 3.8rem;
+  height: 3.8rem;
+  margin: 0 0 2rem;
   color: #111;
 }
 
 .cart-drawer__empty-icon svg {
-  width: 4.8rem;
-  height: 4.8rem;
+  display: block;
+  width: 3.8rem;
+  height: 3.8rem;
 }
 
 .cart-drawer__empty-text {
   font-family: var(--font-heading-family);
-  font-size: 2rem;
+  font-size: 3rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
-  margin: 0 0 2.4rem;
+  margin: 0 0 2rem;
   line-height: 1.2;
 }
 
