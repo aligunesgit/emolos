@@ -58,12 +58,20 @@
       <div class="cart-drawer__body{% if section.settings.sticky_checkout_button %} cart-drawer__body--pb-none{% endif %}" id="CartDrawer-Body" data-cart-body>
         {%- if cart == empty -%}
           <div class="cart-drawer__empty">
+            <div class="cart-drawer__empty-icon" aria-hidden="true">
+              <svg width="38" height="38" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+                <g fill="none" fill-rule="evenodd" stroke="currentColor" stroke-width="1.5">
+                  <path d="M2 9.25h20l-4 12H6z"></path>
+                  <path stroke-linecap="square" d="M12 9V3"></path>
+                </g>
+              </svg>
+            </div>
             <p class="cart-drawer__empty-text">{{- 'cart.empty' | t -}}</p>
 
             {%-
               liquid
-              assign value = 'cart.continue_shopping' | t
-              render 'button', type: 'link', href: section.settings.button_url, value: value, style: 'solid', fullwidth: true, class: 'button cart-drawer__checkout'
+              assign value = 'actions.start_shopping' | t
+              render 'button', type: 'link', href: section.settings.button_url, value: value, style: 'solid', fullwidth: false, class: 'button cart-drawer__empty-btn'
               assign value = nil
             -%}
           </div>
