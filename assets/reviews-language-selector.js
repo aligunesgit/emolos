@@ -72,12 +72,6 @@
     return 'https://flagcdn.com/w40/' + country + '.png';
   }
 
-  function esc(value) {
-    return String(value || '').replace(/[&<>"']/g, function (char) {
-      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char];
-    });
-  }
-
   function findHosts() {
     return Array.from(document.querySelectorAll('#looxReviews.loox-widget')).filter(function (host) {
       return host.querySelector('iframe');
@@ -223,163 +217,107 @@
     });
     if (!res.ok) throw new Error('widget html ' + res.status);
     const html = await res.text();
-    if (!html || html.length < 200) throw new Error('widget html empty');
+    if (!html || html.indexOf('grid-item') === -1) throw new Error('widget html empty');
     htmlCache.set(src, html);
     return html;
   }
 
-  function safeImage(src) {
-    try {
-      const url = new URL(src, 'https://loox.io');
-      if (url.protocol !== 'https:') return '';
-      if (!/(^|\.)loox\.io$/i.test(url.hostname)) return '';
-      return url.href;
-    } catch (e) {
-      return '';
-    }
+  function formatReviewDate(el) {
+    const stamped = el.getAttribute('data-time');
+    if (!stamped) return '';
+    const date = new Date(Number(stamped));
+    if (isNaN(date.getTime())) return '';
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return day + '.' + month + '.' + date.getFullYear();
   }
 
-  function parseWidget(html) {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    const avg = ((doc.querySelector('[data-testid="rating-summary-avg"]') || {}).textContent || '').trim() || '0';
-    const countLabel = ((doc.querySelector('[data-testid="rating-summary-count"]') || {}).textContent || '').trim();
-    const dist = [5, 4, 3, 2, 1].map(function (star) {
-      const el = doc.querySelector('[data-testid="rating-filter-button-stars_' + star + '"]');
-      return parseInt(((el && el.textContent) || '0').replace(/\D/g, ''), 10) || 0;
-    });
-
-    const texts = Array.from(doc.querySelectorAll('[data-testid$="-text"], .pre-wrap.main-text, .main-text'));
-    const seen = new Set();
-    const reviews = [];
-
-    texts.forEach(function (textEl) {
-      const body = (textEl.textContent || '').trim();
-      if (!body || seen.has(body)) return;
-      seen.add(body);
-
-      const testId = textEl.getAttribute('data-testid') || '';
-      const id = testId.replace(/-text$/, '');
-      const root =
-        textEl.closest('.grid-item-wrap, .grid-item, .box') || textEl.parentElement;
-      const titleEl = (id && doc.querySelector('[data-testid="' + id + '-title"]')) ||
-        (root && root.querySelector('[data-testid$="-title"], .title, .block.title'));
-      const dateEl = (id && doc.querySelector('[data-testid="' + id + '-date"]')) ||
-        (root && root.querySelector('[data-testid$="-date"], .time, .block.time'));
-      const starRoot = (id && doc.querySelector('[data-testid="' + id + '-stars"]')) || root;
-      const stars = starRoot ? starRoot.querySelectorAll('[data-lx-fill="full"], .loox-icon.star').length : 5;
-      const images = root
-        ? Array.from(root.querySelectorAll('img'))
-            .map(function (img) {
-              return safeImage(img.getAttribute('src') || img.getAttribute('data-src') || '');
-            })
-            .filter(Boolean)
-        : [];
-      const blob = ((root && root.textContent) || '');
-      const itemTypeMatch = blob.match(/Item type:\s*([^\n]+)/i);
-      reviews.push({
-        name: ((titleEl && titleEl.textContent) || '').trim(),
-        date: ((dateEl && dateEl.textContent) || '').trim(),
-        text: body,
-        stars: stars || 5,
-        images: images,
-        verified: /verified/i.test(blob),
-        itemType: itemTypeMatch ? itemTypeMatch[1].trim() : ''
+  function absolutize(root) {
+    root.querySelectorAll('[src], [href]').forEach(function (node) {
+      ['src', 'href'].forEach(function (attr) {
+        let value = node.getAttribute(attr);
+        if (!value || value.charAt(0) === '#' || value.indexOf('javascript:') === 0) return;
+        if (value.indexOf('//') === 0) value = 'https:' + value;
+        if (/^(https?:|data:|mailto:|tel:)/i.test(value)) {
+          node.setAttribute(attr, value);
+          return;
+        }
+        try {
+          node.setAttribute(attr, new URL(value, 'https://loox.io/').href);
+        } catch (e) {}
       });
     });
-
-    return { avg: avg, countLabel: countLabel, dist: dist, reviews: reviews };
   }
 
-  function starsHtml(count) {
-    let html = '<span class="rlo-stars" aria-hidden="true">';
-    for (let i = 1; i <= 5; i++) {
-      html += '<span class="rlo-star' + (i <= count ? ' is-on' : '') + '">★</span>';
-    }
-    return html + '</span>';
-  }
-
-  function renderOverlay(data, code) {
-    const maxBar = Math.max.apply(null, data.dist.concat([1]));
-    const countNumber = parseInt((data.countLabel || '').replace(/\D/g, ''), 10);
-    const countText = isNaN(countNumber)
-      ? data.countLabel
-      : countNumber + ' ' + t('reviews', code);
-
-    let bars = '';
-    data.dist.forEach(function (num, index) {
-      const star = 5 - index;
-      const width = Math.max(2, Math.round((num / maxBar) * 100));
-      bars +=
-        '<div class="rlo-bar">' +
-        starsHtml(star) +
-        '<span class="rlo-bar__track"><span class="rlo-bar__fill" style="width:' +
-        (num ? width : 0) +
-        '%"></span></span>' +
-        '<span class="rlo-bar__n">(' +
-        num +
-        ')</span></div>';
-    });
-
-    let cards = '';
-    data.reviews.forEach(function (review) {
-      const imgs = review.images
-        .map(function (src) {
-          return '<img class="rlo-card__img" src="' + esc(src) + '" alt="">';
-        })
-        .join('');
-      cards +=
-        '<article class="rlo-card' +
-        (review.images.length ? ' has-photo' : '') +
-        '">' +
-        imgs +
-        '<div class="rlo-card__body">' +
-        '<div class="rlo-card__name">' +
-        esc(review.name) +
-        (review.verified
-          ? ' <span class="rlo-card__verified">✔ ' + esc(t('verified', code)) + '</span>'
-          : '') +
-        '</div>' +
-        (review.date ? '<div class="rlo-card__date">' + esc(review.date) + '</div>' : '') +
-        starsHtml(review.stars) +
-        '<p class="rlo-card__text">' +
-        esc(review.text) +
-        '</p>' +
-        (review.itemType
-          ? '<div class="rlo-card__meta">' +
-            esc(t('itemType', code)) +
-            ' ' +
-            esc(review.itemType) +
-            '</div>'
-          : '') +
-        '</div></article>';
-    });
-
+  function masonryScript() {
     return (
-      '<div class="rlo">' +
-      '<div class="rlo-head">' +
-      '<div class="rlo-score"><span class="rlo-score__star">★</span><span class="rlo-score__n">' +
-      esc(data.avg) +
-      '</span><div class="rlo-score__count">' +
-      esc(countText) +
-      '</div></div>' +
-      '<div class="rlo-bars">' +
-      bars +
-      '</div>' +
-      '<button type="button" class="rlo-write">' +
-      esc(t('write', code)) +
-      '</button></div>' +
-      '<div class="rlo-grid">' +
-      cards +
-      '</div></div>'
+      '<script>(function(){function cols(g){var w=g.clientWidth;if(w>=1150)return 5;if(w>=920)return 4;if(w>=480)return 3;if(w>=320)return 2;return 1;}function layout(){var grid=document.getElementById("grid");if(!grid)return;document.body.classList.add("grid-active");document.body.style.visibility="visible";document.documentElement.style.overflow="auto";document.body.style.overflow="auto";var items=[].slice.call(grid.querySelectorAll(".grid-item-wrap"));var n=cols(grid);var colW=grid.clientWidth/n;var heights=Array(n).fill(0);items.forEach(function(item){item.style.position="absolute";item.style.width=colW+"px";item.style.float="none";var i=heights.indexOf(Math.min.apply(null,heights));item.style.left=(i*colW)+"px";item.style.top=heights[i]+"px";heights[i]+=item.offsetHeight;});grid.style.position="relative";grid.style.height=Math.max.apply(null,heights.concat([0]))+"px";try{parent.postMessage({looxEmolosHeight:document.documentElement.scrollHeight},"*")}catch(e){}}document.addEventListener("click",function(e){if(e.target.closest("[data-testid=\\"write-review-button\\"]")){e.preventDefault();try{parent.postMessage({looxEmolosWrite:true},"*")}catch(err){}}});window.addEventListener("load",layout);window.addEventListener("resize",layout);[].slice.call(document.images).forEach(function(img){if(!img.complete)img.addEventListener("load",layout);});setTimeout(layout,40);setTimeout(layout,250);setTimeout(layout,800);})();<\/script>'
     );
+  }
+
+  function prepareDocument(html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    Array.from(doc.querySelectorAll('script')).forEach(function (node) {
+      node.remove();
+    });
+    if (!doc.querySelector('base')) {
+      const base = doc.createElement('base');
+      base.href = 'https://loox.io/';
+      doc.head.insertBefore(base, doc.head.firstChild);
+    }
+    absolutize(doc);
+    doc.body.classList.add('grid-active');
+    doc.body.style.visibility = 'visible';
+    doc.documentElement.style.overflow = 'auto';
+    doc.body.style.overflow = 'auto';
+
+    const force = doc.createElement('style');
+    force.textContent =
+      'html,body{visibility:visible!important;opacity:1!important;overflow:auto!important;height:auto!important;}body.grid-active{visibility:visible!important;}';
+    doc.head.appendChild(force);
+
+    doc.querySelectorAll('[data-time]').forEach(function (el) {
+      if (!(el.textContent || '').trim()) el.textContent = formatReviewDate(el);
+    });
+
+    return doc;
+  }
+
+  async function translateDom(doc, code) {
+    const bodies = Array.from(doc.querySelectorAll('[data-testid$="-text"], .pre-wrap.main-text, .main-text'));
+    await Promise.all(
+      bodies.map(async function (el) {
+        const original = (el.textContent || '').trim();
+        if (!original) return;
+        el.textContent = await translateText(original, code);
+      })
+    );
+
+    doc.querySelectorAll('.verified-badge-and-text span').forEach(function (el) {
+      if (/verified/i.test(el.textContent || '')) el.textContent = t('verified', code);
+    });
+
+    const write = doc.querySelector('[data-testid="write-review-button"]');
+    if (write) write.textContent = t('write', code);
+
+    const count = doc.querySelector('[data-testid="rating-summary-count"] span') ||
+      doc.querySelector('[data-testid="rating-summary-count"]');
+    if (count) {
+      const n = (count.textContent || '').replace(/\D/g, '');
+      if (n) count.textContent = n + ' ' + t('reviews', code);
+    }
+
+    doc.querySelectorAll('.metadata .small.text-muted').forEach(function (el) {
+      if (/item type/i.test(el.textContent || '')) el.textContent = t('itemType', code);
+    });
   }
 
   function showOriginalWidget(host) {
     host.classList.remove('is-cloned');
-    const overlay = host.querySelector('.reviews-lang-overlay');
-    if (overlay) overlay.remove();
     const clone = host.querySelector('.reviews-lang-clone-frame');
     if (clone) clone.remove();
+    const overlay = host.querySelector('.reviews-lang-overlay');
+    if (overlay) overlay.remove();
     const iframe = looxIframe(host);
     if (iframe && iframe.hasAttribute('srcdoc')) {
       iframe.removeAttribute('srcdoc');
@@ -389,33 +327,50 @@
     if (host.dataset.emolosHeight) host.style.height = host.dataset.emolosHeight;
   }
 
-  async function renderTranslatedOverlay(host, code) {
+  function waitForFrame(frame) {
+    return new Promise(function (resolve) {
+      const done = function () {
+        resolve();
+      };
+      frame.addEventListener('load', done, { once: true });
+      setTimeout(done, 1200);
+    });
+  }
+
+  async function renderTranslatedClone(host, code) {
     const iframe = looxIframe(host);
     const src = originalIframeSrc(iframe);
     if (!src) throw new Error('no iframe src');
 
     const html = await fetchWidgetHtml(src);
-    const parsed = parseWidget(html);
-    if (!parsed.reviews.length) throw new Error('no reviews');
+    const doc = prepareDocument(html);
+    await translateDom(doc, code);
 
-    await Promise.all(
-      parsed.reviews.map(async function (review) {
-        review.text = await translateText(review.text, code);
-      })
-    );
-
-    let overlay = host.querySelector('.reviews-lang-overlay');
-    if (!overlay) {
-      overlay = document.createElement('div');
-      overlay.className = 'reviews-lang-overlay';
-      iframe.parentNode.insertBefore(overlay, iframe.nextSibling);
-      overlay.addEventListener('click', function (event) {
-        if (event.target.closest('.rlo-write') && window.LOOX && window.LOOX.showReviewForm) {
-          window.LOOX.showReviewForm();
-        }
-      });
+    let frame = host.querySelector('.reviews-lang-clone-frame');
+    if (!frame) {
+      frame = document.createElement('iframe');
+      frame.className = 'reviews-lang-clone-frame';
+      frame.setAttribute('title', 'Translated reviews');
+      frame.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-popups');
+      iframe.parentNode.insertBefore(frame, iframe.nextSibling);
     }
-    overlay.innerHTML = renderOverlay(parsed, code);
+
+    const htmlOut = '<!DOCTYPE html>' + doc.documentElement.outerHTML.replace('</body>', masonryScript() + '</body>');
+    const loaded = waitForFrame(frame);
+    frame.srcdoc = htmlOut;
+    await loaded;
+
+    const cloneDoc = frame.contentDocument;
+    if (!cloneDoc || !cloneDoc.body || (cloneDoc.body.innerText || '').trim().length < 8) {
+      throw new Error('empty clone');
+    }
+
+    const height = Math.max(
+      cloneDoc.documentElement.scrollHeight || 0,
+      cloneDoc.body.scrollHeight || 0,
+      iframe.offsetHeight || 400
+    );
+    frame.style.height = height + 'px';
 
     if (!host.dataset.emolosHeight) host.dataset.emolosHeight = host.style.height || '';
     host.style.height = 'auto';
@@ -436,7 +391,7 @@
     try {
       for (let i = 0; i < hosts.length; i++) {
         if (code === 'en') showOriginalWidget(hosts[i]);
-        else await renderTranslatedOverlay(hosts[i], code);
+        else await renderTranslatedClone(hosts[i], code);
       }
     } catch (e) {
       hosts.forEach(showOriginalWidget);
@@ -491,6 +446,19 @@
 
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') closeAll();
+  });
+
+  window.addEventListener('message', function (event) {
+    const data = event.data;
+    if (!data) return;
+    if (data.looxEmolosWrite && window.LOOX && typeof window.LOOX.showReviewForm === 'function') {
+      window.LOOX.showReviewForm();
+    }
+    if (data.looxEmolosHeight) {
+      document.querySelectorAll('.reviews-lang-clone-frame').forEach(function (frame) {
+        frame.style.height = data.looxEmolosHeight + 'px';
+      });
+    }
   });
 
   observer = new MutationObserver(function () {
