@@ -255,6 +255,61 @@
     );
   }
 
+  const STAR_FILL =
+    'M24 9.425c0 .212-.125.443-.375.693l-5.236 5.105 1.24 7.212c.01.067.015.164.015.289a.85.85 0 0 1-.151.511.51.51 0 0 1-.44.21c-.183 0-.375-.058-.577-.174L12 19.869l-6.476 3.404c-.212.115-.404.173-.577.173-.202 0-.353-.07-.454-.21a.85.85 0 0 1-.152-.511c0-.058.01-.154.03-.289l1.24-7.211-5.25-5.106C.12 9.858 0 9.628 0 9.425c0-.355.27-.577.808-.663l7.24-1.053 3.245-6.562c.183-.395.418-.592.707-.592s.524.197.707.592l3.245 6.562 7.24 1.053c.539.086.808.308.808.663Z';
+  function svgEl(doc, name, attrs) {
+    const el = doc.createElementNS('http://www.w3.org/2000/svg', name);
+    Object.keys(attrs).forEach(function (key) {
+      el.setAttribute(key, attrs[key]);
+    });
+    return el;
+  }
+
+  function inlineLooxIcons(doc) {
+    doc.querySelectorAll('svg.loox-icon.star, svg[data-lx-fill], .reviews-dist svg, [data-testid="rating-summary-score"] svg').forEach(function (svg) {
+      if (svg.id === 'loox-rating-icon-svg-store' || svg.id === 'menu-icon-svg') return;
+      const fill = (svg.getAttribute('data-lx-fill') || '').toLowerCase();
+      svg.setAttribute('viewBox', svg.getAttribute('viewBox') || '0 0 24 24');
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      if (fill === 'empty') {
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', 'currentColor');
+        svg.setAttribute('stroke-width', '1.4');
+      } else {
+        svg.setAttribute('fill', 'currentColor');
+        svg.removeAttribute('stroke');
+        svg.removeAttribute('stroke-width');
+      }
+      svg.appendChild(svgEl(doc, 'path', { d: STAR_FILL }));
+    });
+
+    const sortBtn =
+      doc.querySelector('[data-testid="sorting-menu-dropdown-button"]') ||
+      doc.querySelector('.menu-icon.header-btn') ||
+      doc.querySelector('.widget-header-actions .menu-icon');
+    if (sortBtn) {
+      sortBtn.querySelectorAll('svg').forEach(function (node) {
+        node.remove();
+      });
+      const icon = svgEl(doc, 'svg', {
+        viewBox: '0 0 24 24',
+        width: '18',
+        height: '18',
+        fill: 'none',
+        stroke: 'currentColor',
+        'stroke-width': '1.8',
+        'stroke-linecap': 'round',
+        'aria-hidden': 'true',
+        focusable: 'false'
+      });
+      icon.appendChild(svgEl(doc, 'path', { d: 'M4 8h16' }));
+      icon.appendChild(svgEl(doc, 'path', { d: 'M4 16h16' }));
+      icon.appendChild(svgEl(doc, 'path', { d: 'M9 5v6' }));
+      icon.appendChild(svgEl(doc, 'path', { d: 'M15 13v6' }));
+      sortBtn.insertBefore(icon, sortBtn.firstChild);
+    }
+  }
+
   function prepareDocument(html) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     Array.from(doc.querySelectorAll('script')).forEach(function (node) {
@@ -266,6 +321,7 @@
       doc.head.insertBefore(base, doc.head.firstChild);
     }
     absolutize(doc);
+    inlineLooxIcons(doc);
     doc.body.classList.add('grid-active');
     doc.body.style.visibility = 'visible';
     doc.documentElement.style.overflow = 'auto';
@@ -273,7 +329,11 @@
 
     const force = doc.createElement('style');
     force.textContent =
-      'html,body{visibility:visible!important;opacity:1!important;overflow:auto!important;height:auto!important;}body.grid-active{visibility:visible!important;}';
+      'html,body{visibility:visible!important;opacity:1!important;overflow:auto!important;height:auto!important;}body.grid-active{visibility:visible!important;}' +
+      'svg.loox-icon.star,svg[data-lx-fill],.reviews-dist svg,[data-testid="rating-summary-score"] svg{display:inline-block;width:1em;height:1em;vertical-align:middle;}' +
+      'svg[data-lx-fill="empty"]{fill:none!important;stroke:currentColor;stroke-width:1.4;}' +
+      'svg[data-lx-fill="full"],svg[data-lx-fill="half"],[data-testid="rating-summary-score"] svg{fill:currentColor;stroke:none;}' +
+      '[data-testid="sorting-menu-dropdown-button"] svg,.menu-icon.header-btn svg{display:block;width:18px;height:18px;margin:auto;color:currentColor;}';
     doc.head.appendChild(force);
 
     doc.querySelectorAll('[data-time]').forEach(function (el) {
@@ -345,6 +405,7 @@
     const html = await fetchWidgetHtml(src);
     const doc = prepareDocument(html);
     await translateDom(doc, code);
+    inlineLooxIcons(doc);
 
     let frame = host.querySelector('.reviews-lang-clone-frame');
     if (!frame) {
@@ -364,6 +425,7 @@
     if (!cloneDoc || !cloneDoc.body || (cloneDoc.body.innerText || '').trim().length < 8) {
       throw new Error('empty clone');
     }
+    inlineLooxIcons(cloneDoc);
 
     const height = Math.max(
       cloneDoc.documentElement.scrollHeight || 0,
