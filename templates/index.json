@@ -176,10 +176,12 @@
       "type": "collection-image",
       "name": "Collection image",
       "settings": {
+        "image": "shopify://shop_images/DSC0932_resized_01176e90-5198-474f-90de-872f7342ad6b.jpg",
+        "image_mobile": "shopify://shop_images/DSC0932_resized_01176e90-5198-474f-90de-872f7342ad6b.jpg",
         "heading": "",
         "button_label": "SHOP NOW",
         "button_link": "",
-        "collection": ""
+        "collection": "all-products"
       }
     },
     "1658994245757c7b20": {
