@@ -11,7 +11,7 @@
     {%- endif -%}
 
     {%- if predictive_search.resources.queries.size > 0 or predictive_search.resources.collections.size > 0 -%}
-      <div class="predictive-search__row">
+      <div class="predictive-search__row predictive-search__row--suggestions">
         <h6 class="predictive-search__title">
           {{- 'search.queries_title' | t -}}
         </h6>
