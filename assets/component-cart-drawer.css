@@ -199,7 +199,7 @@
 .cart-drawer__summary {
   padding: 1.6rem 2rem 2rem;
   background: #fff;
-  margin-top: auto;
+  margin-top: 0;
   flex-shrink: 0;
 }
 
@@ -210,7 +210,7 @@
   width: 100%;
   z-index: 5;
   background: #fff;
-  margin-top: auto;
+  margin-top: 0;
   padding: 1.6rem 2rem 2rem;
 }
 
@@ -292,7 +292,12 @@ cart-drawer-items.is-loading .cart-drawer__spinner {
 
 .cart-drawer__recommendations {
   margin: 0;
+  margin-top: auto;
   flex-shrink: 0;
+}
+
+.cart-drawer__recommendations.hidden + .cart-drawer__summary {
+  margin-top: auto;
 }
 
 .is-visible .cart-drawer__overlay,
