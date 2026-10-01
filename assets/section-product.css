@@ -2994,10 +2994,10 @@ html.js .product-info-tabs .accordion__section.is-active .accordion__body {
   min-height: 48px;
   padding: 15px 25px;
   margin: 0;
-  border: 1px solid #232323 !important;
+  border: 1px solid #1a1a1a !important;
   border-radius: 0;
-  background: #fff !important;
-  color: #232323 !important;
+  background: #1a1a1a !important;
+  color: #ffffff !important;
   font-family: var(--font-button-family);
   font-size: 1.2rem;
   font-weight: 600;
@@ -3048,9 +3048,9 @@ html.js .product-info-tabs .accordion__section.is-active .accordion__body {
 }
 
 .product__content .product-selector__submit.button:hover {
-  background: #282828 !important;
-  color: #fff !important;
-  border-color: #282828 !important;
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-color: #000000 !important;
 }
 
 .product__content .product-selector__submit.button.is-loading,
