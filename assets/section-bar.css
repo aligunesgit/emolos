@@ -46,6 +46,10 @@ html.no-js .bar__swiper .swiper-wrapper {
   .bar__countdown-timer__text-content {
     flex-direction: row;
   }
+
+  .bar {
+    font-size: 1.4rem;
+  }
 }
 
 @media screen and (min-width: 750px) {
