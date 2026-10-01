@@ -351,6 +351,16 @@ a.header__nav-link {
   }
 }
 
+@media screen and (max-width: 989px) {
+  .header__utils-items > .header__utils-item.header__utils-item--search {
+    display: list-item !important;
+  }
+
+  .header__utils-items > .header__utils-item.header__utils-item--wk {
+    display: none !important;
+  }
+}
+
 @media screen and (min-width: 1100px) {
   .header__utils-items {
     margin-inline: -1rem;
