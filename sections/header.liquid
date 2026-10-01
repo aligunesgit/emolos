@@ -483,6 +483,12 @@ document.addEventListener('DOMContentLoaded', function () {
   .header__logo {
     width: {{ section.settings.logo_width_mobile | divided_by: 10.0 }}rem;
   }
+  @media screen and (max-width: 749px) {
+    .header__logo {
+      width: 100px;
+      max-width: 100px;
+    }
+  }
   .header__logo.header__logo-text .h4 {
     font-size: calc(var(--font-heading-scale) * 1.6rem * {{ section.settings.logo_font_size }});
   }
